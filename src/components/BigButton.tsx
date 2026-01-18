@@ -1,106 +1,112 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 
 interface BigButtonProps {
     label: string;
     icon: React.ReactNode;
-    color: string;
     onClick: () => void;
+    color?: string;
+    description?: string; // Added description for better UX
 }
 
-export default function BigButton({ label, icon, color, onClick }: BigButtonProps) {
-    const [isHovered, setIsHovered] = useState(false);
-
+export default function BigButton({ label, icon, onClick, color = 'var(--primary)', description }: BigButtonProps) {
     return (
         <button
             onClick={onClick}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
             style={{
                 ...styles.button,
-                background: isHovered
-                    ? `rgba(255, 255, 255, 0.95)`
-                    : 'rgba(255, 255, 255, 0.7)',
-                backdropFilter: 'blur(12px)',
-                WebkitBackdropFilter: 'blur(12px)',
-                borderColor: isHovered ? color : 'rgba(255,255,255,0.8)',
-                transform: isHovered ? 'translateY(-10px) scale(1.02)' : 'translateY(0) scale(1)',
-                boxShadow: isHovered
-                    ? `0 20px 40px -5px ${color}40, 0 10px 20px -5px ${color}20`
-                    : '0 10px 15px -3px rgba(0,0,0,0.1)',
+                background: `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`,
+                boxShadow: `0 10px 20px -5px ${color}80`,
             }}
-            className="animate-float"
+            className="big-btn"
         >
-            <div style={{
-                ...styles.iconWrapper,
-                color: isHovered ? '#fff' : color,
-                background: isHovered ? `linear-gradient(135deg, ${color}, ${color}dd)` : `${color}15`,
-                padding: '1.5rem',
-                borderRadius: '50%',
-                transform: isHovered ? 'rotate(5deg) scale(1.1)' : 'rotate(0deg) scale(1)',
-                boxShadow: isHovered ? `0 10px 20px -5px ${color}60` : 'none',
-            }}>
+            <div style={styles.iconWrapper} className="icon-bounce">
                 {icon}
             </div>
-            <span style={{
-                ...styles.label,
-                background: isHovered
-                    ? `linear-gradient(135deg, ${color}, ${color})`
-                    : 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
-            }}>{label}</span>
-            {isHovered && (
-                <div style={{
-                    ...styles.shine,
-                    background: `linear-gradient(90deg, transparent, ${color}20, transparent)`,
-                }} />
-            )}
+            <div style={styles.content}>
+                <span style={styles.label}>{label}</span>
+                {description && <span style={styles.description}>{description}</span>}
+            </div>
+
+            {/* Decorative shine effect */}
+            <div style={styles.shine} />
+
+            <style jsx>{`
+                .big-btn {
+                    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+                }
+                .big-btn:hover {
+                    transform: translateY(-8px) scale(1.02);
+                    filter: brightness(1.1);
+                }
+                .big-btn:hover .icon-bounce {
+                    transform: scale(1.1) rotate(5deg);
+                }
+                .icon-bounce {
+                    transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+                }
+            `}</style>
         </button>
     );
 }
 
+// Helper to darken/lighten color
+function adjustColor(color: string, amount: number) {
+    return color; // Placeholder, for production use a real color library or CSS variable logic
+}
+
 const styles: Record<string, React.CSSProperties> = {
     button: {
-        position: 'relative',
+        width: '100%',
+        minHeight: '280px',
+        border: 'none',
+        borderRadius: '30px',
+        cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '1.5rem',
-        padding: '3rem 2rem',
-        border: '4px solid',
-        borderRadius: '2rem',
-        cursor: 'pointer',
-        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-        minHeight: '280px',
-        width: '100%',
+        gap: '20px',
+        color: 'white',
+        padding: '30px',
+        position: 'relative',
         overflow: 'hidden',
     },
     iconWrapper: {
-        fontSize: '4rem',
-        transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)',
-        filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.1))',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        padding: '25px',
+        borderRadius: '50%',
+        backdropFilter: 'blur(5px)',
+        boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3)',
+    },
+    content: {
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '5px',
+        zIndex: 2,
     },
     label: {
         fontSize: '1.8rem',
-        fontWeight: 900,
+        fontWeight: 800,
+        textShadow: '0 2px 4px rgba(0,0,0,0.2)',
         textAlign: 'center',
-        lineHeight: 1.2,
-        backgroundImage: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-        backgroundClip: 'text',
+    },
+    description: {
+        fontSize: '1rem',
+        opacity: 0.9,
+        fontWeight: 500,
+        textAlign: 'center',
     },
     shine: {
         position: 'absolute',
         top: 0,
-        left: '-100%',
-        width: '100%',
-        height: '100%',
-        animation: 'shimmer 1.5s infinite',
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: 'linear-gradient(45deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 60%)',
+        zIndex: 1,
         pointerEvents: 'none',
     }
 };

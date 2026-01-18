@@ -1,81 +1,132 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useAppState } from '@/context/StateContext';
+import { translations } from '@/constants/translations';
 import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
 import VirtualKeyboard from '@/components/VirtualKeyboard';
-import { ArrowLeft, Syringe, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Shield, Calendar, User, Search, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Receipt from '@/components/Receipt';
 
 export default function VaccinationPage() {
+    const { language } = useAppState();
+    const t = translations[language];
     const router = useRouter();
     const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(1); // 1: Search, 2: Slot Selection, 3: Success
     const [showReceipt, setShowReceipt] = useState(false);
+
+    const centers = [
+        { id: 'C1', name: 'District General Hospital', distance: '1.2 km', available: true },
+        { id: 'C2', name: 'Primary Health Center - South', distance: '3.5 km', available: true },
+        { id: 'C3', name: 'Apollo Clinics (Private)', distance: '4.8 km', available: true },
+    ];
+
+    const [selectedCenter, setSelectedCenter] = useState(centers[0]);
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        setStep(2);
+        if (values.aadharNo) setStep(2);
     };
 
     return (
         <div style={styles.container}>
             <div style={styles.header}>
-                <button onClick={() => router.back()} style={styles.backBtn}>
+                <button onClick={() => step === 1 ? router.back() : setStep(step - 1)} style={styles.backBtn}>
                     <ArrowLeft size={32} />
                 </button>
-                <h2 style={styles.title}>Vaccination Records</h2>
+                <h2 style={styles.title}>Vaccination Slot Booking</h2>
             </div>
 
             <div style={styles.card}>
                 {step === 1 && (
                     <form onSubmit={handleSearch} style={styles.form}>
-                        <div style={styles.iconHeader}>
-                            <Syringe size={60} color="#ec4899" />
-                            <p>Enter Mobile Number to fetch records</p>
+                        <div style={styles.promoHeader}>
+                            <Shield size={60} color="#059669" />
+                            <p>Book your 1st, 2nd or Precautionary Dose</p>
                         </div>
                         <div style={styles.fieldGroup}>
-                            <label style={styles.label}>Mobile Number</label>
+                            <label style={styles.label}>Aadhar Number / CoWIN Registered ID</label>
                             <input
                                 readOnly
-                                value={values.mobile || ''}
-                                onFocus={() => openKeyboard('mobile')}
+                                value={values.aadharNo || ''}
+                                onFocus={() => openKeyboard('aadharNo')}
+                                placeholder="XXXX-XXXX-XXXX"
                                 style={styles.input}
                             />
                         </div>
-                        <button type="submit" style={styles.submitBtn} disabled={!values.mobile}>
-                            Get Records
+                        <button type="submit" style={styles.submitBtn} disabled={!values.aadharNo}>
+                            Check Eligibility & Find Centers
                         </button>
                     </form>
                 )}
 
                 {step === 2 && (
-                    <div style={styles.success}>
-                        <CheckCircle2 size={120} color="#ec4899" />
-                        <h3 style={styles.successTitle}>Record Found!</h3>
-                        <p>Name: Rahul Verma</p>
-                        <p>Status: Fully Vaccinated</p>
-                        <div style={styles.receiptActions}>
-                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print Certificate / Receipt</button>
+                    <div style={styles.stepContainer}>
+                        <div style={styles.userBadge}>
+                            <User size={24} />
+                            <span>Hi, <strong>Karan Verma</strong> (Eligible for Dose 2)</span>
                         </div>
-                        <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
+                        <h3 style={styles.subTitle}>Select Vaccination Center</h3>
+                        <div style={styles.centerList}>
+                            {centers.map(center => (
+                                <button
+                                    key={center.id}
+                                    onClick={() => setSelectedCenter(center)}
+                                    style={{
+                                        ...styles.centerBtn,
+                                        borderColor: selectedCenter.id === center.id ? '#059669' : '#e2e8f0',
+                                        backgroundColor: selectedCenter.id === center.id ? '#f0fdf4' : 'white'
+                                    }}
+                                >
+                                    <div style={styles.centerInfo}>
+                                        <MapPin size={20} />
+                                        <div>
+                                            <strong style={{ display: 'block' }}>{center.name}</strong>
+                                            <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>{center.distance} away</span>
+                                        </div>
+                                    </div>
+                                    <span style={styles.availBadge}>Available</span>
+                                </button>
+                            ))}
+                        </div>
+                        <button onClick={() => setStep(3)} style={styles.submitBtnGreen}>Confirm Slot for Tomorrow</button>
+                    </div>
+                )}
+
+                {step === 3 && (
+                    <div style={styles.success}>
+                        <CheckCircle2 size={120} color="#059669" />
+                        <h3 style={{ ...styles.successTitle, color: '#059669' }}>Slot Booked!</h3>
+                        <p>Appointment ID: VAC-REF-44201</p>
+                        <div style={styles.receiptActions}>
+                            <button onClick={() => setShowReceipt(true)} style={{ ...styles.receiptBtn, borderColor: '#059669', color: '#059669' }}>Booking Receipt</button>
+                            <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
+                        </div>
                     </div>
                 )}
             </div>
 
-            {isOpen && <VirtualKeyboard onInput={handleInput} onDelete={handleDelete} onClose={closeKeyboard} />}
+            {isOpen && (
+                <VirtualKeyboard
+                    onInput={handleInput}
+                    onDelete={handleDelete}
+                    onClose={closeKeyboard}
+                />
+            )}
 
             {showReceipt && (
                 <Receipt
-                    type="municipal"
-                    transactionId={`VAC-${Date.now()}`}
-                    customerName="Rahul Verma"
+                    type="vaccination-booking"
+                    transactionId="VAC-REF-44201"
+                    customerName="Karan Verma"
                     details={{
-                        'Vaccine': 'Covishield',
-                        'Dose 1': '12 Jan 2024',
-                        'Dose 2': '15 Apr 2024',
-                        'Batch No': '4122BX',
-                        'Center': 'City General Hospital'
+                        'Beneficiary ID': values.aadharNo || 'XXXX-XXXX-XXXX',
+                        'Vaccine Dose': 'Dose 2 (Covishield)',
+                        'Center Name': selectedCenter.name,
+                        'Slot Date': '20 Jan 2026',
+                        'Slot Time': '10:00 AM - 12:00 PM'
                     }}
                     onClose={() => setShowReceipt(false)}
                 />
@@ -88,17 +139,25 @@ const styles: Record<string, React.CSSProperties> = {
     container: { padding: '2rem', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' },
     header: { display: 'flex', alignItems: 'center', gap: '2rem' },
     backBtn: { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)' },
-    title: { fontSize: '2.5rem', fontWeight: 900, margin: 0, color: '#ec4899' },
+    title: { fontSize: '2.5rem', fontWeight: 900, margin: 0 },
     card: { backgroundColor: 'white', padding: '3rem', borderRadius: '2rem', boxShadow: 'var(--card-shadow)', minHeight: '400px' },
     form: { display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' },
-    iconHeader: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '2rem', fontSize: '1.2rem', fontWeight: 'bold' },
+    promoHeader: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', fontSize: '1.2rem', fontWeight: 'bold', color: '#059669' },
     fieldGroup: { display: 'flex', flexDirection: 'column', gap: '1rem' },
-    label: { fontSize: '1.5rem', fontWeight: 'bold', color: '#475569' },
-    input: { padding: '1.5rem', fontSize: '1.5rem', borderRadius: '1rem', border: '2px solid #e2e8f0', backgroundColor: '#f8fafc' },
-    submitBtn: { padding: '1.5rem', fontSize: '1.5rem', fontWeight: 'bold', backgroundColor: '#ec4899', color: 'white', border: 'none', borderRadius: '1rem', cursor: 'pointer' },
+    label: { fontSize: '1.2rem', fontWeight: 'bold', color: '#444' },
+    input: { padding: '1.2rem', fontSize: '1.5rem', borderRadius: '0.8rem', border: '2px solid #ddd', backgroundColor: '#f9f9f9', textAlign: 'center' },
+    submitBtn: { padding: '1.5rem', fontSize: '1.5rem', fontWeight: 'bold', backgroundColor: 'var(--primary)', color: 'white', border: 'none', borderRadius: '1rem', cursor: 'pointer' },
+    submitBtnGreen: { padding: '1.5rem', fontSize: '1.5rem', fontWeight: 'bold', backgroundColor: '#059669', color: 'white', border: 'none', borderRadius: '1rem', cursor: 'pointer' },
+    stepContainer: { display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%' },
+    userBadge: { backgroundColor: '#f0fdf4', color: '#059669', padding: '1rem', borderRadius: '1rem', border: '1px solid #bcf0da', display: 'flex', alignItems: 'center', gap: '1rem' },
+    subTitle: { fontSize: '1.3rem', fontWeight: 800 },
+    centerList: { display: 'flex', flexDirection: 'column', gap: '1rem' },
+    centerBtn: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.2rem', borderRadius: '1rem', border: '2px solid #e2e8f0', cursor: 'pointer', textAlign: 'left' },
+    centerInfo: { display: 'flex', alignItems: 'center', gap: '1rem' },
+    availBadge: { backgroundColor: '#d1fae5', color: '#065f46', fontSize: '0.8rem', fontWeight: 'bold', padding: '0.4rem 0.8rem', borderRadius: '2rem' },
     success: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '1.5rem' },
-    successTitle: { fontSize: '2.5rem', fontWeight: 900, color: '#ec4899', margin: 0 },
+    successTitle: { fontSize: '2.5rem', fontWeight: 900, margin: 0 },
     receiptActions: { display: 'flex', gap: '1rem', marginTop: '1rem' },
-    receiptBtn: { padding: '1rem 2rem', fontSize: '1.2rem', fontWeight: 'bold', border: '2px solid #ec4899', borderRadius: '1rem', background: 'none', color: '#ec4899', cursor: 'pointer' },
-    homeBtn: { marginTop: '2.5rem', padding: '1rem 3rem', fontSize: '1.2rem', fontWeight: 'bold', backgroundColor: 'var(--foreground)', color: 'white', border: 'none', borderRadius: '1rem', cursor: 'pointer' }
+    receiptBtn: { padding: '1rem 2rem', fontSize: '1.2rem', fontWeight: 'bold', border: '2px solid', borderRadius: '1rem', background: 'none', cursor: 'pointer' },
+    homeBtn: { marginTop: '1rem', padding: '1rem 3rem', fontSize: '1.2rem', fontWeight: 'bold', backgroundColor: '#333', color: 'white', border: 'none', borderRadius: '1rem', cursor: 'pointer' }
 };

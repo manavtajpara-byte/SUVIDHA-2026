@@ -18,19 +18,19 @@ export default function GasPage() {
             label: t.payBill,
             icon: <Receipt size={60} />,
             color: 'var(--gas)',
-            link: '/electricity/pay' // Reusing electricity bill pay
+            link: '/gas/pay'
         },
         {
             label: t.newConnection,
             icon: <FilePlus size={60} />,
             color: 'var(--gas)',
-            link: '/electricity/new' // Reusing electricity new connection
+            link: '/gas/new'
         },
         {
             label: "Report Gas Leak",
             icon: <AlertTriangle size={60} />,
             color: '#ef4444',
-            link: '/electricity/outage' // Reusing outage reporting
+            link: '/gas/outage'
         }
     ];
 

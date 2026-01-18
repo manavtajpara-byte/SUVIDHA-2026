@@ -82,8 +82,8 @@ export default function WaterTaxPage() {
                         <h3 style={styles.successTitle}>Transaction Complete!</h3>
                         <p>Receipt ID: MUNI-WATER-9921</p>
                         <div style={styles.receiptActions}>
-                            <button style={styles.receiptBtn}>WhatsApp</button>
-                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print</button>
+                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print Receipt</button>
+                            <button onClick={() => alert('Receipt shared to WhatsApp!')} style={styles.receiptBtn}>WhatsApp</button>
                         </div>
                         <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
                     </div>
@@ -100,15 +100,15 @@ export default function WaterTaxPage() {
 
             {showReceipt && (
                 <Receipt
-                    type="municipal"
-                    transactionId={`WAT-${Date.now()}`}
+                    type="water-tax"
+                    transactionId="MUNI-WATER-9921"
                     amount={3420}
                     customerName="Anita Sharma"
                     details={{
                         'Property ID': values.propertyId || 'PROP-45012',
                         'Address': 'Flat 4B, Skyview Apts',
-                        'Period': '2025-26',
-                        'Zone': 'East'
+                        'Connection Type': 'Residential Metered',
+                        'Period': 'Q4 2025'
                     }}
                     onClose={() => setShowReceipt(false)}
                 />

@@ -1,252 +1,224 @@
 'use client';
 
-import React, { useRef } from 'react';
-import { X, Printer, Download, Share2 } from 'lucide-react';
+import React from 'react';
+import { ShieldCheck, Printer, Download, Share2, X, Landmark } from 'lucide-react';
 
 interface ReceiptProps {
     type: string;
     transactionId: string;
     amount?: number;
     customerName: string;
-    customerMobile?: string;
-    details: Record<string, string>;
+    details: Record<string, string | number>;
     onClose: () => void;
 }
 
-export default function Receipt({ type, transactionId, amount, customerName, customerMobile, details, onClose }: ReceiptProps) {
-    const receiptRef = useRef<HTMLDivElement>(null);
-
+export default function Receipt({ type, transactionId, amount, customerName, details, onClose }: ReceiptProps) {
     const handlePrint = () => {
-        const printWindow = window.open('', '_blank');
-        if (printWindow && receiptRef.current) {
-            printWindow.document.write(`
-        <html>
-          <head>
-            <title>e-Receipt - ${transactionId}</title>
-            <style>
-              body { font-family: 'Times New Roman', Times, serif; padding: 20px; background: white; }
-              .receipt-container { border: 2px solid #000; padding: 2px; max-width: 800px; margin: 0 auto; position: relative; }
-              .inner-border { border: 1px solid #000; padding: 20px; min-height: 800px; position: relative; }
-              .header { text-align: center; border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px; }
-              .emblem { font-size: 24px; font-weight: bold; margin-bottom: 5px; }
-              .govt-title { font-size: 18px; text-transform: uppercase; font-weight: bold; margin-bottom: 5px; }
-              .dept-title { font-size: 14px; font-weight: bold; margin-bottom: 15px; }
-              .receipt-title { font-size: 16px; font-weight: bold; text-decoration: underline; margin-bottom: 20px; text-align: center; }
-              .row { display: flex; margin-bottom: 10px; border-bottom: 1px dotted #ccc; padding-bottom: 5px; }
-              .label { flex: 1; font-weight: bold; font-size: 14px; }
-              .value { flex: 2; font-size: 14px; }
-              .amount-box { margin-top: 30px; border: 1px solid #000; padding: 10px; text-align: center; font-weight: bold; font-size: 18px; background: #f0f0f0; }
-              .footer { margin-top: 50px; text-align: center; font-size: 12px; }
-              .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 100px; color: rgba(0,0,0,0.03); z-index: -1; font-weight: bold; white-space: nowrap; }
-              .barcode-sim { text-align: center; margin-top: 20px; font-family: 'Courier New', monospace; letter-spacing: 5px; }
-              .stamp-box { display: flex; justify-content: space-between; margin-top: 60px; padding: 0 40px; }
-              .stamp { text-align: center; }
-              .disclaimer { font-size: 10px; margin-top: 20px; text-align: center; font-style: italic; }
-              @media print { .no-print { display: none; } }
-            </style>
-          </head>
-          <body>
-            ${receiptRef.current.innerHTML}
-            <script>
-              window.onload = () => { window.print(); setTimeout(() => window.close(), 100); };
-            </script>
-          </body>
-        </html>
-      `);
-            printWindow.document.close();
-        }
+        window.print();
     };
 
-    const getDepartment = () => {
-        switch (type) {
-            case 'electricity': return 'DEPARTMENT OF ENERGY';
-            case 'gas': return 'MINISTRY OF PETROLEUM & NATURAL GAS';
-            case 'municipal': return 'MUNICIPAL CORPORATION';
-            case 'ration': return 'DEPT. OF FOOD & PUBLIC DISTRIBUTION';
-            case 'property-tax': return 'REVENUE DEPARTMENT';
-            default: return 'GOVERNMENT SERVICES DEPARTMENT';
-        }
+    const handleDownload = () => {
+        const element = document.createElement("a");
+        const content = document.getElementById('receipt-content')?.innerText || '';
+        const file = new Blob([`GOVERNMENT OF INDIA - OFFICIAL RECEIPT\n\n${content}\n\nThis is a digital document verified by SUVIDHA.`], { type: 'text/plain' });
+        element.href = URL.createObjectURL(file);
+        element.download = `Receipt-${transactionId}.txt`;
+        document.body.appendChild(element);
+        element.click();
     };
 
-    const grn = `GRN${Math.floor(Math.random() * 10000000000)}`;
+    const handleShare = () => {
+        alert(`Official Receipt link sent to ${customerName}'s registered mobile.`);
+    };
 
     return (
         <div style={styles.overlay}>
             <div style={styles.modal}>
-                <button onClick={onClose} style={styles.closeBtn} className="no-print">
-                    <X size={24} color="#000" />
-                </button>
-
-                <div ref={receiptRef} style={{ background: 'white', color: 'black' }}>
-                    <div className="receipt-container" style={{ border: '2px solid #000', padding: '2px' }}>
-                        <div className="inner-border" style={{ border: '1px solid #000', padding: '25px', position: 'relative' }}>
-
-                            <div className="watermark" style={{
-                                position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-45deg)',
-                                fontSize: '80px', color: 'rgba(0,0,0,0.04)', fontWeight: 'bold', zIndex: 0, pointerEvents: 'none'
-                            }}>
-                                GOVT OF INDIA
-                            </div>
-
-                            {/* Header */}
-                            <div style={{ textAlign: 'center', borderBottom: '2px solid #000', paddingBottom: '15px', marginBottom: '20px' }}>
-                                <div style={{ fontSize: '32px', marginBottom: '5px' }}>🏛️</div>
-                                <div style={{ fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase' }}>Government of India</div>
-                                <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '5px' }}>{getDepartment()}</div>
-                                <div style={{ fontSize: '12px' }}>Official E-Receipt / Challan</div>
-                            </div>
-
-                            {/* Transaction Info */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px', fontSize: '12px' }}>
-                                <div>
-                                    <strong>GRN No:</strong> {grn}<br />
-                                    <strong>Date:</strong> {new Date().toLocaleDateString('en-IN')}<br />
-                                    <strong>Time:</strong> {new Date().toLocaleTimeString('en-IN')}
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                    <strong>Receipt No:</strong> {transactionId}<br />
-                                    <strong>Place:</strong> SUVIDHA KIOSK #402<br />
-                                    <strong>Mode:</strong> ONLINE/KIOSK
-                                </div>
-                            </div>
-
-                            <div style={{ textAlign: 'center', fontSize: '16px', fontWeight: 'bold', textDecoration: 'underline', marginBottom: '25px' }}>
-                                PAYMENT ACKNOWLEDGEMENT
-                            </div>
-
-                            {/* Details Table */}
-                            <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '20px', fontSize: '14px' }}>
-                                <tbody>
-                                    <tr>
-                                        <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold', width: '40%' }}>Payee Name</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ccc' }}>{customerName}</td>
-                                    </tr>
-                                    {customerMobile && (
-                                        <tr>
-                                            <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold' }}>Mobile Number</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ccc' }}>{customerMobile}</td>
-                                        </tr>
-                                    )}
-                                    {Object.entries(details).map(([key, value]) => (
-                                        <tr key={key}>
-                                            <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold' }}>{key}</td>
-                                            <td style={{ padding: '8px', border: '1px solid #ccc' }}>{value}</td>
-                                        </tr>
-                                    ))}
-                                    <tr>
-                                        <td style={{ padding: '8px', border: '1px solid #ccc', fontWeight: 'bold' }}>Purpose</td>
-                                        <td style={{ padding: '8px', border: '1px solid #ccc' }}>Bill Payment / Service Charge</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-
-                            {/* Amount Box */}
-                            {amount && (
-                                <div style={{
-                                    marginTop: '10px',
-                                    border: '2px solid #000',
-                                    padding: '15px',
-                                    textAlign: 'center',
-                                    background: '#f8f8f8'
-                                }}>
-                                    <div style={{ fontSize: '14px', marginBottom: '5px' }}>Total Amount Paid</div>
-                                    <div style={{ fontSize: '24px', fontWeight: 'bold' }}>₹ {amount.toFixed(2)}</div>
-                                    <div style={{ fontSize: '12px', fontStyle: 'italic', marginTop: '5px' }}>
-                                        (Rupees {amount} Only)
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Signatures */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '60px', padding: '0 20px' }}>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{ borderBottom: '1px solid #000', width: '150px', marginBottom: '5px' }}></div>
-                                    <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Payer Signature</div>
-                                </div>
-                                <div style={{ textAlign: 'center' }}>
-                                    <div style={{
-                                        width: '80px', height: '80px', border: '2px solid #065f46', borderRadius: '50%',
-                                        display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 10px auto',
-                                        color: '#065f46', fontWeight: 'bold', fontSize: '12px', transform: 'rotate(-5deg)'
-                                    }}>
-                                        <div style={{ textAlign: 'center' }}>
-                                            PAID<br />
-                                            <span style={{ fontSize: '10px' }}>SUVIDHA</span>
-                                        </div>
-                                    </div>
-                                    <div style={{ fontSize: '12px', fontWeight: 'bold' }}>Authorized Signatory</div>
-                                </div>
-                            </div>
-
-                            {/* Barcode Mock */}
-                            <div style={{ textAlign: 'center', marginTop: '40px', fontFamily: 'monospace', letterSpacing: '4px', fontSize: '16px' }}>
-                                ||| || ||| || |||| ||| || |||
-                                <div style={{ fontSize: '10px', letterSpacing: '1px', marginTop: '5px' }}>{transactionId}</div>
-                            </div>
-
-                            {/* Disclaimer */}
-                            <div style={{ fontSize: '10px', textAlign: 'center', marginTop: '20px', borderTop: '1px solid #ccc', paddingTop: '10px' }}>
-                                This is a computer generated receipt. Signature is not mandatory for online verification.<br />
-                                For verification, visit https://suvidha.gov.in/verify with GRN No: {grn}
-                            </div>
-
+                <div id="receipt-content" style={styles.receiptContainer}>
+                    {/* Official Gov Header */}
+                    <div style={styles.govHeader}>
+                        <Landmark size={40} color="#1e3a8a" />
+                        <div style={styles.govHeaderText}>
+                            <h3 style={styles.hindiText}>भारत सरकार</h3>
+                            <h3 style={styles.englishText}>GOVERNMENT OF INDIA</h3>
+                            <p style={styles.deptSub}>डिजिटल इंडिया पोर्टल | SUVIDHA KIOSK</p>
                         </div>
+                        <div style={styles.indiaFlag}>
+                            <div style={{ ...styles.flagStrip, backgroundColor: '#FF9933' }} />
+                            <div style={{ ...styles.flagStrip, backgroundColor: '#FFFFFF' }}>
+                                <div style={styles.ashokaChakra} />
+                            </div>
+                            <div style={{ ...styles.flagStrip, backgroundColor: '#138808' }} />
+                        </div>
+                    </div>
+
+                    <div style={styles.titleBar}>
+                        <h2 style={styles.receiptTitle}>आधिकारिक भुगतान रसीद / OFFICIAL PAYMENT RECEIPT</h2>
+                    </div>
+
+                    <div style={styles.mainInfo}>
+                        <div style={styles.infoRow}>
+                            <div style={styles.infoBox}>
+                                <label style={styles.metaLabel}>Receipt Number / रसीद संख्या</label>
+                                <span style={styles.metaValue}>{transactionId}</span>
+                            </div>
+                            <div style={styles.infoBox}>
+                                <label style={styles.metaLabel}>Date of Issue / जारी करने की तिथि</label>
+                                <span style={styles.metaValue}>{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
+                            </div>
+                        </div>
+
+                        <div style={styles.divider} />
+
+                        <div style={styles.detailsSection}>
+                            <div style={styles.field}>
+                                <span style={styles.key}>Customer Name / उपभोक्ता का नाम:</span>
+                                <span style={styles.val}>{customerName}</span>
+                            </div>
+                            <div style={styles.field}>
+                                <span style={styles.key}>Service Type / सेवा का प्रकार:</span>
+                                <span style={styles.val}>{type.toUpperCase()}</span>
+                            </div>
+
+                            {Object.entries(details).map(([key, value]) => (
+                                <div key={key} style={styles.field}>
+                                    <span style={styles.key}>{key}:</span>
+                                    <span style={styles.val}>{value}</span>
+                                </div>
+                            ))}
+                        </div>
+
+                        {amount && (
+                            <div style={styles.amountSection}>
+                                <div style={styles.amountBox}>
+                                    <label>Total Amount Paid / कुल भुगतान:</label>
+                                    <h4 style={styles.amountText}>₹ {amount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</h4>
+                                </div>
+                                <div style={styles.statusBox}>
+                                    <ShieldCheck size={24} color="#059669" />
+                                    <span style={styles.statusText}>VERIFIED</span>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <div style={styles.footerGov}>
+                        <p style={styles.footerNote}>This is a system-generated electronic receipt issued by the SUVIDHA Common Service Center. No signature is required.</p>
+                        <p style={styles.footerUrl}>Verify at: https://suvidha.gov.in/verify/{transactionId}</p>
                     </div>
                 </div>
 
                 <div style={styles.actions} className="no-print">
-                    <button onClick={handlePrint} style={styles.actionBtn}>
-                        <Printer size={20} /> Convert to PDF / Print
+                    <button onClick={handlePrint} style={styles.btnAction} title="Print Receipt">
+                        <Printer size={20} />
+                        <span>Print</span>
                     </button>
-                    <button onClick={() => { }} style={{ ...styles.actionBtn, background: 'none', border: '1px solid #ccc', color: '#666' }}>
-                        <Share2 size={20} /> SMS
+                    <button onClick={handleDownload} style={styles.btnAction} title="Download PDF">
+                        <Download size={20} />
+                        <span>Download</span>
+                    </button>
+                    <button onClick={handleShare} style={styles.btnAction} title="Share Receipt">
+                        <Share2 size={20} />
+                        <span>Share</span>
+                    </button>
+                    <button onClick={onClose} style={styles.btnClose} title="Close">
+                        <X size={20} />
+                        <span>Close</span>
                     </button>
                 </div>
             </div>
+
+            <style jsx global>{`
+                @media print {
+                    .no-print { display: none !important; }
+                    body { background: white !important; }
+                    #receipt-content { 
+                        box-shadow: none !important; 
+                        margin: 0 !important; 
+                        padding: 0 !important;
+                        border: none !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
 
 const styles: Record<string, React.CSSProperties> = {
     overlay: {
-        position: 'fixed',
-        top: 0, left: 0, right: 0, bottom: 0,
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: 'rgba(0,0,0,0.85)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
-        zIndex: 9999,
-        padding: '20px'
+        zIndex: 5000, padding: '1rem'
     },
     modal: {
-        backgroundColor: '#333',
-        padding: '20px',
-        borderRadius: '10px',
-        maxWidth: '700px',
-        width: '100%',
-        maxHeight: '95vh',
-        overflowY: 'auto',
+        backgroundColor: 'white', borderRadius: '1.5rem',
+        width: '100%', maxWidth: '650px',
+        overflow: 'hidden', boxShadow: '0 50px 100px -20px rgba(0,0,0,0.5)',
+        display: 'flex', flexDirection: 'column'
+    },
+    receiptContainer: {
+        padding: '3rem', backgroundColor: '#fff',
+        fontFamily: '"Times New Roman", Times, serif', color: '#1a1a1a'
+    },
+    govHeader: {
+        display: 'flex', alignItems: 'center', gap: '1.5rem',
+        marginBottom: '2rem', borderBottom: '2px solid #1e3a8a',
+        paddingBottom: '1rem'
+    },
+    govHeaderText: { flex: 1 },
+    hindiText: { margin: 0, fontSize: '1.4rem', fontWeight: 900, color: '#1e3a8a' },
+    englishText: { margin: 0, fontSize: '1.2rem', fontWeight: 800, color: '#1e3a8a', letterSpacing: '1px' },
+    deptSub: { margin: '4px 0 0', fontSize: '0.8rem', fontWeight: 700, color: '#475569' },
+    indiaFlag: { display: 'flex', flexDirection: 'column', width: '60px', height: '40px', border: '1px solid #ddd' },
+    flagStrip: { flex: 1, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    ashokaChakra: {
+        width: '10px', height: '10px', borderRadius: '50%', border: '1px solid #000080',
         position: 'relative'
     },
-    closeBtn: {
-        position: 'absolute', top: '10px', right: '10px',
-        backgroundColor: 'white',
-        borderRadius: '50%',
-        border: 'none',
-        width: '30px', height: '30px',
-        cursor: 'pointer',
-        zIndex: 10,
-        display: 'flex', alignItems: 'center', justifyContent: 'center'
+    titleBar: {
+        textAlign: 'center', backgroundColor: '#f1f5f9',
+        padding: '0.5rem', margin: '1rem 0 2rem'
     },
+    receiptTitle: { margin: 0, fontSize: '0.9rem', fontWeight: 800, color: '#334155' },
+    mainInfo: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+    infoRow: { display: 'flex', gap: '2rem' },
+    infoBox: { flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' },
+    metaLabel: { fontSize: '0.75rem', fontWeight: 700, opacity: 0.6, textTransform: 'uppercase' },
+    metaValue: { fontSize: '1.1rem', fontWeight: 800, letterSpacing: '0.5px' },
+    divider: { borderBottom: '1px solid #e2e8f0' },
+    detailsSection: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
+    field: { display: 'flex', justifyContent: 'space-between', fontSize: '1.05rem' },
+    key: { fontWeight: 600, color: '#64748b' },
+    val: { fontWeight: 700, color: '#1e293b' },
+    amountSection: {
+        marginTop: '1rem', padding: '1.5rem',
+        backgroundColor: '#f8fafc', borderRadius: '1rem',
+        borderLeft: '5px solid #1e3a8a',
+        display: 'flex', justifyContent: 'space-between', alignItems: 'center'
+    },
+    amountBox: { display: 'flex', flexDirection: 'column', gap: '4px' },
+    amountText: { margin: 0, fontSize: '2.2rem', fontWeight: 900, color: '#1e3a8a' },
+    statusBox: { display: 'flex', alignItems: 'center', gap: '6px' },
+    statusText: { fontSize: '0.9rem', fontWeight: 900, color: '#059669' },
+    footerGov: { marginTop: '3rem', textAlign: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '1rem' },
+    footerNote: { fontSize: '0.7rem', opacity: 0.6, margin: '0 0 10px' },
+    footerUrl: { fontSize: '0.7rem', fontWeight: 700, color: '#3b82f6', margin: 0 },
     actions: {
-        display: 'flex', justifyContent: 'center', gap: '15px', marginTop: '20px'
+        padding: '1.5rem', backgroundColor: '#f8fafc',
+        display: 'flex', gap: '1rem', justifyContent: 'center',
+        borderTop: '1px solid #e2e8f0'
     },
-    actionBtn: {
-        display: 'flex', alignItems: 'center', gap: '8px',
-        padding: '10px 20px',
-        borderRadius: '5px',
-        border: 'none',
-        backgroundColor: '#2563eb',
-        color: 'white',
-        cursor: 'pointer',
-        fontWeight: 'bold'
+    btnAction: {
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
+        padding: '0.75rem 1.5rem', borderRadius: '0.75rem',
+        border: '1px solid #e2e8f0', backgroundColor: 'white',
+        fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+    },
+    btnClose: {
+        display: 'flex', alignItems: 'center', gap: '0.5rem',
+        padding: '0.75rem 1.5rem', borderRadius: '0.75rem',
+        border: 'none', backgroundColor: '#ef4444', color: 'white',
+        fontWeight: 700, cursor: 'pointer'
     }
 };

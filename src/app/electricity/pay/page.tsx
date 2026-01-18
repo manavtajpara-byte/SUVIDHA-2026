@@ -82,8 +82,8 @@ export default function BillPayPage() {
                         <h3 style={styles.successTitle}>Payment Successful!</h3>
                         <p>Transaction ID: SUVIDHA-782910</p>
                         <div style={styles.receiptActions}>
-                            <button style={styles.receiptBtn}>SMS Receipt</button>
-                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print Receipt</button>
+                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>View & Print Receipt</button>
+                            <button onClick={() => alert('Receipt shared to mobile!')} style={styles.receiptBtn}>SMS Receipt</button>
                         </div>
                         <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
                     </div>
@@ -101,14 +101,14 @@ export default function BillPayPage() {
             {showReceipt && (
                 <Receipt
                     type="electricity"
-                    transactionId={`ELEC-${Date.now()}`}
+                    transactionId="SUVIDHA-ELEC-782910"
                     amount={1245}
                     customerName="Rajesh Kumar"
                     details={{
-                        'Consumer ID': values.consumerId || '123456789',
+                        'Consumer ID': values.consumerId || '88273641',
                         'Bill Month': 'January 2026',
-                        'Division': 'North Zone',
-                        'Due Date': '15 Jan 2026'
+                        'Units Consumed': '450 units',
+                        'Due Date': '25 Jan 2026'
                     }}
                     onClose={() => setShowReceipt(false)}
                 />

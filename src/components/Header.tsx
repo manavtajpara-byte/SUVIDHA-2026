@@ -1,272 +1,171 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppState } from '@/context/StateContext';
-import { translations, availableLanguages, type LanguageKey } from '@/constants/translations';
+import { translations } from '@/constants/translations';
 import { Globe, Accessibility, Monitor, Type, X, ChevronDown } from 'lucide-react';
 import Link from 'next/link';
 
 export default function Header() {
     const { language, setLanguage, contrast, toggleContrast, fontSize, setFontSize } = useAppState();
-    const t = translations[language];
-    const [showA11y, setShowA11y] = useState(false);
-    const [showLangMenu, setShowLangMenu] = useState(false);
+    const t = translations[language]; // Safe access
+    const [showA11y, setShowA11y] = React.useState(false);
 
-    const currentLang = availableLanguages.find(l => l.code === language) || availableLanguages[0];
+    // Fallback if translation is missing (though it shouldn't be now)
+    const title = t?.title || "SUVIDHA Kiosk";
+    const tagline = t?.tagline || "Your Gateway to Government Services";
 
     return (
         <header style={styles.header}>
-            <div style={styles.topBar}>
-                <Link href="/" style={styles.logoGroup}>
-                    <div style={styles.logoIcon}>S</div>
+            <div style={styles.container}>
+                <Link href="/" style={styles.brand}>
+                    <div style={styles.logo}>S</div>
                     <div>
-                        <h1 style={styles.title}>{t.title}</h1>
-                        <p style={styles.tagline}>{t.tagline}</p>
+                        <h1 style={styles.title}>{title}</h1>
+                        <p style={styles.subtitle}>{tagline}</p>
                     </div>
                 </Link>
 
-                <div style={styles.actions}>
-                    {/* Language Dropdown */}
-                    <div style={styles.langDropdown}>
-                        <button onClick={() => setShowLangMenu(!showLangMenu)} style={styles.langBtn}>
-                            <Globe size={20} />
-                            <span>{currentLang.nativeName}</span>
-                            <ChevronDown size={20} />
-                        </button>
-                        {showLangMenu && (
-                            <div style={styles.langMenu}>
-                                {availableLanguages.map((lang) => (
-                                    <button
-                                        key={lang.code}
-                                        onClick={() => {
-                                            setLanguage(lang.code);
-                                            setShowLangMenu(false);
-                                        }}
-                                        style={{
-                                            ...styles.langMenuItem,
-                                            backgroundColor: language === lang.code ? '#e0f2fe' : 'transparent'
-                                        }}
-                                    >
-                                        <span style={styles.langNative}>{lang.nativeName}</span>
-                                        <span style={styles.langEnglish}>{lang.name}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    <button onClick={() => setShowA11y(!showA11y)} style={styles.iconBtn}>
-                        <Accessibility size={32} />
-                        <span style={styles.btnLabel}>{t.accessibility}</span>
+                <div style={styles.controls}>
+                    {/* Simplified Language Toggle for now to reduce complexity */}
+                    <button
+                        onClick={() => setLanguage(language === 'en' ? 'hi' : language === 'hi' ? 'kn' : 'en')}
+                        style={styles.pillBtn}
+                    >
+                        <Globe size={20} />
+                        <span>{language.toUpperCase()}</span>
                     </button>
+
+                    <button onClick={() => setShowA11y(!showA11y)} style={styles.pillBtn}>
+                        <Accessibility size={20} />
+                        <span>A11y</span>
+                    </button>
+
+                    {showA11y && (
+                        <div style={styles.dropdown}>
+                            <div style={styles.menuItem}>
+                                <Monitor size={18} />
+                                <span>High Contrast</span>
+                                <input
+                                    type="checkbox"
+                                    checked={contrast === 'high'}
+                                    onChange={toggleContrast}
+                                    style={{ transform: 'scale(1.5)' }}
+                                />
+                            </div>
+                            <div style={styles.menuItem}>
+                                <Type size={18} />
+                                <span>Font Size: {fontSize}px</span>
+                                <input
+                                    type="range"
+                                    min="14"
+                                    max="32"
+                                    value={fontSize}
+                                    onChange={(e) => setFontSize(Number(e.target.value))}
+                                />
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
-
-            {showA11y && (
-                <div style={styles.a11yMenu}>
-                    <div style={styles.a11yOption}>
-                        <Monitor size={24} />
-                        <span>{t.highContrast}</span>
-                        <button onClick={toggleContrast} style={styles.toggleBtn}>
-                            {contrast === 'high' ? 'ON' : 'OFF'}
-                        </button>
-                    </div>
-                    <div style={styles.a11yOption}>
-                        <Type size={24} />
-                        <span>{t.fontSize}</span>
-                        <input
-                            type="range"
-                            min="14"
-                            max="32"
-                            value={fontSize}
-                            onChange={(e) => setFontSize(parseInt(e.target.value))}
-                            style={styles.slider}
-                        />
-                        <span style={{ minWidth: '3ch' }}>{fontSize}px</span>
-                    </div>
-                    <button onClick={() => setShowA11y(false)} style={styles.closeBtn}>
-                        <X size={24} />
-                    </button>
-                </div>
-            )}
         </header>
     );
 }
 
-
 const styles: Record<string, React.CSSProperties> = {
     header: {
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        borderBottom: 'none',
-        padding: '1.5rem 2rem',
+        background: 'rgba(255, 255, 255, 0.8)',
+        backdropFilter: 'blur(12px)',
+        borderBottom: '1px solid rgba(0,0,0,0.05)',
         position: 'sticky',
         top: 0,
-        zIndex: 1000,
-        boxShadow: '0 4px 20px rgba(102, 126, 234, 0.3)',
+        zIndex: 100,
+        padding: '1rem 0',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
     },
-    topBar: {
+    container: {
+        maxWidth: '1200px',
+        margin: '0 auto',
+        padding: '0 2rem',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        maxWidth: '1400px',
-        margin: '0 auto',
-        width: '100%',
     },
-    logoGroup: {
+    brand: {
         display: 'flex',
         alignItems: 'center',
         gap: '1rem',
         textDecoration: 'none',
-        color: 'white',
+        color: 'var(--foreground)',
     },
-    logoIcon: {
-        backgroundColor: 'white',
-        color: '#667eea',
-        width: '60px',
-        height: '60px',
+    logo: {
+        width: '50px',
+        height: '50px',
+        background: 'linear-gradient(135deg, var(--primary) 0%, #a855f7 100%)',
+        color: 'white',
         borderRadius: '12px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        fontSize: '2rem',
-        fontWeight: 'bold',
-        boxShadow: '0 4px 15px rgba(0,0,0,0.2)',
+        fontSize: '1.8rem',
+        fontWeight: 900,
+        boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
     },
     title: {
         margin: 0,
-        fontSize: '2rem',
-        fontWeight: 900,
-        lineHeight: 1,
-        color: 'white',
-        textShadow: '0 2px 10px rgba(0,0,0,0.2)',
+        fontSize: '1.8rem',
+        fontWeight: 800,
+        letterSpacing: '-0.5px',
+        background: 'linear-gradient(to right, var(--primary), #ec4899)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
     },
-    tagline: {
+    subtitle: {
         margin: 0,
         fontSize: '0.9rem',
-        color: 'rgba(255,255,255,0.9)',
+        opacity: 0.6,
         fontWeight: 500,
     },
-    actions: {
+    controls: {
         display: 'flex',
-        alignItems: 'center',
-        gap: '1.5rem',
-    },
-    langDropdown: {
+        gap: '1rem',
         position: 'relative',
     },
-    langBtn: {
+    pillBtn: {
         display: 'flex',
         alignItems: 'center',
         gap: '0.5rem',
-        padding: '0.75rem 1.5rem',
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        backdropFilter: 'blur(10px)',
-        border: '2px solid rgba(255,255,255,0.3)',
-        borderRadius: '12px',
+        padding: '0.75rem 1.25rem',
+        background: 'white',
+        border: '1px solid #e5e7eb',
+        borderRadius: '50px',
         cursor: 'pointer',
-        fontWeight: 'bold',
-        fontSize: '1.1rem',
-        color: 'white',
-        transition: 'all 0.3s ease',
+        fontSize: '1rem',
+        fontWeight: 600,
+        color: 'var(--foreground)',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        transition: 'all 0.2s',
     },
-    langMenu: {
+    dropdown: {
         position: 'absolute',
-        top: '100%',
+        top: '120%',
         right: 0,
-        marginTop: '0.5rem',
-        backgroundColor: 'white',
-        border: '2px solid #667eea',
-        borderRadius: '12px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-        minWidth: '250px',
-        maxHeight: '400px',
-        overflowY: 'auto',
-        zIndex: 2000,
-    },
-    langMenuItem: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-start',
-        width: '100%',
-        padding: '1rem 1.5rem',
-        border: 'none',
-        borderBottom: '1px solid #e2e8f0',
-        background: 'transparent',
-        cursor: 'pointer',
-        textAlign: 'left',
-        transition: 'background-color 0.2s',
-    },
-    langNative: {
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-        color: '#1e293b',
-    },
-    langEnglish: {
-        fontSize: '0.9rem',
-        color: '#64748b',
-    },
-    iconBtn: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        background: 'rgba(255,255,255,0.2)',
-        backdropFilter: 'blur(10px)',
-        border: '2px solid rgba(255,255,255,0.3)',
-        borderRadius: '12px',
-        padding: '0.75rem 1rem',
-        cursor: 'pointer',
-        color: 'white',
-        gap: '0.25rem',
-        transition: 'all 0.3s ease',
-    },
-    btnLabel: {
-        fontSize: '0.8rem',
-        fontWeight: 'bold',
-        textTransform: 'uppercase',
-    },
-    a11yMenu: {
-        position: 'absolute',
-        top: '100%',
-        right: '2rem',
-        backgroundColor: 'white',
-        border: '2px solid var(--primary)',
-        borderRadius: '16px',
+        background: 'white',
         padding: '1.5rem',
-        boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+        borderRadius: '1.5rem',
+        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+        border: '1px solid #f3f4f6',
+        minWidth: '300px',
         display: 'flex',
         flexDirection: 'column',
-        gap: '1.5rem',
-        marginTop: '1rem',
-        minWidth: '350px',
+        gap: '1rem',
     },
-    a11yOption: {
+    menuItem: {
         display: 'flex',
         alignItems: 'center',
+        justifyContent: 'space-between',
         gap: '1rem',
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-    },
-    toggleBtn: {
-        marginLeft: 'auto',
-        padding: '0.5rem 1rem',
-        borderRadius: '8px',
-        border: '2px solid var(--primary)',
-        background: 'none',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-    },
-    slider: {
-        marginLeft: 'auto',
-        flex: 1,
-        cursor: 'pointer',
-    },
-    closeBtn: {
-        position: 'absolute',
-        top: '0.5rem',
-        right: '0.5rem',
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        opacity: 0.5,
+        fontSize: '1.1rem',
+        fontWeight: 600,
     }
 };

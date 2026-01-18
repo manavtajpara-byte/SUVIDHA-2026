@@ -1,51 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
-  /* Base Colors - Premium Palette */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --background: #ffffff;
-  --foreground: #0f172a;
+  /* Vibrant & Attractive Color Palette */
+  --background: #fdf4ff;
+  /* Very Light Pink/Purple tint for warmth */
+  --foreground: #1e1b4b;
+  /* Deep Indigo text */
 
-  /* Sector Colors - High Saturation */
-  --electricity: #ffb703;
-  /* Vibrant Amber */
-  --gas: #3a86ff;
+  --primary: #8b5cf6;
+  /* Violet */
+  --primary-hover: #7c3aed;
+
+  --electricity: #facc15;
+  /* Bright Yellow */
+  --gas: #3b82f6;
   /* Bright Blue */
-  --municipal: #06d6a0;
-  /* Vivid Emerald */
+  --municipal: #10b981;
+  /* Emerald Green */
+  --ration: #fb923c;
+  /* Orange */
+  --property-tax: #f43f5e;
+  /* Rose */
+  --transport: #a855f7;
+  /* Purple */
+  --healthcare: #ec4899;
+  /* Pink */
+  --emergency: #ef4444;
+  /* Red */
 
-  /* Gradients */
-  --gradient-bg: linear-gradient(120deg, #fdfbfb 0%, #ebedee 100%);
-  --gradient-card: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.6) 100%);
-
-  /* Shadows & Glass */
-  --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --card-shadow-hover: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  --glass-border: 1px solid rgba(255, 255, 255, 0.5);
-
-  --radius: 1.5rem;
+  --card-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
+  --btn-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
   --font-base: 18px;
 }
 
-/* Base Body Style with Mesh Gradient */
-body {
-  color: var(--foreground);
-  background:
-    radial-gradient(at 0% 0%, hsla(253, 16%, 7%, 1) 0, transparent 50%),
-    radial-gradient(at 50% 0%, hsla(225, 39%, 30%, 1) 0, transparent 50%),
-    radial-gradient(at 100% 0%, hsla(339, 49%, 30%, 1) 0, transparent 50%);
-  background-color: #0f172a;
-  /* Dark theme base for vibrant colors to pop, or maybe light? */
-  /* Let's stick to a vibrant LIGHT theme as requested "colorful" usually implies brightness for kiosks */
-  background: linear-gradient(315deg, #FFDEE9 0%, #B5FFFC 100%);
-  /* Cotton Candy */
-  min-height: 100vh;
-  font-family: 'Inter', system-ui, sans-serif;
-  line-height: 1.5;
-  background-attachment: fixed;
-  /* Parallax effect */
+[data-contrast="high"] {
+  --background: #000000;
+  --foreground: #ffffff;
+  --primary: #ffff00;
+  --electricity: #ffff00;
+  --gas: #00ffff;
+  --municipal: #00ff00;
+  --ration: #ffaa00;
+  --property-tax: #ff00ff;
+  --transport: #d8b4fe;
+  --healthcare: #f9a8d4;
+  --emergency: #ff0000;
+  --card-shadow: none;
+  --btn-shadow: none;
 }
 
-/* Keyframe Animations */
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: var(--font-base);
+  background-color: var(--background);
+  color: var(--foreground);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+  border-radius: 20px;
+}
+
+/* Animations */
 @keyframes float {
   0% {
     transform: translateY(0px);
@@ -60,129 +87,52 @@ body {
   }
 }
 
-@keyframes pulse-glow {
-  0% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
-  }
-
-  70% {
-    box-shadow: 0 0 0 10px rgba(37, 99, 235, 0);
-  }
-
-  100% {
-    box-shadow: 0 0 0 0 rgba(37, 99, 235, 0);
-  }
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
-@keyframes gradient-x {
+@keyframes pulse-soft {
   0% {
-    background-position: 0% 50%;
+    transform: scale(1);
   }
 
   50% {
-    background-position: 100% 50%;
+    transform: scale(1.02);
   }
 
   100% {
-    background-position: 0% 50%;
+    transform: scale(1);
   }
 }
 
-/* Utility Classes */
-.animate-float {
-  animation: float 6s ease-in-out infinite;
+.animate-pulse-soft {
+  animation: pulse-soft 2s ease-in-out infinite;
 }
 
-.animate-gradient-text {
-  background: linear-gradient(to right, #667eea, #764ba2, #6B8DD6, #8E37D7);
-  background-size: 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: gradient-x 5s ease infinite;
+button {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* High Contrast Mode Overrides */
-[data-contrast="high"] {
-  --primary: #ffffff;
-  --background: #000000;
-  --foreground: #ffff00;
-  --electricity: #ffff00;
-  --gas: #00ffff;
-  --municipal: #00ff00;
-  --card-shadow: 0 0 0 2px #fff;
-}
-
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
-  -webkit-tap-highlight-color: transparent;
-}
-
-html {
-  font-size: var(--font-base);
-  scroll-behavior: smooth;
-}
-
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
-
-/* Kiosk Big Button Base */
-.big-button {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 2.5rem;
-  border-radius: var(--radius);
-  border: none;
-  cursor: pointer;
-  transition: transform 0.2s, box-shadow 0.2s, background-color 0.2s;
-  box-shadow: var(--card-shadow);
-  text-align: center;
-  min-height: 300px;
-}
-
-.big-button:active {
+button:active {
   transform: scale(0.95);
 }
 
-.big-button-icon {
-  font-size: 5rem;
-  margin-bottom: 1.5rem;
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 12px;
 }
 
-.big-button-label {
-  font-weight: 800;
-  font-size: 1.75rem;
-  text-transform: uppercase;
+::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-/* Accessibility Helpers */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
+::-webkit-scrollbar-thumb {
+  background-color: rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
+  border: 3px solid transparent;
+  background-clip: content-box;
 }
 
-/* Touch-optimized Input */
-input,
-select,
-button {
-  font-size: 1.25rem;
-  padding: 1rem;
-  border-radius: 0.5rem;
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(139, 92, 246, 0.6);
 }

@@ -14,90 +14,99 @@ export default function Home() {
   const sectors = [
     {
       label: t.electricity,
-      icon: <Zap size={70} />,
+      description: "Bill Pay, New Connection",
+      icon: <Zap size={80} />,
       color: 'var(--electricity)',
       link: '/electricity'
     },
     {
       label: t.gas,
-      icon: <Flame size={70} />,
+      description: "Book Cylinder, Status",
+      icon: <Flame size={80} />,
       color: 'var(--gas)',
       link: '/gas'
     },
     {
       label: t.municipal,
-      icon: <Building2 size={70} />,
+      description: "Water Tax, Birth Cert",
+      icon: <Building2 size={80} />,
       color: 'var(--municipal)',
       link: '/municipal'
     },
     {
       label: t.rationCard,
-      icon: <Wheat size={70} />,
-      color: '#16a34a',
+      description: "Apply, Download",
+      icon: <Wheat size={80} />,
+      color: 'var(--ration)',
       link: '/ration-card'
     },
     {
       label: t.propertyTax,
-      icon: <HomeIcon size={70} />,
-      color: '#dc2626',
+      description: "Pay Tax, Assessment",
+      icon: <HomeIcon size={80} />,
+      color: 'var(--property-tax)',
       link: '/property-tax'
     },
     {
       label: t.transport,
-      icon: <Bus size={70} />,
-      color: '#9333ea',
+      description: "Bus Pass, Metro",
+      icon: <Bus size={80} />,
+      color: 'var(--transport)',
       link: '/transport'
     },
     {
       label: t.healthcare,
-      icon: <Heart size={70} />,
-      color: '#ec4899',
+      description: "Vaccines, Health Card",
+      icon: <Heart size={80} />,
+      color: 'var(--healthcare)',
       link: '/healthcare'
     },
     {
       label: t.emergency,
-      icon: <AlertCircle size={70} />,
-      color: '#ef4444',
+      description: "Police, Fire, Ambulance",
+      icon: <AlertCircle size={80} />,
+      color: 'var(--emergency)',
       link: '/emergency'
     }
   ];
 
   return (
     <div style={styles.container}>
-      <div style={styles.welcomeSection} className="animate-in">
-        <div style={styles.welcomeBadge}>✨ Government Services Portal</div>
-        <h2 style={styles.welcomeTitle} className="animate-gradient-text">Welcome to SUVIDHA</h2>
-        <p style={styles.welcomeSub}>Your one-stop solution for all government services</p>
-        <div style={styles.decorativeLine}></div>
+      <div style={styles.hero}>
+        <div style={styles.heroContent} className="animate-float">
+          <h1 style={styles.heroTitle}>Welcome to <span style={styles.brandText}>SUVIDHA</span></h1>
+          <p style={styles.heroSub}>Access all government services in one touch</p>
+        </div>
       </div>
 
       <div style={styles.grid}>
-        {sectors.map((sector, index) => (
-          <div key={sector.label} style={{ animationDelay: `${index * 0.1}s` }} className="animate-in">
-            <Link href={sector.link} style={{ textDecoration: 'none' }}>
-              <BigButton
-                label={sector.label}
-                icon={sector.icon}
-                color={sector.color}
-                onClick={() => { }}
-              />
-            </Link>
-          </div>
+        {sectors.map((sector) => (
+          <Link key={sector.label} href={sector.link} style={{ textDecoration: 'none' }}>
+            <BigButton
+              label={sector.label}
+              description={sector.description}
+              icon={sector.icon}
+              color={sector.color}
+              onClick={() => { }}
+            />
+          </Link>
         ))}
       </div>
 
-      <div style={styles.footerActions} className="animate-in">
-        <Link href="/track" style={styles.secondaryAction}>
-          <div style={styles.actionIcon}>
-            <Search size={32} />
+      <div style={styles.footer}>
+        <Link href="/track" style={styles.footerCard}>
+          <div style={styles.footerIcon}><Search size={32} /></div>
+          <div>
+            <h3 style={styles.footerTitle}>{t.track}</h3>
+            <p style={styles.footerSub}>Check application status</p>
           </div>
-          <span>{t.track}</span>
         </Link>
-        <Link href="/login" style={styles.secondaryAction}>
-          <div style={styles.actionIcon}>
-            <Smartphone size={32} />
+        <Link href="/login" style={styles.footerCard}>
+          <div style={styles.footerIcon}><Smartphone size={32} /></div>
+          <div>
+            <h3 style={styles.footerTitle}>{t.login}</h3>
+            <p style={styles.footerSub}>Official login portal</p>
           </div>
-          <span>{t.login}</span>
         </Link>
       </div>
     </div>
@@ -107,87 +116,80 @@ export default function Home() {
 const styles: Record<string, React.CSSProperties> = {
   container: {
     padding: '2rem',
-    maxWidth: '1600px',
+    maxWidth: '1400px',
     margin: '0 auto',
+    minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
     gap: '3rem',
-    minHeight: 'calc(100vh - 120px)',
   },
-  welcomeSection: {
+  hero: {
     textAlign: 'center',
-    padding: '2rem 0',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1rem',
+    padding: '3rem 1rem',
+    background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, rgba(255,255,255,0) 100%)',
+    borderRadius: '3rem',
+    marginBottom: '1rem',
   },
-  welcomeBadge: {
-    display: 'inline-block',
-    margin: '0 auto',
-    padding: '0.5rem 1.5rem',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    color: 'white',
-    borderRadius: '2rem',
-    fontSize: '0.9rem',
-    fontWeight: 'bold',
-    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.4)',
-  },
-  welcomeTitle: {
-    fontSize: '4.5rem',
+  heroTitle: {
+    fontSize: '3.5rem',
     fontWeight: 900,
-    margin: 0,
-    letterSpacing: '-2px',
-    lineHeight: 1.1,
+    margin: '0 0 1rem 0',
+    color: 'var(--foreground)',
+    letterSpacing: '-1px',
   },
-  welcomeSub: {
-    fontSize: '1.4rem',
-    opacity: 0.8,
-    margin: 0,
-    fontWeight: 500,
+  brandText: {
+    background: 'linear-gradient(135deg, var(--primary) 0%, #ec4899 100%)',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
   },
-  decorativeLine: {
-    width: '100px',
-    height: '4px',
-    background: 'linear-gradient(90deg, transparent, #667eea, transparent)',
-    margin: '1rem auto 0',
-    borderRadius: '2px',
+  heroSub: {
+    fontSize: '1.5rem',
+    opacity: 0.7,
+    margin: 0,
+    maxWidth: '600px',
+    marginInline: 'auto',
   },
   grid: {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
     gap: '2rem',
+    padding: '0 1rem',
   },
-  footerActions: {
+  footer: {
     display: 'flex',
-    justifyContent: 'center',
     gap: '2rem',
-    marginTop: '1rem',
+    justifyContent: 'center',
+    flexWrap: 'wrap',
+    marginTop: 'auto',
+    paddingBottom: '2rem',
   },
-  secondaryAction: {
+  footerCard: {
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
-    gap: '1rem',
+    gap: '1.5rem',
+    padding: '1.5rem 2.5rem',
+    background: 'white',
+    borderRadius: '20px',
     textDecoration: 'none',
     color: 'var(--foreground)',
-    fontWeight: 'bold',
-    fontSize: '1.25rem',
-    padding: '2rem 3rem',
-    borderRadius: '1.5rem',
-    background: 'linear-gradient(135deg, #ffffff 0%, #f8fafc 100%)',
-    boxShadow: 'var(--card-shadow)',
-    transition: 'all 0.3s ease',
-    border: '2px solid transparent',
+    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)',
+    transition: 'transform 0.2s',
+    minWidth: '300px',
   },
-  actionIcon: {
-    width: '60px',
-    height: '60px',
-    borderRadius: '50%',
-    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-    color: 'white',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 4px 15px rgba(102, 126, 234, 0.3)',
+  footerIcon: {
+    backgroundColor: '#f3f4f6',
+    padding: '12px',
+    borderRadius: '12px',
+    color: 'var(--primary)',
+  },
+  footerTitle: {
+    fontSize: '1.4rem',
+    fontWeight: 800,
+    margin: 0,
+  },
+  footerSub: {
+    fontSize: '1rem',
+    opacity: 0.6,
+    margin: 0,
   }
 };

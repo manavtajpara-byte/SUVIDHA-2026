@@ -45,7 +45,7 @@ export default function BigButton({ label, icon, color, onClick }: BigButtonProp
             </div>
             <span style={{
                 ...styles.label,
-                backgroundImage: isHovered
+                background: isHovered
                     ? `linear-gradient(135deg, ${color}, ${color})`
                     : 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
                 WebkitBackgroundClip: 'text',
@@ -89,7 +89,7 @@ const styles: Record<string, React.CSSProperties> = {
         fontWeight: 900,
         textAlign: 'center',
         lineHeight: 1.2,
-        background: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
+        backgroundImage: 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
         WebkitBackgroundClip: 'text',
         WebkitTextFillColor: 'transparent',
         backgroundClip: 'text',

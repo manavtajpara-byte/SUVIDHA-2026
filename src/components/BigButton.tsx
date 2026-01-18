@@ -45,7 +45,7 @@ export default function BigButton({ label, icon, color, onClick }: BigButtonProp
             </div>
             <span style={{
                 ...styles.label,
-                background: isHovered
+                backgroundImage: isHovered
                     ? `linear-gradient(135deg, ${color}, ${color})`
                     : 'linear-gradient(135deg, #1e293b 0%, #475569 100%)',
                 WebkitBackgroundClip: 'text',

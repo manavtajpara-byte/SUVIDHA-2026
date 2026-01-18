@@ -25,9 +25,13 @@ export default function HealthcarePage() {
             </div>
             <div style={styles.grid}>
                 {services.map((service) => (
-                    <a key={service.label} href={service.link} style={{ textDecoration: 'none' }}>
-                        <BigButton label={service.label} icon={service.icon} color={service.color} onClick={() => { }} />
-                    </a>
+                    <BigButton
+                        key={service.label}
+                        label={service.label}
+                        icon={service.icon}
+                        color={service.color}
+                        onClick={() => router.push(service.link)}
+                    />
                 ))}
             </div>
         </div>

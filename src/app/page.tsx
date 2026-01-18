@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 export default function Home() {
   const { language } = useAppState();
-  const t = translations[language];
+  const t = translations[language] || translations.en;
 
   const sectors = [
     {
@@ -151,9 +151,9 @@ const styles: Record<string, React.CSSProperties> = {
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-    gap: '2rem',
-    padding: '0 1rem',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gap: '1.5rem',
+    padding: '0 0.5rem',
   },
   footer: {
     display: 'flex',

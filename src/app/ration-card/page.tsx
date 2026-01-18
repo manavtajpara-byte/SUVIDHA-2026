@@ -57,14 +57,13 @@ export default function RationCardPage() {
             {view === 'menu' && (
                 <div style={styles.grid}>
                     {services.map((service) => (
-                        <button key={service.label} onClick={service.action} style={{ all: 'unset', cursor: 'pointer' }}>
-                            <BigButton
-                                label={service.label}
-                                icon={service.icon}
-                                color={service.color}
-                                onClick={() => { }}
-                            />
-                        </button>
+                        <BigButton
+                            key={service.label}
+                            label={service.label}
+                            icon={service.icon}
+                            color={service.color}
+                            onClick={service.action}
+                        />
                     ))}
                 </div>
             )}

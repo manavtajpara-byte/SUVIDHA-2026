@@ -12,8 +12,11 @@ interface BigButtonProps {
 
 export default function BigButton({ label, icon, onClick, color = 'var(--primary)', description }: BigButtonProps) {
     return (
-        <button
+        <div
             onClick={onClick}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onClick(); }}
+            role="button"
+            tabIndex={0}
             style={{
                 ...styles.button,
                 background: `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`,
@@ -47,7 +50,7 @@ export default function BigButton({ label, icon, onClick, color = 'var(--primary
                     transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
                 }
             `}</style>
-        </button>
+        </div>
     );
 }
 
@@ -59,7 +62,7 @@ function adjustColor(color: string, amount: number) {
 const styles: Record<string, React.CSSProperties> = {
     button: {
         width: '100%',
-        minHeight: '280px',
+        minHeight: '220px',
         border: 'none',
         borderRadius: '30px',
         cursor: 'pointer',
@@ -67,15 +70,15 @@ const styles: Record<string, React.CSSProperties> = {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '20px',
+        gap: '15px',
         color: 'white',
-        padding: '30px',
+        padding: '20px',
         position: 'relative',
         overflow: 'hidden',
     },
     iconWrapper: {
         backgroundColor: 'rgba(255,255,255,0.2)',
-        padding: '25px',
+        padding: '20px',
         borderRadius: '50%',
         backdropFilter: 'blur(5px)',
         boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3)',
@@ -84,17 +87,17 @@ const styles: Record<string, React.CSSProperties> = {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '5px',
+        gap: '4px',
         zIndex: 2,
     },
     label: {
-        fontSize: '1.8rem',
+        fontSize: '1.5rem',
         fontWeight: 800,
         textShadow: '0 2px 4px rgba(0,0,0,0.2)',
         textAlign: 'center',
     },
     description: {
-        fontSize: '1rem',
+        fontSize: '0.9rem',
         opacity: 0.9,
         fontWeight: 500,
         textAlign: 'center',

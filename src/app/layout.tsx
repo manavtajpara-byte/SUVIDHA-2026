@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { StateProvider } from "@/context/StateContext";
 import Header from "@/components/Header";
+import Chatbot from "@/components/Chatbot";
 
 export const metadata: Metadata = {
   title: "SUVIDHA - Unified Government Services",
@@ -21,6 +22,7 @@ export default function RootLayout({
           <main style={{ flex: 1 }}>
             {children}
           </main>
+          <Chatbot />
         </StateProvider>
       </body>
     </html>

@@ -91,6 +91,67 @@ body {
   animation: float 3s ease-in-out infinite;
 }
 
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.skeleton-shimmer::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+  animation: shimmer 2s infinite;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Background patterns */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: radial-gradient(circle at 1px 1px, rgba(139, 92, 246, 0.05) 1px, transparent 0);
+  background-size: 40px 40px;
+  pointer-events: none;
+  z-index: -1;
+}
+
 @keyframes pulse-soft {
   0% {
     transform: scale(1);
@@ -114,26 +175,73 @@ body {
   :root {
     --font-base: 16px;
   }
+
+  .kiosk-container {
+    padding: 1rem;
+  }
 }
 
 @media (max-width: 768px) {
   :root {
-    --font-base: 14px;
+    --font-base: 15px;
   }
 
   .glass-panel {
-    padding: 1.5rem !important;
-    border-radius: 15px;
+    padding: 1.25rem !important;
+    border-radius: 16px;
+  }
+
+  /* Hide non-essential elements on mobile if needed */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Adjust grid layouts */
+  .grid-cols-auto {
+    grid-template-columns: 1fr !important;
   }
 }
 
 @media (max-width: 480px) {
   :root {
-    --font-base: 13px;
+    --font-base: 14px;
   }
 
   body {
     padding: 0;
+  }
+
+  .mobile-stack {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  .mobile-full {
+    width: 100% !important;
+  }
+
+  .kiosk-container {
+    padding: 0.75rem;
+  }
+}
+
+/* Responsive Utility Classes */
+.flex-responsive {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.w-full-mobile {
+  width: auto;
+}
+
+@media (max-width: 640px) {
+  .w-full-mobile {
+    width: 100%;
+  }
+
+  .hidden-mobile {
+    display: none !important;
   }
 }
 

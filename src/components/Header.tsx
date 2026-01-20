@@ -3,14 +3,13 @@
 import React from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { Globe, Accessibility, Monitor, Type, X, ChevronDown } from 'lucide-react';
+import { Globe, ChevronDown, Search } from 'lucide-react';
 import Link from 'next/link';
 import { availableLanguages } from '@/constants/translations';
 
 export default function Header() {
-    const { language, setLanguage, contrast, toggleContrast, fontSize, setFontSize } = useAppState();
+    const { language, setLanguage, searchQuery, setSearchQuery } = useAppState();
     const t = translations[language]; // Safe access
-    const [showA11y, setShowA11y] = React.useState(false);
     const [showLangMenu, setShowLangMenu] = React.useState(false);
 
     // Fallback if translation is missing (though it shouldn't be now)
@@ -19,16 +18,29 @@ export default function Header() {
 
     return (
         <header style={styles.header}>
-            <div style={styles.container}>
-                <Link href="/" style={styles.brand}>
-                    <div style={styles.logo}>S</div>
-                    <div>
-                        <h1 style={styles.title}>{title}</h1>
-                        <p style={styles.subtitle}>{tagline}</p>
+            <div style={styles.container} className="container">
+                <Link href="/" style={styles.brand} className="brand">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <div style={styles.logo}>S</div>
+                        <div>
+                            <h1 style={styles.title}>{title}</h1>
+                            <p style={styles.subtitle}>{tagline}</p>
+                        </div>
                     </div>
                 </Link>
 
-                <div style={styles.controls}>
+                <div style={styles.searchContainer} className="searchContainer">
+                    <Search style={styles.searchIcon} size={20} />
+                    <input
+                        type="text"
+                        placeholder={t?.search || "Search services..."}
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        style={styles.searchInput}
+                    />
+                </div>
+
+                <div style={styles.controls} className="controls">
                     <div style={{ position: 'relative' }}>
                         <button
                             onClick={() => setShowLangMenu(!showLangMenu)}
@@ -62,39 +74,31 @@ export default function Header() {
                         )}
                     </div>
 
-                    <button onClick={() => setShowA11y(!showA11y)} style={styles.pillBtn}>
-                        <Accessibility size={20} />
-                        <span>A11y</span>
-                    </button>
-
-                    {showA11y && (
-                        <div style={styles.dropdown}>
-                            <div style={styles.menuItem}>
-                                <Monitor size={18} />
-                                <span>High Contrast</span>
-                                <input
-                                    type="checkbox"
-                                    checked={contrast === 'high'}
-                                    onChange={toggleContrast}
-                                    style={{ transform: 'scale(1.5)' }}
-                                />
-                            </div>
-                            <div style={styles.menuItem}>
-                                <Type size={18} />
-                                <span>Font Size: {fontSize}px</span>
-                                <input
-                                    type="range"
-                                    min="14"
-                                    max="32"
-                                    value={fontSize}
-                                    onChange={(e) => setFontSize(Number(e.target.value))}
-                                />
-                            </div>
-                        </div>
-                    )}
                 </div>
             </div>
-        </header>
+            <style jsx>{`
+                @media (max-width: 768px) {
+                    .container {
+                        flex-direction: column;
+                        align-items: stretch !important;
+                        gap: 1rem;
+                    }
+                    .searchContainer {
+                        width: 100%;
+                        max-width: 100% !important;
+                        order: 3;
+                    }
+                    .controls {
+                        width: 100%;
+                        justify-content: flex-end;
+                    }
+                    .brand {
+                         width: 100%;
+                         justify-content: space-between;
+                    }
+                }
+            `}</style>
+        </header >
     );
 }
 
@@ -172,6 +176,29 @@ const styles: Record<string, React.CSSProperties> = {
         fontWeight: 600,
         color: 'var(--foreground)',
         boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
+        transition: 'all 0.2s',
+    },
+    searchContainer: {
+        position: 'relative',
+        flex: 1,
+        maxWidth: '400px',
+        margin: '0 1.5rem',
+    },
+    searchIcon: {
+        position: 'absolute',
+        left: '1rem',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        color: '#9ca3af',
+    },
+    searchInput: {
+        width: '100%',
+        padding: '0.6rem 1rem 0.6rem 2.8rem',
+        borderRadius: '50px',
+        border: '1px solid #e5e7eb',
+        fontSize: '0.95rem',
+        outline: 'none',
+        background: '#f9fafb',
         transition: 'all 0.2s',
     },
     dropdown: {

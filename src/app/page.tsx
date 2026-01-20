@@ -6,9 +6,11 @@ import { translations } from '@/constants/translations';
 import BigButton from '@/components/BigButton';
 import { Zap, Flame, Building2, Search, Smartphone, Wheat, Home as HomeIcon, Bus, Heart, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import NearbyFacilities from '@/components/NearbyFacilities';
+import QRConnect from '@/components/QRConnect';
 
 export default function Home() {
-  const { language } = useAppState();
+  const { language, searchQuery } = useAppState();
   const t = translations[language] || translations.en;
 
   const sectors = [
@@ -70,6 +72,11 @@ export default function Home() {
     }
   ];
 
+  const filteredSectors = sectors.filter(s =>
+    s.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div style={styles.container}>
       <div style={styles.hero}>
@@ -80,18 +87,28 @@ export default function Home() {
       </div>
 
       <div style={styles.grid}>
-        {sectors.map((sector) => (
-          <Link key={sector.label} href={sector.link} style={{ textDecoration: 'none' }}>
-            <BigButton
-              label={sector.label}
-              description={sector.description}
-              icon={sector.icon}
-              color={sector.color}
-              onClick={() => { }}
-            />
-          </Link>
-        ))}
+        {filteredSectors.length > 0 ? (
+          filteredSectors.map((sector) => (
+            <Link key={sector.label} href={sector.link} style={{ textDecoration: 'none' }}>
+              <BigButton
+                label={sector.label}
+                description={sector.description}
+                icon={sector.icon}
+                color={sector.color}
+                onClick={() => { }}
+              />
+            </Link>
+          ))
+        ) : (
+          <div style={styles.noResults}>
+            <Search size={48} style={{ opacity: 0.3 }} />
+            <h3>No services found matching "{searchQuery}"</h3>
+            <p>Try searching for different keywords like 'electricity' or 'tax'</p>
+          </div>
+        )}
       </div>
+
+      {!searchQuery && <NearbyFacilities />}
 
       <div style={styles.footer}>
         <Link href="/track" style={styles.footerCard}>
@@ -109,6 +126,8 @@ export default function Home() {
           </div>
         </Link>
       </div>
+
+      <QRConnect />
     </div>
   );
 }
@@ -191,5 +210,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: '1rem',
     opacity: 0.6,
     margin: 0,
+  },
+  noResults: {
+    gridColumn: '1 / -1',
+    textAlign: 'center',
+    padding: '4rem 2rem',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '1rem',
+    opacity: 0.8,
   }
 };

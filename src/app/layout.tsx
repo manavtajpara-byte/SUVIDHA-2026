@@ -1,13 +1,32 @@
+'use client';
+
 import type { Metadata } from "next";
 import "./globals.css";
-import { StateProvider } from "@/context/StateContext";
+import { StateProvider, useAppState } from "@/context/StateContext";
 import Header from "@/components/Header";
+import UtilityBar from "@/components/UtilityBar";
 import Chatbot from "@/components/Chatbot";
+import ToastContainer from "@/components/Toast";
+import SessionTimeout from "@/components/SessionTimeout";
+import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 
-export const metadata: Metadata = {
-  title: "SUVIDHA - Unified Government Services",
-  description: "Touch-optimized kiosk for Electricity, Gas, and Municipal services.",
-};
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const { toasts, removeToast } = useAppState();
+
+  return (
+    <>
+      <UtilityBar />
+      <Header />
+      <main style={{ flex: 1 }}>
+        {children}
+      </main>
+      <Chatbot />
+      <ToastContainer toasts={toasts} onClose={removeToast} />
+      <SessionTimeout timeoutMinutes={5} warningMinutes={1} />
+      <KeyboardShortcuts />
+    </>
+  );
+}
 
 export default function RootLayout({
   children,
@@ -15,14 +34,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" suppressHydrationWarning>
+      <body suppressHydrationWarning>
         <StateProvider>
-          <Header />
-          <main style={{ flex: 1 }}>
-            {children}
-          </main>
-          <Chatbot />
+          <LayoutContent>{children}</LayoutContent>
         </StateProvider>
       </body>
     </html>

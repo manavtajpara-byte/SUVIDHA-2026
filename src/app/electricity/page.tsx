@@ -7,11 +7,19 @@ import BigButton from '@/components/BigButton';
 import { Receipt, FilePlus, AlertTriangle, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import Breadcrumbs from '@/components/Breadcrumbs';
 
 export default function ElectricityPage() {
     const { language } = useAppState();
-    const t = translations[language];
+    const t = translations[language] || translations.en;
     const router = useRouter();
+    const [step, setStep] = React.useState(1);
+    const [formData, setFormData] = React.useState({
+        consumerNumber: '',
+        billAmount: '',
+        email: '',
+        mobile: ''
+    });
 
     const services = [
         {

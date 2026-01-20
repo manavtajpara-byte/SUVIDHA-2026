@@ -8,39 +8,42 @@ type Language = LanguageKey; // Support all 13 Indian languages
 interface StateContextType {
   language: Language;
   setLanguage: (lang: Language) => void;
-  contrast: 'normal' | 'high';
-  toggleContrast: () => void;
-  fontSize: number;
-  setFontSize: (size: number) => void;
   isLoggedIn: boolean;
   setIsLoggedIn: (val: boolean) => void;
   user: { name: string; mobile: string } | null;
   setUser: (user: { name: string; mobile: string } | null) => void;
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  toasts: Array<{ id: string; message: string; type: 'success' | 'error' | 'warning' | 'info'; duration?: number }>;
+  addToast: (toast: Omit<{ id: string; message: string; type: 'success' | 'error' | 'warning' | 'info'; duration?: number }, 'id'>) => void;
+  removeToast: (id: string) => void;
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
 
 export function StateProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguage] = useState<Language>('en');
-  const [contrast, setContrast] = useState<'normal' | 'high'>('normal');
-  const [fontSize, setFontSize] = useState(18);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<{ name: string; mobile: string } | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [toasts, setToasts] = useState<Array<{ id: string; message: string; type: 'success' | 'error' | 'warning' | 'info'; duration?: number }>>([]);
 
-  const toggleContrast = () => setContrast(prev => prev === 'normal' ? 'high' : 'normal');
+  const addToast = (toast: Omit<{ id: string; message: string; type: 'success' | 'error' | 'warning' | 'info'; duration?: number }, 'id'>) => {
+    const id = Date.now().toString();
+    setToasts(prev => [...prev, { ...toast, id }]);
+  };
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-contrast', contrast);
-    document.documentElement.style.setProperty('--font-base', `${fontSize}px`);
-  }, [contrast, fontSize]);
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
 
   return (
     <StateContext.Provider value={{
       language, setLanguage,
-      contrast, toggleContrast,
-      fontSize, setFontSize,
       isLoggedIn, setIsLoggedIn,
-      user, setUser
+      user, setUser,
+      searchQuery, setSearchQuery,
+      toasts, addToast, removeToast
     }}>
       {children}
     </StateContext.Provider>

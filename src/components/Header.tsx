@@ -3,16 +3,42 @@
 import React from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { Globe, ChevronDown, Search } from 'lucide-react';
+import { Globe, ChevronDown, Search, Mic } from 'lucide-react';
 import Link from 'next/link';
 import { availableLanguages } from '@/constants/translations';
 
 export default function Header() {
     const { language, setLanguage, searchQuery, setSearchQuery } = useAppState();
-    const t = translations[language]; // Safe access
+    const t = translations[language];
     const [showLangMenu, setShowLangMenu] = React.useState(false);
+    const [isListening, setIsListening] = React.useState(false);
 
-    // Fallback if translation is missing (though it shouldn't be now)
+    // Voice Search Logic
+    const startListening = () => {
+        const win = window as any;
+        if ('webkitSpeechRecognition' in win || 'SpeechRecognition' in win) {
+            const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
+            const recognition = new SpeechRecognition();
+
+            recognition.lang = language === 'hi' ? 'hi-IN' : 'en-US'; // Dynamic language
+            recognition.continuous = false;
+            recognition.interimResults = false;
+
+            recognition.onstart = () => setIsListening(true);
+            recognition.onend = () => setIsListening(false);
+
+            recognition.onresult = (event: any) => {
+                const transcript = event.results[0][0].transcript;
+                setSearchQuery(transcript);
+            };
+
+            recognition.start();
+        } else {
+            alert('Voice search is not supported in this browser.');
+        }
+    };
+
+    // Fallback if translation is missing 
     const title = t?.title || "SUVIDHA Kiosk";
     const tagline = t?.tagline || "Your Gateway to Government Services";
 
@@ -33,14 +59,26 @@ export default function Header() {
                     <Search style={styles.searchIcon} size={20} />
                     <input
                         type="text"
-                        placeholder={t?.search || "Search services..."}
+                        placeholder={isListening ? "Listening..." : (t?.search || "Search services...")}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={styles.searchInput}
                     />
+                    <button
+                        onClick={startListening}
+                        style={{
+                            ...styles.micBtn,
+                            color: isListening ? '#ef4444' : '#94a3b8',
+                            animation: isListening ? 'pulse 1.5s infinite' : 'none'
+                        }}
+                        title="Voice Search"
+                    >
+                        <Mic size={20} />
+                    </button>
                 </div>
 
                 <div style={styles.controls} className="controls">
+                    {/* ... controls ... */}
                     <div style={{ position: 'relative' }}>
                         <button
                             onClick={() => setShowLangMenu(!showLangMenu)}
@@ -73,10 +111,14 @@ export default function Header() {
                             </div>
                         )}
                     </div>
-
                 </div>
             </div>
             <style jsx>{`
+                @keyframes pulse {
+                    0% { transform: scale(1); opacity: 1; }
+                    50% { transform: scale(1.2); opacity: 0.7; }
+                    100% { transform: scale(1); opacity: 1; }
+                }
                 @media (max-width: 768px) {
                     .container {
                         flex-direction: column;
@@ -98,9 +140,14 @@ export default function Header() {
                     }
                 }
             `}</style>
-        </header >
+        </header>
     );
 }
+
+// Add Mic Button style
+const activeStyles = {
+    // ...
+};
 
 const styles: Record<string, React.CSSProperties> = {
     header: {
@@ -193,12 +240,26 @@ const styles: Record<string, React.CSSProperties> = {
     },
     searchInput: {
         width: '100%',
-        padding: '0.6rem 1rem 0.6rem 2.8rem',
+        padding: '0.75rem 3rem 0.75rem 3rem', // Increased right padding for mic
         borderRadius: '50px',
-        border: '1px solid #e5e7eb',
+        border: '1px solid #e2e8f0',
+        background: '#f8fafc',
         fontSize: '0.95rem',
         outline: 'none',
-        background: '#f9fafb',
+        transition: 'all 0.2s',
+    },
+    micBtn: {
+        position: 'absolute',
+        right: '1rem',
+        top: '50%',
+        transform: 'translateY(-50%)',
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         transition: 'all 0.2s',
     },
     dropdown: {

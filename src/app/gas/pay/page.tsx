@@ -86,7 +86,7 @@ export default function GasBillPayPage() {
                         <h3 style={styles.successTitle}>Payment Received!</h3>
                         <p>Booking ID: GAS-REF-5521</p>
                         <div style={styles.receiptActions}>
-                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Official Receipt</button>
+                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print Receipt</button>
                             <button onClick={() => alert('Confirmed to Distributor')} style={styles.receiptBtn}>Notify Agent</button>
                         </div>
                         <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>

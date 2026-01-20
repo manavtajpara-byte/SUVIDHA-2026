@@ -10,9 +10,16 @@ interface ReceiptProps {
     customerName: string;
     details: Record<string, string | number>;
     onClose: () => void;
+    autoPrint?: boolean; // New prop to trigger print immediately
 }
 
-export default function Receipt({ type, transactionId, amount, customerName, details, onClose }: ReceiptProps) {
+export default function Receipt({ type, transactionId, amount, customerName, details, onClose, autoPrint = false }: ReceiptProps) {
+    React.useEffect(() => {
+        if (autoPrint) {
+            setTimeout(() => window.print(), 500); // Small delay to ensure render
+        }
+    }, [autoPrint]);
+
     const handlePrint = () => {
         window.print();
     };
@@ -33,8 +40,10 @@ export default function Receipt({ type, transactionId, amount, customerName, det
 
     return (
         <div style={styles.overlay}>
-            <div style={styles.modal}>
-                <div id="receipt-content" style={styles.receiptContainer}>
+            <div style={styles.modal} className="receipt-modal">
+                <div id="receipt-content" style={styles.receiptContainer} className="printable-area">
+                    {/* ... content ... */}
+                    {/* (I need to preserve the content structure here, so I will target the logic/css first) */}
                     {/* Official Gov Header */}
                     <div style={styles.govHeader}>
                         <Landmark size={40} color="#1e3a8a" />
@@ -109,9 +118,9 @@ export default function Receipt({ type, transactionId, amount, customerName, det
                 </div>
 
                 <div style={styles.actions} className="no-print">
-                    <button onClick={handlePrint} style={styles.btnAction} title="Print Receipt">
+                    <button onClick={handlePrint} style={{ ...styles.btnAction, ...styles.btnPrintPrimary }} title="Print Receipt">
                         <Printer size={20} />
-                        <span>Print</span>
+                        <span>Print Receipt</span>
                     </button>
                     <button onClick={handleDownload} style={styles.btnAction} title="Download PDF">
                         <Download size={20} />
@@ -130,13 +139,26 @@ export default function Receipt({ type, transactionId, amount, customerName, det
 
             <style jsx global>{`
                 @media print {
+                    body * {
+                        visibility: hidden;
+                    }
+                    .printable-area, .printable-area * {
+                        visibility: visible;
+                    }
+                    .printable-area {
+                        position: absolute;
+                        left: 0;
+                        top: 0;
+                        width: 100%;
+                        margin: 0;
+                        padding: 0;
+                        box-shadow: none !important;
+                    }
                     .no-print { display: none !important; }
-                    body { background: white !important; }
-                    #receipt-content { 
-                        box-shadow: none !important; 
-                        margin: 0 !important; 
-                        padding: 0 !important;
-                        border: none !important;
+                    /* Ensure background graphics print */
+                    * {
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                 }
             `}</style>
@@ -214,6 +236,13 @@ const styles: Record<string, React.CSSProperties> = {
         padding: '0.75rem 1.5rem', borderRadius: '0.75rem',
         border: '1px solid #e2e8f0', backgroundColor: 'white',
         fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s'
+    },
+    btnPrintPrimary: {
+        backgroundColor: 'var(--primary)',
+        color: 'white',
+        border: 'none',
+        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+        transform: 'scale(1.05)',
     },
     btnClose: {
         display: 'flex', alignItems: 'center', gap: '0.5rem',

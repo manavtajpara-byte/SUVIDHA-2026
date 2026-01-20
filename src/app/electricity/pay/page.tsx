@@ -82,7 +82,7 @@ export default function BillPayPage() {
                         <h3 style={styles.successTitle}>Payment Successful!</h3>
                         <p>Transaction ID: SUVIDHA-782910</p>
                         <div style={styles.receiptActions}>
-                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>View & Print Receipt</button>
+                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print Receipt</button>
                             <button onClick={() => alert('Receipt shared to mobile!')} style={styles.receiptBtn}>SMS Receipt</button>
                         </div>
                         <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>

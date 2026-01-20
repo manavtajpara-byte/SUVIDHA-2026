@@ -9,6 +9,8 @@ import Link from 'next/link';
 import NearbyFacilities from '@/components/NearbyFacilities';
 import QRConnect from '@/components/QRConnect';
 
+import TopStrip from '@/components/TopStrip';
+
 export default function Home() {
   const { language, searchQuery } = useAppState();
   const t = translations[language] || translations.en;
@@ -79,53 +81,40 @@ export default function Home() {
 
   return (
     <div style={styles.container}>
-      <div style={styles.hero}>
-        <div style={styles.heroContent} className="animate-float">
-          <h1 style={styles.heroTitle}>Welcome to <span style={styles.brandText}>SUVIDHA</span></h1>
-          <p style={styles.heroSub}>Access all government services in one touch</p>
+      <TopStrip />
+      {/* Header is global in layout, but TopStrip is per page if not in layout. Putting it here for now. */}
+
+      <main style={styles.mainContent}>
+        <div style={{ marginBottom: '2rem' }}>
+          <h2 style={styles.sectionTitle}>Essential Services / आवश्यक सेवाएँ</h2>
+          {/* Simple Marquee for 'Village News' */}
+          <div style={{ background: '#fffff0', border: '1px solid #eee', padding: '0.5rem', marginBottom: '1rem', color: '#d32f2f', fontWeight: 500 }}>
+            📢 New: Apply for PM Kisan Samman Nidhi directly from Kiosk!
+          </div>
         </div>
-      </div>
 
-      <div style={styles.grid}>
-        {filteredSectors.length > 0 ? (
-          filteredSectors.map((sector) => (
-            <Link key={sector.label} href={sector.link} style={{ textDecoration: 'none' }}>
-              <BigButton
-                label={sector.label}
-                description={sector.description}
-                icon={sector.icon}
-                color={sector.color}
-                onClick={() => { }}
-              />
-            </Link>
-          ))
-        ) : (
-          <div style={styles.noResults}>
-            <Search size={48} style={{ opacity: 0.3 }} />
-            <h3>No services found matching "{searchQuery}"</h3>
-            <p>Try searching for different keywords like 'electricity' or 'tax'</p>
-          </div>
-        )}
-      </div>
+        <div style={styles.grid}>
+          {filteredSectors.length > 0 ? (
+            filteredSectors.map((sector) => (
+              <Link key={sector.label} href={sector.link} style={{ textDecoration: 'none' }}>
+                <BigButton
+                  label={sector.label}
+                  description={sector.description}
+                  icon={sector.icon}
+                  color={sector.color}
+                  onClick={() => { }}
+                />
+              </Link>
+            ))
+          ) : (
+            <div style={styles.noResults}>
+              <h3>No services found matching "{searchQuery}"</h3>
+            </div>
+          )}
+        </div>
 
-      {!searchQuery && <NearbyFacilities />}
-
-      <div style={styles.footer}>
-        <Link href="/track" style={styles.footerCard}>
-          <div style={styles.footerIcon}><Search size={32} /></div>
-          <div>
-            <h3 style={styles.footerTitle}>{t.track}</h3>
-            <p style={styles.footerSub}>Check application status</p>
-          </div>
-        </Link>
-        <Link href="/login" style={styles.footerCard}>
-          <div style={styles.footerIcon}><Smartphone size={32} /></div>
-          <div>
-            <h3 style={styles.footerTitle}>{t.login}</h3>
-            <p style={styles.footerSub}>Official login portal</p>
-          </div>
-        </Link>
-      </div>
+        <NearbyFacilities />
+      </main>
 
       <QRConnect />
     </div>
@@ -134,91 +123,44 @@ export default function Home() {
 
 const styles: Record<string, React.CSSProperties> = {
   container: {
-    padding: '2rem',
-    maxWidth: '1400px',
-    margin: '0 auto',
     minHeight: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    gap: '3rem',
+    backgroundColor: '#f9f9f9',
   },
-  hero: {
-    textAlign: 'center',
-    padding: '3rem 1rem',
-    background: 'linear-gradient(180deg, rgba(139, 92, 246, 0.1) 0%, rgba(255,255,255,0) 100%)',
-    borderRadius: '3rem',
-    marginBottom: '1rem',
+  mainContent: {
+    maxWidth: '1200px',
+    margin: '0 auto',
+    padding: '2rem 1rem',
+    width: '100%',
   },
-  heroTitle: {
-    fontSize: '3.5rem',
-    fontWeight: 900,
-    margin: '0 0 1rem 0',
-    color: 'var(--foreground)',
-    letterSpacing: '-1px',
-  },
-  brandText: {
-    background: 'linear-gradient(135deg, var(--primary) 0%, #ec4899 100%)',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-  },
-  heroSub: {
+  sectionTitle: {
     fontSize: '1.5rem',
-    opacity: 0.7,
-    margin: 0,
-    maxWidth: '600px',
-    marginInline: 'auto',
+    color: '#333',
+    borderLeft: '5px solid var(--primary)',
+    paddingLeft: '1rem',
+    marginBottom: '1.5rem',
+    fontWeight: 700,
   },
   grid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
     gap: '1.5rem',
-    padding: '0 0.5rem',
+    marginBottom: '3rem',
   },
   footer: {
-    display: 'flex',
-    gap: '2rem',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
     marginTop: 'auto',
-    paddingBottom: '2rem',
-  },
-  footerCard: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1.5rem',
-    padding: '1.5rem 2.5rem',
-    background: 'white',
-    borderRadius: '20px',
-    textDecoration: 'none',
-    color: 'var(--foreground)',
-    boxShadow: '0 10px 25px -5px rgba(0,0,0,0.05)',
-    transition: 'transform 0.2s',
-    minWidth: '300px',
-  },
-  footerIcon: {
-    backgroundColor: '#f3f4f6',
-    padding: '12px',
-    borderRadius: '12px',
-    color: 'var(--primary)',
-  },
-  footerTitle: {
-    fontSize: '1.4rem',
-    fontWeight: 800,
-    margin: 0,
-  },
-  footerSub: {
-    fontSize: '1rem',
-    opacity: 0.6,
-    margin: 0,
+    backgroundColor: '#eee',
+    padding: '2rem',
+    borderTop: '1px solid #ddd',
   },
   noResults: {
     gridColumn: '1 / -1',
     textAlign: 'center',
-    padding: '4rem 2rem',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '1rem',
-    opacity: 0.8,
+    padding: '3rem',
+    backgroundColor: 'white',
+    borderRadius: '8px',
+    border: '1px solid #ddd',
+    color: '#666',
   }
 };

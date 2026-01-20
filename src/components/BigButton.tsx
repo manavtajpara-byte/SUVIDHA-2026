@@ -19,15 +19,12 @@ export default function BigButton({ label, icon, onClick, color = 'var(--primary
             tabIndex={0}
             style={{
                 ...styles.button,
-                background: 'rgba(255, 255, 255, 0.1)',
-                backdropFilter: 'blur(10px)',
-                border: '1px solid rgba(255, 255, 255, 0.2)',
-                boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
+                borderBottom: `4px solid ${color}`, // Add color accent line like gov cards
             }}
-            className="big-btn glass-effect"
+            className="big-btn"
         >
-            <div style={{ ...styles.iconWrapper, background: `linear-gradient(135deg, ${color} 0%, ${color}aa 100%)` }} className="icon-bounce">
-                {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { color: 'white' }) : icon}
+            <div style={{ ...styles.iconWrapper }} className="icon-wrapper">
+                {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { color: color }) : icon}
             </div>
             <div style={styles.content}>
                 <span style={styles.label}>{label}</span>
@@ -66,26 +63,27 @@ function adjustColor(color: string, amount: number) {
 const styles: Record<string, React.CSSProperties> = {
     button: {
         width: '100%',
-        minHeight: '220px',
-        border: 'none',
-        borderRadius: '30px',
+        minHeight: '200px',
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
         cursor: 'pointer',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '15px',
-        color: 'white',
-        padding: '20px',
+        gap: '12px',
+        backgroundColor: 'white',
+        padding: '24px',
         position: 'relative',
-        overflow: 'hidden',
+        transition: 'all 0.2s ease',
+        boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
     },
     iconWrapper: {
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        padding: '20px',
+        padding: '16px',
+        backgroundColor: '#f5f9ff',
         borderRadius: '50%',
-        backdropFilter: 'blur(5px)',
-        boxShadow: 'inset 0 0 20px rgba(255,255,255,0.3)',
+        color: 'var(--primary)',
+        marginBottom: '4px',
     },
     content: {
         display: 'flex',
@@ -95,25 +93,18 @@ const styles: Record<string, React.CSSProperties> = {
         zIndex: 2,
     },
     label: {
-        fontSize: '1.5rem',
-        fontWeight: 800,
-        textShadow: '0 2px 4px rgba(0,0,0,0.2)',
+        fontSize: '1.25rem',
+        fontWeight: 700,
+        color: 'var(--primary)',
         textAlign: 'center',
     },
     description: {
         fontSize: '0.9rem',
-        opacity: 0.9,
-        fontWeight: 500,
+        color: '#666',
+        fontWeight: 400,
         textAlign: 'center',
     },
     shine: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: 'linear-gradient(45deg, rgba(255,255,255,0) 40%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0) 60%)',
-        zIndex: 1,
-        pointerEvents: 'none',
+        display: 'none',
     }
 };

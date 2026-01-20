@@ -8,12 +8,15 @@ import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, Search, CheckCircle, Clock, FileCheck, Truck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import Receipt from '@/components/Receipt';
+
 export default function TrackPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
     const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
     const [tracking, setTracking] = useState(false);
+    const [showReceipt, setShowReceipt] = useState(false);
 
     const handleTrack = (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,6 +42,7 @@ export default function TrackPage() {
             {!tracking ? (
                 <div style={styles.card}>
                     <form onSubmit={handleTrack} style={styles.form}>
+                        {/* ... existing form content ... */}
                         <div style={styles.iconHeader}>
                             <Search size={60} color="var(--primary)" />
                             <p>Enter your Application or Ticket ID</p>
@@ -92,9 +96,10 @@ export default function TrackPage() {
                         <p>Our technician will contact you within 2-3 working days for site inspection.</p>
                     </div>
 
-                    <button onClick={() => setTracking(false)} style={styles.newSearchBtn}>
-                        Track Another Application
-                    </button>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button onClick={() => setShowReceipt(true)} style={styles.printBtn}>Print Status Receipt</button>
+                        <button onClick={() => setTracking(false)} style={styles.newSearchBtn}>Check Another</button>
+                    </div>
                 </div>
             )}
 
@@ -103,6 +108,22 @@ export default function TrackPage() {
                     onInput={handleInput}
                     onDelete={handleDelete}
                     onClose={closeKeyboard}
+                />
+            )}
+
+            {showReceipt && (
+                <Receipt
+                    type="Application Status Report"
+                    transactionId="REQ-ELE-2026-4401"
+                    customerName="Applicant"
+                    details={{
+                        'Application Type': 'New Electricity Connection',
+                        'Current Status': 'In Progress - Field Inspection',
+                        'Last Updated': 'Today',
+                        'Assigned Office': 'Zone 4, Municipal Office'
+                    }}
+                    autoPrint={true}
+                    onClose={() => setShowReceipt(false)}
                 />
             )}
         </div>
@@ -265,12 +286,24 @@ const styles: Record<string, React.CSSProperties> = {
         fontSize: '1.1rem',
     },
     newSearchBtn: {
+        flex: 1,
         padding: '1rem',
         fontSize: '1.2rem',
         fontWeight: 'bold',
         backgroundColor: 'white',
-        color: 'var(--primary)',
-        border: '2px solid var(--primary)',
+        color: '#64748b',
+        border: '2px solid #cbd5e1',
+        borderRadius: '1rem',
+        cursor: 'pointer',
+    },
+    printBtn: {
+        flex: 1,
+        padding: '1rem',
+        fontSize: '1.2rem',
+        fontWeight: 'bold',
+        backgroundColor: 'var(--primary)',
+        color: 'white',
+        border: 'none',
         borderRadius: '1rem',
         cursor: 'pointer',
     }

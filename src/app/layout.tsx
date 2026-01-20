@@ -1,32 +1,21 @@
-'use client';
-
 import type { Metadata } from "next";
 import "./globals.css";
-import { StateProvider, useAppState } from "@/context/StateContext";
-import Header from "@/components/Header";
-import UtilityBar from "@/components/UtilityBar";
-import Chatbot from "@/components/Chatbot";
-import ToastContainer from "@/components/Toast";
-import SessionTimeout from "@/components/SessionTimeout";
-import KeyboardShortcuts from "@/components/KeyboardShortcuts";
+import ClientLayout from "@/components/ClientLayout";
 
-function LayoutContent({ children }: { children: React.ReactNode }) {
-  const { toasts, removeToast } = useAppState();
+export const metadata: Metadata = {
+  title: "SUVIDHA Kiosk | Digital India Initiative",
+  description: "Official Government of India Citizen Service Kiosk. Access Electricity, Gas, Municipal services and more.",
+  keywords: ["government", "services", "india", "digital india", "bill payment", "certificate"],
+  authors: [{ name: "Ministry of Electronics & IT" }],
+};
 
-  return (
-    <>
-      <UtilityBar />
-      <Header />
-      <main style={{ flex: 1 }}>
-        {children}
-      </main>
-      <Chatbot />
-      <ToastContainer toasts={toasts} onClose={removeToast} />
-      <SessionTimeout timeoutMinutes={5} warningMinutes={1} />
-      <KeyboardShortcuts />
-    </>
-  );
-}
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  themeColor: "#1e3a8a",
+};
 
 export default function RootLayout({
   children,
@@ -36,9 +25,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
-        <StateProvider>
-          <LayoutContent>{children}</LayoutContent>
-        </StateProvider>
+        <ClientLayout>{children}</ClientLayout>
       </body>
     </html>
   );

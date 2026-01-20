@@ -4,6 +4,7 @@ import React from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
 import { Globe, ChevronDown, Search, Mic } from 'lucide-react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { availableLanguages } from '@/constants/translations';
 
@@ -46,8 +47,10 @@ export default function Header() {
         <header style={styles.header}>
             <div style={styles.container} className="container">
                 <Link href="/" style={styles.brand} className="brand">
+                    import Image from 'next/image';
+                    // ... import Image at the top ...
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                        <div style={styles.logo}>S</div>
+                        <Image src="/logo.png" alt="SUVIDHA Emblem" width={50} height={50} style={{ objectFit: 'contain' }} />
                         <div>
                             <h1 style={styles.title}>{title}</h1>
                             <p style={styles.subtitle}>{tagline}</p>

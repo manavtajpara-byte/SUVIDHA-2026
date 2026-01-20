@@ -8,6 +8,8 @@ import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, Baby, Heart, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
+import Receipt from '@/components/Receipt';
+
 export default function CertificatesPage() {
     const { language } = useAppState();
     const t = translations[language];
@@ -15,6 +17,7 @@ export default function CertificatesPage() {
     const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
     const [certType, setCertType] = useState<'birth' | 'death' | null>(null);
     const [submitted, setSubmitted] = useState(false);
+    const [showReceipt, setShowReceipt] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -116,6 +119,11 @@ export default function CertificatesPage() {
                         <strong>CERT-{certType?.toUpperCase()}-1029</strong>
                     </div>
                     <p style={styles.note}>Processing time: 3-5 working days</p>
+
+                    <button onClick={() => setShowReceipt(true)} style={styles.printBtn}>
+                        Print Acknowledgement
+                    </button>
+
                     <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
                 </div>
             )}
@@ -125,6 +133,22 @@ export default function CertificatesPage() {
                     onInput={handleInput}
                     onDelete={handleDelete}
                     onClose={closeKeyboard}
+                />
+            )}
+
+            {showReceipt && (
+                <Receipt
+                    type={`${certType} Certificate Request`}
+                    transactionId={`CERT-${certType?.toUpperCase()}-1029`}
+                    customerName={values.personName || 'Citizen'}
+                    details={{
+                        'Reg No': values.regNo || 'N/A',
+                        'Mobile': values.mobile || 'N/A',
+                        'Status': 'Submitted for Processing',
+                        'Date': new Date().toLocaleDateString()
+                    }}
+                    autoPrint={true}
+                    onClose={() => setShowReceipt(false)}
                 />
             )}
         </div>
@@ -288,13 +312,24 @@ const styles: Record<string, React.CSSProperties> = {
         opacity: 0.7,
         fontStyle: 'italic',
     },
+    printBtn: {
+        marginTop: '1rem',
+        padding: '1rem 2rem',
+        fontSize: '1.2rem',
+        fontWeight: 'bold',
+        backgroundColor: 'var(--primary)',
+        color: 'white',
+        borderRadius: '1rem',
+        border: 'none',
+        cursor: 'pointer',
+    },
     homeBtn: {
-        marginTop: '2rem',
+        marginTop: '1rem',
         padding: '1rem 3rem',
         fontSize: '1.2rem',
         fontWeight: 'bold',
-        backgroundColor: 'var(--foreground)',
-        color: 'white',
+        backgroundColor: '#e2e8f0', // Lighter grey for secondary action
+        color: 'var(--foreground)',
         borderRadius: '1rem',
         border: 'none',
         cursor: 'pointer',

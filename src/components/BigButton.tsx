@@ -19,13 +19,15 @@ export default function BigButton({ label, icon, onClick, color = 'var(--primary
             tabIndex={0}
             style={{
                 ...styles.button,
-                background: `linear-gradient(135deg, ${color} 0%, ${adjustColor(color, -20)} 100%)`,
-                boxShadow: `0 10px 20px -5px ${color}80`,
+                background: 'rgba(255, 255, 255, 0.1)',
+                backdropFilter: 'blur(10px)',
+                border: '1px solid rgba(255, 255, 255, 0.2)',
+                boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.1)',
             }}
-            className="big-btn"
+            className="big-btn glass-effect"
         >
-            <div style={styles.iconWrapper} className="icon-bounce">
-                {icon}
+            <div style={{ ...styles.iconWrapper, background: `linear-gradient(135deg, ${color} 0%, ${color}aa 100%)` }} className="icon-bounce">
+                {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { color: 'white' }) : icon}
             </div>
             <div style={styles.content}>
                 <span style={styles.label}>{label}</span>
@@ -37,11 +39,13 @@ export default function BigButton({ label, icon, onClick, color = 'var(--primary
 
             <style jsx>{`
                 .big-btn {
-                    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s;
+                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                 }
                 .big-btn:hover {
                     transform: translateY(-8px) scale(1.02);
-                    filter: brightness(1.1);
+                    background: rgba(255, 255, 255, 0.15) !important;
+                    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+                    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
                 }
                 .big-btn:hover .icon-bounce {
                     transform: scale(1.1) rotate(5deg);

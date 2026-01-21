@@ -13,6 +13,7 @@ const MOCK_BLOCKCHAIN_DATA = [
 export default function TransparencyPage() {
     const [blocks, setBlocks] = useState(MOCK_BLOCKCHAIN_DATA);
     const [isMining, setIsMining] = useState(false);
+    const [selectedTx, setSelectedTx] = useState<any>(null);
 
     const mineBlock = () => {
         setIsMining(true);
@@ -29,6 +30,29 @@ export default function TransparencyPage() {
             setIsMining(false);
         }, 2000);
     };
+
+    if (selectedTx) {
+        return (
+            <div style={styles.container}>
+                <div style={styles.certCard}>
+                    <ShieldCheck size={64} color="#4f46e5" />
+                    <h2>Blockchain Verification Certificate</h2>
+                    <p style={{ color: '#64748b' }}>Verified by Govt GBN-3 Node #99120</p>
+
+                    <div style={styles.txDetails}>
+                        <div style={styles.txRow}><span>Transaction Hash</span> <span style={styles.txHash}>{selectedTx.hash}</span></div>
+                        <div style={styles.txRow}><span>Grant Type</span> <strong>{selectedTx.type}</strong></div>
+                        <div style={styles.txRow}><span>Amount</span> <span style={{ color: '#16a34a', fontWeight: 'bold' }}>{selectedTx.amount}</span></div>
+                        <div style={styles.txRow}><span>Beneficiary</span> <strong>{selectedTx.beneficiary}</strong></div>
+                        <div style={styles.txRow}><span>Status</span> <span style={styles.verified}><CheckCircle size={14} /> IMMUTABLE</span></div>
+                    </div>
+
+                    <button onClick={() => window.print()} style={styles.printBtn}>Print Certificate</button>
+                    <button onClick={() => setSelectedTx(null)} style={styles.backBtn}>Close</button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={styles.container}>
@@ -72,8 +96,7 @@ export default function TransparencyPage() {
                                 <th style={styles.th}>Grant Type</th>
                                 <th style={styles.th}>Amount</th>
                                 <th style={styles.th}>Beneficiary</th>
-                                <th style={styles.th}>Time</th>
-                                <th style={styles.th}>Status</th>
+                                <th style={styles.th}>Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -87,11 +110,13 @@ export default function TransparencyPage() {
                                     </td>
                                     <td style={styles.td}>{block.amount}</td>
                                     <td style={styles.td}>{block.beneficiary}</td>
-                                    <td style={styles.td}>{block.timestamp}</td>
                                     <td style={styles.td}>
-                                        <span style={styles.verified}>
-                                            <CheckCircle size={14} /> {block.status}
-                                        </span>
+                                        <button
+                                            onClick={() => setSelectedTx(block)}
+                                            style={styles.verifyBtn}
+                                        >
+                                            Verify Certificate
+                                        </button>
                                     </td>
                                 </tr>
                             ))}
@@ -230,5 +255,68 @@ const styles: Record<string, React.CSSProperties> = {
         color: '#16a34a',
         fontWeight: 600,
         fontSize: '0.85rem',
+    },
+    verifyBtn: {
+        padding: '0.4rem 0.8rem',
+        backgroundColor: '#4f46e5',
+        color: 'white',
+        border: 'none',
+        borderRadius: '6px',
+        fontSize: '0.8rem',
+        cursor: 'pointer',
+    },
+    certCard: {
+        backgroundColor: 'white',
+        padding: '4rem',
+        borderRadius: '25px',
+        maxWidth: '700px',
+        margin: '2rem auto',
+        textAlign: 'center',
+        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        border: '1px solid #e2e8f0',
+    },
+    txDetails: {
+        marginTop: '2.5rem',
+        textAlign: 'left',
+        backgroundColor: '#f8fafc',
+        padding: '2rem',
+        borderRadius: '15px',
+        display: 'grid',
+        gap: '1.25rem',
+    },
+    txRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        borderBottom: '1px solid #e2e8f0',
+        paddingBottom: '0.75rem',
+        fontSize: '0.95rem',
+    },
+    txHash: {
+        fontFamily: 'monospace',
+        fontSize: '0.85rem',
+        color: '#64748b',
+    },
+    printBtn: {
+        width: '100%',
+        padding: '1rem',
+        backgroundColor: '#4f46e5',
+        color: 'white',
+        border: 'none',
+        borderRadius: '10px',
+        marginTop: '2rem',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+    },
+    backBtn: {
+        width: '100%',
+        padding: '1rem',
+        backgroundColor: '#f1f5f9',
+        color: '#475569',
+        border: 'none',
+        borderRadius: '10px',
+        marginTop: '1rem',
+        fontWeight: 'bold',
+        cursor: 'pointer',
     }
 };

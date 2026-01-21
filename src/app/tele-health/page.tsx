@@ -1,17 +1,72 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Video, Mic, PhoneOff, FileText } from 'lucide-react';
+import { Video, Mic, PhoneOff, FileText, CheckCircle, Printer, CreditCard } from 'lucide-react';
 
 export default function TeleHealthPage() {
-    const [inCall, setInCall] = useState(false);
+    const [step, setStep] = useState<'intro' | 'payment' | 'call' | 'post-call'>('intro');
+    const [isProcessing, setIsProcessing] = useState(false);
+
+    const handlePayment = () => {
+        setIsProcessing(true);
+        setTimeout(() => {
+            setIsProcessing(false);
+            setStep('call');
+        }, 1500);
+    };
+
+    const endCall = () => {
+        setStep('post-call');
+    };
+
+    if (step === 'payment') {
+        return (
+            <div style={styles.container}>
+                <div style={styles.paymentCard}>
+                    <CreditCard size={48} color="#2563eb" />
+                    <h2>Consultation Fee: ₹1.00</h2>
+                    <p>Government subsidized eSanjeevani OPD</p>
+                    <button
+                        onClick={handlePayment}
+                        disabled={isProcessing}
+                        style={styles.connectBtn}
+                    >
+                        {isProcessing ? 'Processing...' : 'Pay with BharatQR'}
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (step === 'post-call') {
+        return (
+            <div style={styles.container}>
+                <div style={styles.receiptCard}>
+                    <CheckCircle size={64} color="#16a34a" />
+                    <h2>Consultation Complete</h2>
+                    <p style={{ marginBottom: '2rem' }}>Your digital prescription has been generated.</p>
+
+                    <div style={styles.prescriptionItem}>
+                        <div style={styles.date}>Today - {new Date().toLocaleDateString()}</div>
+                        <div style={styles.meds}>Paracetamol 500mg (SOS), Vitamin C</div>
+                        <div style={styles.doc}>Dr. Anjali Sharma (AI-Verified)</div>
+                    </div>
+
+                    <button onClick={() => window.print()} style={styles.printBtn}>
+                        <Printer size={18} /> Print Prescription
+                    </button>
+                    <button onClick={() => setStep('intro')} style={styles.backBtn}>Return Home</button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div style={styles.container}>
             <div style={styles.grid}>
                 {/* Video Area */}
                 <div style={styles.videoCard}>
-                    {inCall ? (
+                    {step === 'call' ? (
                         <div style={styles.activeVideo}>
                             <div style={styles.remoteVideo}>
                                 <div style={styles.doctorBadge}>Dr. Anjali Sharma (MBBS)</div>
@@ -24,7 +79,7 @@ export default function TeleHealthPage() {
                                 <button style={styles.controlBtn}><Mic size={20} /></button>
                                 <button style={styles.controlBtn}><Video size={20} /></button>
                                 <button
-                                    onClick={() => setInCall(false)}
+                                    onClick={endCall}
                                     style={{ ...styles.controlBtn, backgroundColor: '#ef4444', color: 'white' }}
                                 >
                                     <PhoneOff size={20} />
@@ -34,12 +89,12 @@ export default function TeleHealthPage() {
                     ) : (
                         <div style={styles.waitingRoom}>
                             <h2>eSanjeevani OPD</h2>
-                            <p>Consult expert doctors from top goverment hospitals.</p>
+                            <p>Consult expert doctors from top government hospitals.</p>
                             <button
-                                onClick={() => setInCall(true)}
+                                onClick={() => setStep('payment')}
                                 style={styles.connectBtn}
                             >
-                                <Video size={24} /> Start Video Consultation
+                                <Video size={24} /> Connect to Doctor
                             </button>
                             <p style={styles.waitText}>Estimated Wait Time: 2 mins</p>
                         </div>
@@ -49,13 +104,8 @@ export default function TeleHealthPage() {
                 {/* Prescription Area */}
                 <div style={styles.sidebar}>
                     <div style={styles.card}>
-                        <h3><FileText size={20} /> Your Prescriptions</h3>
+                        <h3><FileText size={20} /> Recent History</h3>
                         <div style={styles.prescriptionList}>
-                            <div style={styles.prescriptionItem}>
-                                <div style={styles.date}>Today</div>
-                                <div style={styles.meds}>Paracetamol 500mg, Cetirizine</div>
-                                <div style={styles.doc}>Dr. Anjali Sharma</div>
-                            </div>
                             <div style={styles.prescriptionItem}>
                                 <div style={styles.date}>12 Jan 2026</div>
                                 <div style={styles.meds}>Multivitamins</div>
@@ -211,5 +261,53 @@ const styles: Record<string, React.CSSProperties> = {
     doc: {
         fontSize: '0.9rem',
         color: '#334155',
+    },
+    paymentCard: {
+        backgroundColor: 'white',
+        padding: '3rem',
+        borderRadius: '20px',
+        maxWidth: '500px',
+        margin: '5rem auto',
+        textAlign: 'center',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '1rem',
+    },
+    receiptCard: {
+        backgroundColor: 'white',
+        padding: '3rem',
+        borderRadius: '20px',
+        maxWidth: '600px',
+        margin: '2rem auto',
+        textAlign: 'center',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
+    },
+    printBtn: {
+        width: '100%',
+        padding: '1rem',
+        backgroundColor: '#2563eb',
+        color: 'white',
+        border: 'none',
+        borderRadius: '10px',
+        fontWeight: 'bold',
+        marginTop: '2rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.5rem',
+        cursor: 'pointer',
+    },
+    backBtn: {
+        width: '100%',
+        padding: '1rem',
+        backgroundColor: '#f1f5f9',
+        color: '#475569',
+        border: 'none',
+        borderRadius: '10px',
+        fontWeight: 'bold',
+        marginTop: '1rem',
+        cursor: 'pointer',
     }
 };

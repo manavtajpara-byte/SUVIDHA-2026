@@ -47,8 +47,6 @@ export default function Header() {
         <header style={styles.header}>
             <div style={styles.container} className="container">
                 <Link href="/" style={styles.brand} className="brand">
-                    import Image from 'next/image';
-                    // ... import Image at the top ...
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <Image src="/logo.png" alt="SUVIDHA Emblem" width={50} height={50} style={{ objectFit: 'contain' }} />
                         <div>

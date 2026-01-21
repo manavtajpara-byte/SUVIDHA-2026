@@ -4,7 +4,7 @@ import React from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
 import BigButton from '@/components/BigButton';
-import { Zap, Flame, Building2, Search, Smartphone, Wheat, Home as HomeIcon, Bus, Heart, AlertCircle } from 'lucide-react';
+import { Zap, Flame, Building2, Search, Smartphone, Wheat, Home as HomeIcon, Bus, Heart, AlertCircle, ShieldCheck, ShoppingBag, Video, Leaf, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import NearbyFacilities from '@/components/NearbyFacilities';
 import QRConnect from '@/components/QRConnect';
@@ -71,6 +71,41 @@ export default function Home() {
       icon: <AlertCircle size={80} />,
       color: 'var(--emergency)',
       link: '/emergency'
+    },
+    {
+      label: "Transparency",
+      description: "Blockchain Trust Ledger",
+      icon: <ShieldCheck size={80} />,
+      color: '#16a34a',
+      link: '/transparency'
+    },
+    {
+      label: "Gram Bazaar",
+      description: "Village Marketplace",
+      icon: <ShoppingBag size={80} />,
+      color: '#ea580c',
+      link: '/gram-bazaar'
+    },
+    {
+      label: "Tele-Health",
+      description: "Video Consultation",
+      icon: <Video size={80} />,
+      color: '#2563eb',
+      link: '/tele-health'
+    },
+    {
+      label: "Agri-Tech",
+      description: "Drones & Soil Health",
+      icon: <Leaf size={80} />,
+      color: '#059669',
+      link: '/agri-tech'
+    },
+    {
+      label: "Future Vision",
+      description: "Vision 2030 Hub",
+      icon: <Sparkles size={80} />,
+      color: '#7c3aed',
+      link: '/vision'
     }
   ];
 

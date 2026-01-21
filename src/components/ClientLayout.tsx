@@ -12,6 +12,8 @@ import KeyboardShortcuts from "@/components/KeyboardShortcuts";
 import VoiceAssistant from "@/components/VoiceAssistant";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import EmergencyBroadcast from "@/components/EmergencyBroadcast";
+import HardwareBridge from "@/components/HardwareBridge";
+import SahayakAvatar from "@/components/SahayakAvatar";
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
     const { toasts, removeToast } = useAppState();

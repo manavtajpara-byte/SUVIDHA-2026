@@ -7,37 +7,16 @@ import { Globe, ChevronDown, Search, Mic } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { availableLanguages } from '@/constants/translations';
+import VoiceAssistant from './VoiceAssistant';
 
 export default function Header() {
     const { language, setLanguage, searchQuery, setSearchQuery } = useAppState();
     const t = translations[language];
     const [showLangMenu, setShowLangMenu] = React.useState(false);
-    const [isListening, setIsListening] = React.useState(false);
+    const [showVoiceAssistant, setShowVoiceAssistant] = React.useState(false);
 
-    // Voice Search Logic
-    const startListening = () => {
-        const win = window as any;
-        if ('webkitSpeechRecognition' in win || 'SpeechRecognition' in win) {
-            const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
-            const recognition = new SpeechRecognition();
-
-            recognition.lang = language === 'hi' ? 'hi-IN' : 'en-US'; // Dynamic language
-            recognition.continuous = false;
-            recognition.interimResults = false;
-
-            recognition.onstart = () => setIsListening(true);
-            recognition.onend = () => setIsListening(false);
-
-            recognition.onresult = (event: any) => {
-                const transcript = event.results[0][0].transcript;
-                setSearchQuery(transcript);
-            };
-
-            recognition.start();
-        } else {
-            alert('Voice search is not supported in this browser.');
-        }
-    };
+    // Dynamic import for VoiceAssistant to avoid SSR issues if needed, but standard import is fine for client component
+    // We need to import VoiceAssistant from our new component
 
     // Fallback if translation is missing 
     const title = t?.title || "SUVIDHA Kiosk";
@@ -60,19 +39,18 @@ export default function Header() {
                     <Search style={styles.searchIcon} size={20} />
                     <input
                         type="text"
-                        placeholder={isListening ? "Listening..." : (t?.search || "Search services...")}
+                        placeholder={t?.search || "Search services..."}
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         style={styles.searchInput}
                     />
                     <button
-                        onClick={startListening}
+                        onClick={() => setShowVoiceAssistant(true)}
                         style={{
                             ...styles.micBtn,
-                            color: isListening ? '#ef4444' : '#94a3b8',
-                            animation: isListening ? 'pulse 1.5s infinite' : 'none'
+                            color: showVoiceAssistant ? '#ef4444' : '#94a3b8',
                         }}
-                        title="Voice Search"
+                        title="Voice Assistant"
                     >
                         <Mic size={20} />
                     </button>
@@ -114,6 +92,12 @@ export default function Header() {
                     </div>
                 </div>
             </div>
+
+            <VoiceAssistant
+                isOpen={showVoiceAssistant}
+                onClose={() => setShowVoiceAssistant(false)}
+            />
+
             <style jsx>{`
                 @keyframes pulse {
                     0% { transform: scale(1); opacity: 1; }
@@ -141,7 +125,7 @@ export default function Header() {
                     }
                 }
             `}</style>
-        </header>
+        </header >
     );
 }
 

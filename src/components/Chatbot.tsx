@@ -1,10 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, ThumbsUp, MessageSquarePlus, Bot, User } from 'lucide-react';
+import { MessageCircle, X, Send, ThumbsUp, ThumbsDown, MessageSquarePlus, Bot, User, Brain } from 'lucide-react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
 import { usePathname } from 'next/navigation';
+import { aiLearningEngine } from '@/utils/AILearningEngine';
+import { fullTrainingDataset } from '@/utils/trainingDataset';
+import { webSearchService } from '@/services/WebSearchService';
+import { mathEngine } from '@/utils/MathEngine';
+import { schemeAnalyzer } from '@/utils/SchemeAnalyzer';
 
 interface Message {
     id: string;
@@ -12,6 +17,8 @@ interface Message {
     sender: 'user' | 'bot';
     timestamp: Date;
     feedbackGiven?: boolean;
+    userQuestion?: string; // Store original question for learning
+    category?: string; // Response category for learning
 }
 
 export default function Chatbot() {
@@ -23,7 +30,40 @@ export default function Chatbot() {
     const [inputValue, setInputValue] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [processingStep, setProcessingStep] = useState('');
+    const [isEdgeAI, setIsEdgeAI] = useState(false);
+    const [isTraining, setIsTraining] = useState(false);
+    const [learnedCount, setLearnedCount] = useState(0);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+
+    const [isProactiveDismissed, setIsProactiveDismissed] = useState(true); // Default true to avoid flash, set false in effect
+
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const dismissed = localStorage.getItem('suvidha_proactive_dismissed') === 'true';
+            setIsProactiveDismissed(dismissed);
+        }
+    }, []);
+
+    // Initialize AI training on first load
+    useEffect(() => {
+        const hasTrainedKey = 'suvidha_ai_initial_training';
+        const hasTrained = localStorage.getItem(hasTrainedKey);
+
+        if (!hasTrained) {
+            setIsTraining(true);
+            // Train AI with all 105 questions in background
+            setTimeout(() => {
+                aiLearningEngine.bulkTrain(fullTrainingDataset);
+                localStorage.setItem(hasTrainedKey, 'true');
+                setIsTraining(false);
+                const analytics = aiLearningEngine.getAnalytics();
+                setLearnedCount(analytics.totalPatterns);
+            }, 1000);
+        } else {
+            const analytics = aiLearningEngine.getAnalytics();
+            setLearnedCount(analytics.totalPatterns);
+        }
+    }, []);
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -48,7 +88,8 @@ export default function Chatbot() {
         scrollToBottom();
     }, [messages, isTyping, processingStep]);
 
-    const handleSend = async () => {
+
+    const handleSend = async () => { // Keep async
         if (!inputValue.trim()) return;
 
         const userMsg: Message = {
@@ -68,88 +109,420 @@ export default function Chatbot() {
         setTimeout(() => {
             setProcessingStep(t.analyzing || 'Analyzing your request...');
 
-            setTimeout(() => {
-                const botResponse = generateResponse(currentInput, pathname, language);
+            setTimeout(async () => { // Make this callback async
+                // Now await the response directly
+                const { response: botResponse, category } = await generateResponse(currentInput, pathname, language);
                 const botMsg: Message = {
                     id: (Date.now() + 1).toString(),
                     text: botResponse,
                     sender: 'bot',
-                    timestamp: new Date()
+                    timestamp: new Date(),
+                    userQuestion: currentInput,
+                    category
                 };
                 setMessages(prev => [...prev, botMsg]);
                 setIsTyping(false);
                 setProcessingStep('');
-            }, 1500);
-        }, 1000);
+            }, 1000); // Reduced delay slightly as web search adds latency
+        }, 800);
     };
 
-    const generateResponse = (input: string, path: string, lang: string): string => {
+    const generateResponse = async (input: string, path: string, lang: string): Promise<{ response: string; category: string }> => {
         const lowerInput = input.toLowerCase();
 
-        // Comprehensive Solution Knowledge Base
-        const solutions: Record<string, Record<string, string>> = {
+        // --- PHASE 4: MULTI-INTENT RECOGNITION ---
+        if (lowerInput.includes(' and ') && !lowerInput.includes('between')) {
+            const parts = lowerInput.split(' and ');
+            if (parts.length === 2) {
+                const res1 = await generateResponse(parts[0], path, lang);
+                const res2 = await generateResponse(parts[1], path, lang);
+                return {
+                    response: `1️⃣ ${res1.response}\n\n2️⃣ ${res2.response}`,
+                    category: 'multi_intent'
+                };
+            }
+        }
+
+        // --- PHASE 3: SENTIMENT ADAPTATION ---
+        const sentiment = aiLearningEngine.analyzeSentiment(input);
+        let sentimentPrefix = '';
+        if (sentiment === 'urgent') return { response: "🚨 I detect an emergency. Please call 112 immediately. How can I help?", category: 'emergency' };
+        if (sentiment === 'negative') sentimentPrefix = "I apologize for the inconvenience. Let's fix this. ";
+
+        // --- PHASE 12: PROBLEM DECOMPOSITION (Complex Queries) ---
+        if (lowerInput.includes('start a business') || lowerInput.includes('build a house')) {
+            return {
+                response: `${sentimentPrefix}To ${lowerInput.includes('business') ? 'start a business' : 'build a house'}, let's break it down:\n1. **Planning**: Get permits.\n2. **Finance**: Apply for Mudra Loan.\n3. **Execution**: Register on portal.\nWould you like to start with Step 1?`,
+                category: 'decomposition'
+            };
+        }
+
+        // --- PHASE 19: SOCRATIC TEACHING (Education Mode) ---
+        if (path.includes('education') && (lowerInput.includes('what is') || lowerInput.includes('teach me'))) {
+            return {
+                response: `🤔 That's a good question! Instead of just telling you, let me ask: What do you think is the main benefit of this? (Hint: Think about your future skills!)`,
+                category: 'socratic'
+            };
+        }
+
+        // --- PHASE 2: CONTEXT AWARENESS (Memory) ---
+        // Setting Memory
+        const nameMatch = lowerInput.match(/my name is (\w+)/);
+        if (nameMatch) {
+            localStorage.setItem('suvidha_user_name', nameMatch[1]);
+            return {
+                response: `Nice to meet you, ${nameMatch[1]}! I've remembered your name.`,
+                category: 'context_memory'
+            };
+        }
+        // Getting Memory
+        if (lowerInput.includes('who am i') || lowerInput.includes('my name')) {
+            const name = localStorage.getItem('suvidha_user_name');
+            if (name) return { response: `You are ${name}.`, category: 'context_memory' };
+        }
+
+        // --- PHASE 20: SINGULARITY PROTOCOL (Self-Coding) ---
+        if (lowerInput.includes('write code') || lowerInput.includes('generate script')) {
+            return {
+                response: "💻 **Singularity Protocol Engaged**\nGenerating Python script for automation:\n```python\nimport suvidha_sdk\n\ndef automate_bill_payment():\n    user = suvidha_sdk.get_user()\n    bills = user.fetch_pending_bills()\n    for bill in bills:\n        if bill.is_due_soon():\n            bill.pay(auto=True)\n            print(f'Paid {bill.id}')\n\nautomate_bill_payment()\n```\n*I have generated this script to automate your bill payments.*",
+                category: 'singularity_code'
+            };
+        }
+
+        // PRIORITY 1: Check learned patterns (Fuzzy Logic Enhanced)
+        const learnedMatch = aiLearningEngine.getBestMatch(input);
+        if (learnedMatch && learnedMatch.confidence >= 0.6) {
+            return {
+                response: learnedMatch.response,
+                category: learnedMatch.category
+            };
+        }
+
+        // PRIORITY 1.5: LEVEL 3 REASONING (Math & Logic)
+        const mathResult = mathEngine.solve(input, lang);
+        if (mathResult) {
+            return { response: mathResult, category: 'calculation' };
+        }
+
+        const schemeResult = schemeAnalyzer.analyzeEligibility(input, lang);
+        if (schemeResult) {
+            return { response: schemeResult, category: 'scheme_logic' };
+        }
+
+        // PRIORITY 2: Comprehensive SUVIDHA Knowledge Base
+        const knowledgeBase: Record<string, any> = {
+            // ... (keep existing)
             en: {
-                bill: "To pay your bill, go to the respective sector (Electricity/Gas/Water) and click on 'Quick Bill Pay'. You will need your Consumer Number.",
-                apply: "For new applications, select the service and click 'Apply New'. Keep your Aadhaar and proof of residence ready for scanning.",
-                status: "You can track any application in the 'Track' section on the homepage by entering your Application ID.",
-                leak: "URGENT: For gas leaks, please exit the building immediately and call the emergency helpline mentioned on the Gas page or dial 1906.",
-                ration: "Ration Card updates take 7-10 working days. You can download the e-Ration card once the status shows 'Approved'.",
-                payment: "We support UPI (QR Code), Debit/Credit Cards, and Net Banking. All transactions are secured by GOI encryption.",
-                error: "I apologize for the technical issue. Please try refreshing the page or using the 'Grievance' section to report a bug.",
-                hospital: "You can book vaccination slots or generate your ABHA health card in the Healthcare section.",
-                transport: "Bus passes can be renewed instantly. For Metro cards, use the top-up feature and then verify at the station kiosk."
+                // Core Utility Services
+                electricity: {
+                    keywords: ['electricity', 'power', 'bill', 'outage', 'meter', 'connection', 'electric', 'light', 'bijli'],
+                    response: "⚡ Electricity Services: You can pay bills, report outages, apply for new connections, or check consumption history. Quick Pay is available for instant bill payment. Current grid status: All systems operational."
+                },
+                gas: {
+                    keywords: ['gas', 'cylinder', 'lpg', 'refill', 'booking', 'subsidy', 'ujjwala'],
+                    response: "🔥 Gas Services: Book LPG cylinders, check subsidy status, report leaks (dial 1906), or apply for new connections. Ujjwala beneficiaries get priority delivery within 24 hours."
+                },
+                water: {
+                    keywords: ['water', 'jal', 'supply', 'tanker', 'quality', 'complaint', 'leak'],
+                    response: "💧 Water Services: Report supply issues, request tankers, check water quality reports, or pay water bills. Emergency tanker requests are processed within 2 hours."
+                },
+
+                // Financial & Banking
+                finance: {
+                    keywords: ['money', 'bank', 'withdrawal', 'aeps', 'loan', 'pension', 'finance', 'payment', 'cash', 'account', 'balance'],
+                    response: "💰 Financial Services: AEPS Micro-ATM supports cash withdrawal (₹10,000 limit), balance inquiry, and mini statements. For loans, check PM-SVANidhi or Mudra schemes. Jan Dhan accounts can be opened instantly."
+                },
+                pension: {
+                    keywords: ['pension', 'senior', 'widow', 'disability', 'social security', 'elderly'],
+                    response: "👴 Pension Services: Check pension status, update bank details, or apply for social security schemes. Aadhaar-based life certificates can be submitted digitally."
+                },
+
+                // Identity & Documents
+                identity: {
+                    keywords: ['aadhaar', 'pan', 'document', 'verify', 'passport', 'id', 'card', 'digital locker'],
+                    response: "🆔 Identity Services: Digital Locker now uses Quantum-Secure encryption (L6 Trust). Store Aadhaar, PAN, driving license, and certificates. All documents are blockchain-verified."
+                },
+                ration: {
+                    keywords: ['ration', 'food', 'grain', 'pds', 'ration card', 'subsidy'],
+                    response: "🌾 Ration Card Services: Apply for new cards, update family details, check entitlement, or download digital ration cards. PDS allocation is updated monthly."
+                },
+
+                // Health Services
+                health: {
+                    keywords: ['doctor', 'medicine', 'health', 'hospital', 'appointment', 'sick', 'vaccine', 'abha', 'ayushman'],
+                    response: "🏥 Health Services: Start eSanjeevani video consultations, book appointments, get ABHA health ID, or check Ayushman Bharat eligibility. Prescriptions are digitally signed and stored."
+                },
+                vaccine: {
+                    keywords: ['vaccination', 'immunization', 'cowin', 'vaccine certificate'],
+                    response: "💉 Vaccination: Download CoWIN certificates, check vaccination status, or book slots for upcoming drives. All records are linked to your ABHA ID."
+                },
+
+                // Education & Skills
+                education: {
+                    keywords: ['learn', 'course', 'study', 'education', 'job', 'skill', 'student', 'training', 'certificate'],
+                    response: "📚 Education Hub: 500+ Skill India courses available. High-demand sectors for 2026: Cyber-Security, Agri-Robotics, Green Energy. Courses include certification and job placement support."
+                },
+                scholarship: {
+                    keywords: ['scholarship', 'fee', 'student aid', 'education loan'],
+                    response: "🎓 Scholarships: Check eligibility for NSP (National Scholarship Portal), apply for education loans, or track disbursement status. Merit-based and need-based options available."
+                },
+
+                // Agriculture
+                agriculture: {
+                    keywords: ['farmer', 'crop', 'soil', 'agriculture', 'fertilizer', 'drone', 'farming', 'kisan', 'mandi'],
+                    response: "🌱 Agriculture Services: Book soil health drones, check PM-Kisan status, get MSP rates, access weather forecasts, or sell produce on e-NAM. Bio-fertilizers mandatory for Green Export Scheme."
+                },
+
+                // Transport
+                transport: {
+                    keywords: ['bus', 'metro', 'pass', 'ticket', 'transport', 'travel', 'recharge'],
+                    response: "🚌 Transport Services: Issue bus passes, recharge metro cards, check route schedules, or apply for senior citizen concessions. Digital passes activate instantly."
+                },
+                license: {
+                    keywords: ['driving license', 'dl', 'learner', 'vehicle', 'registration'],
+                    response: "🚗 Driving License: Apply for learner's license, renew DL, check application status, or download digital DL. Vehicle registration services also available."
+                },
+
+                // Governance & Transparency
+                grievance: {
+                    keywords: ['complaint', 'grievance', 'problem', 'issue', 'report', 'feedback'],
+                    response: "📢 Grievance Redressal: File complaints via CPGRAMS integration. Track status in real-time. Average resolution time: 15 days. Escalation available after 7 days."
+                },
+                transparency: {
+                    keywords: ['transparency', 'blockchain', 'audit', 'fund', 'grant', 'ledger'],
+                    response: "🔗 Transparency Portal: View blockchain-verified public grants, audit trails, and fund allocation. All transactions are immutable and publicly verifiable."
+                },
+
+                // Vision 2030 Modules
+                vision2030: {
+                    keywords: ['vision', '2030', 'future', 'smart village', 'iot', 'singularity', 'ar training', 'predictive'],
+                    response: "🚀 Vision 2030 Hub: Explore futuristic services - Smart Village IoT, AEPS Micro-ATM, Education Hub, AR Training, Predictive Governance, and The Singularity (autonomous AI). India's digital future, today."
+                },
+                iot: {
+                    keywords: ['sensor', 'monitoring', 'real-time', 'telemetry', 'smart'],
+                    response: "📡 Smart Village IoT: Monitor water purity (98%), air quality (AQI 42), street-lights, and soil pH in real-time. Remote control actions available for all nodes."
+                },
+
+                // Commerce & Business
+                commerce: {
+                    keywords: ['sell', 'buy', 'market', 'bazaar', 'shop', 'business', 'vendor'],
+                    response: "🛒 Gram Bazaar: Village e-commerce platform. Sell agricultural produce, handicrafts, or local products. Camera-based product listing with instant QR codes."
+                },
+
+                // Emergency Services
+                emergency: {
+                    keywords: ['emergency', 'police', 'ambulance', 'fire', 'leak', 'accident', 'urgent', 'help', 'danger'],
+                    response: "🚨 EMERGENCY: Dial 112 for national emergency, 1906 for gas leaks, 102 for ambulance. Exit premises immediately if you smell gas. Stay calm, help is on the way."
+                },
+
+                // Technical Support
+                tech: {
+                    keywords: ['internet', 'wi-fi', 'network', 'kiosk', 'offline', 'ai', 'system', 'error', 'not working'],
+                    response: "🖥️ Technical Support: This kiosk runs on Edge AI with offline capability. Network issues? System auto-switches to local processing. For hardware problems, use AR Training module or contact support."
+                },
+
+                // General India & Development
+                general: {
+                    keywords: ['india', 'development', 'government', 'country', 'digital india', 'scheme'],
+                    response: "🇮🇳 Digital India: SUVIDHA Kiosks deliver 500+ government schemes with zero leakages. Part of the Omni-Project for last-mile service delivery. India leads global digital governance."
+                },
+
+                // Greetings
+                greeting: {
+                    keywords: ['hello', 'hi', 'hey', 'namaste', 'good morning', 'good evening'],
+                    response: "🙏 Namaste! I'm SUVIDHA AI, your intelligent assistant for all government services. Ask me about electricity, health, education, agriculture, or any of our 500+ services. How can I help you today?"
+                },
+
+                // Help & Navigation
+                help: {
+                    keywords: ['help', 'guide', 'how to', 'what can you do', 'services', 'list'],
+                    response: "ℹ️ I can help with: ⚡Utilities (Electricity/Gas/Water) 💰Finance (AEPS/Loans/Pension) 🆔Documents (Aadhaar/PAN/Ration) 🏥Health (Doctors/ABHA) 📚Education 🌱Agriculture 🚌Transport 🚀Vision 2030. What do you need?"
+                }
             },
             hi: {
-                bill: "अपना बिल भुगतान करने के लिए, संबंधित क्षेत्र (बिजली/गैस/पानी) पर जाएं और 'त्वरित बिल भुगतान' पर क्लिक करें। आपको अपने उपभोक्ता नंबर की आवश्यकता होगी।",
-                apply: "नए आवेदनों के लिए, सेवा चुनें और 'नया आवेदन करें' पर क्लिक करें। स्कैनिंग के लिए अपना आधार और निवास का प्रमाण तैयार रखें।",
-                status: "आप अपने आवेदन आईडी दर्ज करके होमपेज पर 'ट्रैक' अनुभाग में किसी भी आवेदन को ट्रैक कर सकते हैं।",
-                leak: "जरूरी: गैस रिसाव के लिए, कृपया तुरंत इमारत से बाहर निकलें और गैस पेज पर उल्लिखित आपातकालीन हेल्पलाइन पर कॉल करें या 1906 डायल करें।",
-                ration: "राशन कार्ड अपडेट में 7-10 कार्य दिवस लगते हैं। स्थिति 'अनुमोदित' दिखने के बाद आप ई-राशन कार्ड डाउनलोड कर सकते हैं।",
-                payment: "हम यूपीआई (क्यूआर कोड), डेबिट/क्रेडिट कार्ड और नेट बैंकिंग का समर्थन करते हैं। सभी लेनदेन भारत सरकार के एन्क्रिप्शन द्वारा सुरक्षित हैं।",
-                error: "तकनीकी समस्या के लिए मैं क्षमा चाहता हूँ। कृपया पेज को रिफ्रेश करने का प्रयास करें या बग रिपोर्ट करने के लिए 'शिकायत' अनुभाग का उपयोग करें।",
-                hospital: "आप टीकाकरण स्लॉट बुक कर सकते हैं या स्वास्थ्य सेवा अनुभाग में अपना आभा (ABHA) स्वास्थ्य कार्ड बना सकते हैं।",
-                transport: "बस पास तुरंत नवीनीकृत किए जा सकते हैं। मेट्रो कार्ड के लिए, टॉप-अप सुविधा का उपयोग करें और फिर स्टेशन कियोस्क पर सत्यापित करें।"
+                electricity: {
+                    keywords: ['बिजली', 'पावर', 'बिल', 'आउटेज', 'मीटर', 'कनेक्शन'],
+                    response: "⚡ बिजली सेवाएं: बिल भुगतान, आउटेज रिपोर्ट, नए कनेक्शन के लिए आवेदन, या खपत इतिहास देखें। त्वरित भुगतान उपलब्ध है। ग्रिड स्थिति: सभी सिस्टम चालू हैं।"
+                },
+                gas: {
+                    keywords: ['गैस', 'सिलेंडर', 'एलपीजी', 'रिफिल', 'बुकिंग', 'सब्सिडी', 'उज्ज्वला'],
+                    response: "🔥 गैस सेवाएं: एलपीजी सिलेंडर बुक करें, सब्सिडी स्थिति जांचें, लीक रिपोर्ट करें (1906 डायल करें), या नए कनेक्शन के लिए आवेदन करें। उज्ज्वला लाभार्थियों को 24 घंटे में डिलीवरी।"
+                },
+                water: {
+                    keywords: ['पानी', 'जल', 'आपूर्ति', 'टैंकर', 'गुणवत्ता'],
+                    response: "💧 जल सेवाएं: आपूर्ति समस्याओं की रिपोर्ट करें, टैंकर का अनुरोध करें, पानी की गुणवत्ता रिपोर्ट देखें। आपातकालीन टैंकर 2 घंटे में।"
+                },
+                finance: {
+                    keywords: ['पैसा', 'बैंक', 'निकासी', 'एईपीएस', 'ऋण', 'पेंशन', 'वित्त', 'भुगतान'],
+                    response: "💰 वित्तीय सेवाएं: एईपीएस माइक्रो-एटीएम नकद निकासी (₹10,000 सीमा), बैलेंस पूछताछ, और मिनी स्टेटमेंट का समर्थन करता है। ऋण के लिए पीएम-स्वनिधि या मुद्रा योजनाएं देखें।"
+                },
+                health: {
+                    keywords: ['डॉक्टर', 'दवा', 'स्वास्थ्य', 'अस्पताल', 'अपॉइंटमेंट', 'बीमार', 'टीका'],
+                    response: "🏥 स्वास्थ्य सेवाएं: ई-संजीवनी वीडियो परामर्श शुरू करें, अपॉइंटमेंट बुक करें, आभा स्वास्थ्य आईडी प्राप्त करें। प्रिस्क्रिप्शन डिजिटल रूप से संग्रहीत हैं।"
+                },
+                agriculture: {
+                    keywords: ['किसान', 'फसल', 'मिट्टी', 'कृषि', 'उर्वरक', 'ड्रोन', 'खेती'],
+                    response: "🌱 कृषि सेवाएं: मृदा स्वास्थ्य ड्रोन बुक करें, पीएम-किसान स्थिति जांचें, एमएसपी दरें प्राप्त करें, मौसम पूर्वानुमान देखें। ई-नाम पर उपज बेचें।"
+                },
+                education: {
+                    keywords: ['सीखना', 'पाठ्यक्रम', 'अध्ययन', 'शिक्षा', 'नौकरी', 'कौशल', 'छात्र'],
+                    response: "📚 शिक्षा केंद्र: 500+ स्किल इंडिया पाठ्यक्रम उपलब्ध। 2026 के लिए उच्च मांग: साइबर-सुरक्षा, कृषि-रोबोटिक्स। प्रमाणन और नौकरी सहायता शामिल।"
+                },
+                identity: {
+                    keywords: ['आधार', 'पैन', 'दस्तावेज', 'सत्यापित', 'पासपोर्ट', 'आईडी'],
+                    response: "🆔 पहचान सेवाएं: डिजिटल लॉकर अब क्वांटम-सुरक्षित एन्क्रिप्शन (L6 ट्रस्ट) का उपयोग करता है। आधार, पैन, ड्राइविंग लाइसेंस स्टोर करें। सभी दस्तावेज़ ब्लॉकचेन-सत्यापित हैं।"
+                },
+                greeting: {
+                    keywords: ['नमस्ते', 'हैलो', 'हाय', 'शुभ प्रभात'],
+                    response: "🙏 नमस्ते! मैं सुविधा एआई हूं, सभी सरकारी सेवाओं के लिए आपका बुद्धिमान सहायक। बिजली, स्वास्थ्य, शिक्षा, कृषि, या हमारी 500+ सेवाओं के बारे में पूछें। आज मैं आपकी कैसे मदद कर सकता हूं?"
+                },
+                help: {
+                    keywords: ['मदद', 'गाइड', 'कैसे', 'सेवाएं', 'सूची'],
+                    response: "ℹ️ मैं मदद कर सकता हूं: ⚡उपयोगिताएं (बिजली/गैस/पानी) 💰वित्त (एईपीएस/ऋण/पेंशन) 🆔दस्तावेज़ (आधार/पैन/राशन) 🏥स्वास्थ्य 📚शिक्षा 🌱कृषि 🚌परिवहन 🚀विज़न 2030। आपको क्या चाहिए?"
+                }
             }
         };
 
-        const currentSolutions = solutions[lang] || solutions.en;
+        const currentDict = knowledgeBase[lang] || knowledgeBase.en;
 
-        // Keyword Matching
-        if (lowerInput.includes('bill') || lowerInput.includes('pay') || lowerInput.includes('भुगतान')) return currentSolutions.bill;
-        if (lowerInput.includes('apply') || lowerInput.includes('new') || lowerInput.includes('नया')) return currentSolutions.apply;
-        if (lowerInput.includes('status') || lowerInput.includes('track') || lowerInput.includes('स्थिति')) return currentSolutions.status;
-        if (lowerInput.includes('leak') || lowerInput.includes('gas') || lowerInput.includes('रिसाव')) return currentSolutions.leak;
-        if (lowerInput.includes('ration') || lowerInput.includes('card') || lowerInput.includes('राशन')) return currentSolutions.ration;
-        if (lowerInput.includes('hospital') || lowerInput.includes('health') || lowerInput.includes('अस्पताल')) return currentSolutions.hospital;
-        if (lowerInput.includes('transport') || lowerInput.includes('bus') || lowerInput.includes('परिवहन')) return currentSolutions.transport;
-        if (lowerInput.includes('payment') || lowerInput.includes('upi')) return currentSolutions.payment;
-        if (lowerInput.includes('error') || lowerInput.includes('help')) return currentSolutions.error;
+        // Smart Multi-Keyword Matching with Priority Scoring
+        let bestMatch = { category: '', score: 0 };
 
-        // Context-aware fallback
-        if (path.includes('electricity')) return lang === 'en' ? "I'm analyzing your electricity account. You can pay bills or report outages here." : "मैं आपके बिजली खाते का विश्लेषण कर रहा हूँ। आप यहाँ बिल भुगतान कर सकते हैं या आउटेज की रिपोर्ट कर सकते हैं।";
-        if (path.includes('ration')) return lang === 'en' ? "For Ration Card services, ensure your family details are updated in the system." : "राशन कार्ड सेवाओं के लिए, सुनिश्चित करें कि आपके परिवार का विवरण सिस्टम में अपडेट है।";
+        for (const category in currentDict) {
+            const matchCount = currentDict[category].keywords.filter((key: string) =>
+                lowerInput.includes(key)
+            ).length;
 
-        if (lowerInput.includes('hello') || lowerInput.includes('hi') || lowerInput.includes('namaste')) return t.botGreeting;
+            if (matchCount > bestMatch.score) {
+                bestMatch = { category, score: matchCount };
+            }
+        }
 
-        return lang === 'en' ? "I have analyzed your query. To provide a proper solution, could you please specify which service (Electricity, Gas, Ration, etc.) you are inquiring about?" : "मैंने आपके प्रश्न का विश्लेषण किया है। उचित समाधान प्रदान करने के लिए, क्या आप कृपया बता सकते हैं कि आप किस सेवा (बिजली, गैस, राशन, आदि) के बारे में पूछ रहे हैं?";
+        // Return best match if found
+        if (bestMatch.score > 0) {
+            return {
+                response: currentDict[bestMatch.category].response,
+                category: bestMatch.category
+            };
+        }
+
+        // Context-aware fallback based on current page
+        if (path.includes('electricity')) return {
+            response: lang === 'en'
+                ? "⚡ You're on the Electricity page. I can help with bill payments, outage reports, new connections, or consumption tracking. What do you need?"
+                : "⚡ आप बिजली पृष्ठ पर हैं। मैं बिल भुगतान, आउटेज रिपोर्ट, नए कनेक्शन में मदद कर सकता हूं। आपको क्या चाहिए?",
+            category: 'electricity'
+        };
+
+        if (path.includes('gas')) return {
+            response: lang === 'en'
+                ? "🔥 You're on the Gas Services page. Book cylinders, check subsidies, or report emergencies. How can I assist?"
+                : "🔥 आप गैस सेवा पृष्ठ पर हैं। सिलेंडर बुक करें, सब्सिडी जांचें। मैं कैसे मदद करूं?",
+            category: 'gas'
+        };
+
+        if (path.includes('water')) return {
+            response: lang === 'en'
+                ? "💧 You're on Water Services. Report issues, request tankers, or check quality reports. What do you need?"
+                : "💧 आप जल सेवा पर हैं। समस्याएं रिपोर्ट करें, टैंकर का अनुरोध करें। क्या चाहिए?",
+            category: 'water'
+        };
+
+        if (path.includes('vision')) return {
+            response: lang === 'en'
+                ? "🚀 Welcome to Vision 2030 - India's future governance hub. Explore Smart Village IoT, AEPS, Education, AR Training, or Predictive Governance. Which interests you?"
+                : "🚀 विज़न 2030 में आपका स्वागत है। स्मार्ट विलेज, एईपीएस, शिक्षा, एआर प्रशिक्षण देखें। क्या देखना चाहेंगे?",
+            category: 'vision2030'
+        };
+
+        if (path.includes('health')) return {
+            response: lang === 'en'
+                ? "🏥 You're on Health Services. Start video consultations, book appointments, or get your ABHA ID. How can I help?"
+                : "🏥 आप स्वास्थ्य सेवा पर हैं। वीडियो परामर्श, अपॉइंटमेंट, आभा आईडी। मैं कैसे मदद करूं?",
+            category: 'health'
+        };
+
+        // PRIORITY 3: LEVEL 2 CONNECTIVITY (Google Search Fallback)
+        if (!isEdgeAI) { // Only search web if not in Edge/Offline mode
+            const webResult = await webSearchService.searchWeb(input);
+
+            // --- PHASE 10: DYNAMIC KNOWLEDGE GRAPH (Auto-Learn from Web) ---
+            // Save this new fact to local DB so next time it works offline!
+            aiLearningEngine.learnFromInteraction(input, webResult, 'web_learned', true);
+
+            return {
+                response: webResult,
+                category: 'web_search'
+            };
+        }
+
+        // Intelligent fallback - suggest relevant services
+        return {
+            response: lang === 'en'
+                ? "🤔 I understand you need assistance. I specialize in:\n\n⚡ Utilities (Electricity, Gas, Water)\n💰 Finance (Banking, Loans, Pension)\n🆔 Documents (Aadhaar, PAN, Ration Card)\n🏥 Health (Doctors, Medicines, ABHA)\n📚 Education & Skills\n🌱 Agriculture\n🚌 Transport\n🚀 Vision 2030 Services\n\nPlease tell me which service you need, and I'll provide detailed guidance!"
+                : "🤔 मैं समझता हूं कि आपको सहायता चाहिए। मैं इनमें विशेषज्ञ हूं:\n\n⚡ उपयोगिताएं (बिजली, गैस, पानी)\n💰 वित्त (बैंकिंग, ऋण, पेंशन)\n🆔 दस्तावेज़ (आधार, पैन, राशन कार्ड)\n🏥 स्वास्थ्य\n📚 शिक्षा\n🌱 कृषि\n🚌 परिवहन\n🚀 विज़न 2030\n\nकृपया बताएं कि आपको किस सेवा की आवश्यकता है!",
+            category: 'general'
+        };
     };
 
-    const handleFeedback = (id: string) => {
+    const handleFeedback = (id: string, positive: boolean) => {
+        const message = messages.find(m => m.id === id);
+        if (!message || !message.userQuestion || !message.category) return;
+
+        // Update UI
         setMessages(prev => prev.map(m =>
             m.id === id ? { ...m, feedbackGiven: true } : m
         ));
-        // In a real app, send feedback to server
+
+        // Train AI from feedback
+        // --- PHASE 15: SELF-CORRECTION LOOP (Reinforcement Learning) ---
+        aiLearningEngine.learnFromInteraction(
+            message.userQuestion,
+            message.text,
+            message.category,
+            positive
+        );
+
+        // Update learned count
+        const analytics = aiLearningEngine.getAnalytics();
+        setLearnedCount(analytics.totalPatterns);
     };
 
     if (!isOpen) {
         return (
-            <div
-                className="chatbot-bubble pulse"
-                onClick={() => setIsOpen(true)}
-                style={styles.bubble}
-            >
-                <MessageCircle size={28} color="white" />
-                <span style={styles.bubbleLabel}>{t.chatWithUs}</span>
+            <div style={{ position: 'fixed', bottom: '2rem', left: '2rem', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                {/* Proactive Nudge (Level 4) */}
+                {!isOpen && !isProactiveDismissed && (
+                    <div className="proactive-nudge" style={styles.proactiveBubble}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                            <span>💡 <b>Tip:</b> Your electricity bill is due in 2 days. Pay now?</span>
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    const el = (e.target as HTMLElement).closest('.proactive-nudge');
+                                    if (el) el.remove();
+
+                                    setIsProactiveDismissed(true);
+                                    if (typeof window !== 'undefined') {
+                                        localStorage.setItem('suvidha_proactive_dismissed', 'true');
+                                    }
+                                }}
+                                style={{ border: 'none', background: 'none', cursor: 'pointer', marginLeft: '10px', color: '#666' }}
+                            >
+                                <X size={14} />
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                <div
+                    className="chatbot-bubble pulse"
+                    onClick={() => setIsOpen(true)}
+                    style={styles.bubble}
+                >
+                    <MessageCircle size={28} color="white" />
+                    <span style={styles.bubbleLabel}>{t.chatWithUs}</span>
+                </div>
             </div>
         );
     }
@@ -160,6 +533,22 @@ export default function Chatbot() {
                 <div style={styles.headerTitle}>
                     <Bot size={20} />
                     <span>SUVIDHA AI</span>
+                    {isTraining && <span style={styles.trainingBadge}>Training...</span>}
+                    {!isTraining && learnedCount > 0 && (
+                        <span style={styles.learnedBadge} title={`Trained on ${learnedCount} questions`}>
+                            <Brain size={12} /> {learnedCount}
+                        </span>
+                    )}
+                    <button
+                        onClick={() => setIsEdgeAI(!isEdgeAI)}
+                        style={{
+                            ...styles.edgeToggle,
+                            backgroundColor: isEdgeAI ? '#10b981' : 'rgba(255,255,255,0.2)'
+                        }}
+                        title={isEdgeAI ? "Edge Mode (Offline Intelligent)" : "Cloud Mode (Active Grid)"}
+                    >
+                        {isEdgeAI ? 'EDGE' : 'CLOUD'}
+                    </button>
                 </div>
                 <X
                     size={20}
@@ -194,18 +583,18 @@ export default function Chatbot() {
                             {msg.sender === 'bot' && !msg.feedbackGiven && (
                                 <div style={styles.feedbackRow}>
                                     <button
-                                        onClick={() => handleFeedback(msg.id)}
+                                        onClick={() => handleFeedback(msg.id, true)}
                                         style={styles.feedbackBtn}
-                                        title={t.helpful}
+                                        title="Helpful"
                                     >
                                         <ThumbsUp size={12} />
                                     </button>
                                     <button
-                                        onClick={() => handleFeedback(msg.id)}
+                                        onClick={() => handleFeedback(msg.id, false)}
                                         style={styles.feedbackBtn}
-                                        title={t.suggestCorrection}
+                                        title="Not Helpful"
                                     >
-                                        <MessageSquarePlus size={12} />
+                                        <ThumbsDown size={12} />
                                     </button>
                                 </div>
                             )}
@@ -215,6 +604,9 @@ export default function Chatbot() {
                         </div>
                     </div>
                 ))}
+
+                {/* PROACTIVE ASSISTANT (Level 4) */}
+                {/* Logic: If chat is open, maybe show a nudge inside? Or simple welcome. */}
                 {(isTyping || processingStep) && (
                     <div style={styles.messageWrapper}>
                         <div style={{ ...styles.avatar, backgroundColor: 'var(--secondary)' }}>
@@ -305,6 +697,18 @@ const styles: { [key: string]: React.CSSProperties } = {
         alignItems: 'center',
         gap: '0.5rem',
         fontWeight: 'bold',
+        flex: 1,
+    },
+    edgeToggle: {
+        fontSize: '0.6rem',
+        border: 'none',
+        color: 'white',
+        padding: '2px 6px',
+        borderRadius: '4px',
+        marginLeft: '10px',
+        cursor: 'pointer',
+        fontWeight: 800,
+        transition: 'all 0.3s',
     },
     messagesContainer: {
         flex: 1,
@@ -402,5 +806,39 @@ const styles: { [key: string]: React.CSSProperties } = {
         alignItems: 'center',
         justifyContent: 'center',
         cursor: 'pointer',
+    },
+    trainingBadge: {
+        fontSize: '0.6rem',
+        backgroundColor: '#fbbf24',
+        color: '#78350f',
+        padding: '2px 6px',
+        borderRadius: '4px',
+        marginLeft: '8px',
+        fontWeight: 800,
+        animation: 'pulse 2s infinite',
+    },
+    learnedBadge: {
+        fontSize: '0.6rem',
+        backgroundColor: '#10b981',
+        color: 'white',
+        padding: '2px 6px',
+        borderRadius: '4px',
+        marginLeft: '8px',
+        fontWeight: 800,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '3px',
+    },
+    proactiveBubble: {
+        marginBottom: '1rem',
+        backgroundColor: 'white',
+        padding: '1rem',
+        borderRadius: '12px 12px 12px 0',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+        fontSize: '0.9rem',
+        maxWidth: '250px',
+        animation: 'slideInUp 0.5s ease-out',
+        border: '1px solid #e5e7eb',
+        color: '#1f2937',
     },
 };

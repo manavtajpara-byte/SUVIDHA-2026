@@ -5,7 +5,7 @@ import {
     LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, BarChart, Bar, Legend
 } from 'recharts';
-import { Users, CreditCard, Activity, TrendingUp } from 'lucide-react';
+import { Users, CreditCard, Activity, TrendingUp, Download, Zap, Wifi, Navigation } from 'lucide-react';
 
 // Mock Data
 const trafficData = [
@@ -38,8 +38,18 @@ export default function AdminDashboard() {
     return (
         <div style={styles.container}>
             <header style={styles.header}>
-                <h1 style={styles.title}>Dashboard Overview</h1>
-                <p style={styles.subtitle}>Welcome back, Administrator. System is operating normally.</p>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                        <h1 style={styles.title}>Dashboard Overview</h1>
+                        <p style={styles.subtitle}>Welcome back, Administrator. System is operating normally.</p>
+                    </div>
+                    <button
+                        onClick={() => window.print()}
+                        style={styles.downloadBtn}
+                    >
+                        <Download size={18} /> Download Monthly Report
+                    </button>
+                </div>
             </header>
 
             {/* Stat Cards */}
@@ -110,6 +120,43 @@ export default function AdminDashboard() {
                         </ResponsiveContainer>
                     </div>
                 </div>
+
+                {/* Phase 45: Omni-Kiosk Expansion */}
+                <div style={styles.govApiCard}>
+                    <h3 style={styles.chartTitle}>Unified Gov-API Status (500+ Nodes)</h3>
+                    <div style={styles.apiGrid}>
+                        {[
+                            { name: 'Kisan-DB', lat: '12ms', status: 'Healthy' },
+                            { name: 'Digi-Identity', lat: '45ms', status: 'Warning' },
+                            { name: 'Health-Grid', lat: '8ms', status: 'Healthy' },
+                            { name: 'Landed-Records', lat: '202ms', status: 'Slow' },
+                        ].map((api, i) => (
+                            <div key={i} style={styles.apiItem}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    <div style={{ width: 8, height: 8, borderRadius: '50%', background: api.status === 'Healthy' ? '#10b981' : api.status === 'Warning' ? '#f59e0b' : '#ef4444' }} />
+                                    <span style={{ fontWeight: 600 }}>{api.name}</span>
+                                </div>
+                                <span style={{ color: '#64748b', fontSize: '0.8rem' }}>{api.lat}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div style={styles.mobilityCard}>
+                    <h3 style={styles.chartTitle}>Autonomous Kiosk Mobility</h3>
+                    <div style={styles.mobilityContent}>
+                        <div style={styles.mapSmall}>
+                            <div style={{ position: 'absolute', top: '30%', left: '40%', padding: '4px', background: '#3b82f6', borderRadius: '4px', color: 'white', fontSize: '0.6rem' }}>
+                                <Navigation size={10} /> UNIT-01
+                            </div>
+                        </div>
+                        <div style={styles.controlsCol}>
+                            <button style={styles.controlBtn}><Wifi size={16} /> Deploy to High Footfall</button>
+                            <button style={{ ...styles.controlBtn, background: '#ef4444' }}><Zap size={16} /> Emergency Lock</button>
+                            <p style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 'auto' }}>Next Target: Sector 7 Market Hub</p>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     );
@@ -156,6 +203,19 @@ const styles: Record<string, React.CSSProperties> = {
         color: '#64748b',
         fontSize: '1rem',
         margin: '0.5rem 0 0 0',
+    },
+    downloadBtn: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+        padding: '0.75rem 1.5rem',
+        backgroundColor: '#1e293b',
+        color: 'white',
+        border: 'none',
+        borderRadius: '10px',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)',
     },
     statGrid: {
         display: 'grid',
@@ -216,5 +276,61 @@ const styles: Record<string, React.CSSProperties> = {
         fontWeight: 700,
         color: '#1e293b',
         marginBottom: '1.5rem',
+    },
+    govApiCard: {
+        background: '#f8fafc',
+        borderRadius: '1.5rem',
+        padding: '1.5rem',
+        border: '1px solid #e2e8f0',
+    },
+    apiGrid: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+    },
+    apiItem: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        padding: '0.75rem',
+        background: 'white',
+        borderRadius: '10px',
+        border: '1px solid #f1f5f9',
+    },
+    mobilityCard: {
+        background: '#1e293b',
+        color: 'white',
+        borderRadius: '1.5rem',
+        padding: '1.5rem',
+    },
+    mobilityContent: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: '1rem',
+        height: '160px',
+    },
+    mapSmall: {
+        background: '#334155',
+        borderRadius: '10px',
+        position: 'relative',
+        backgroundImage: 'radial-gradient(#475569 1px, transparent 1px)',
+        backgroundSize: '10px 10px',
+    },
+    controlsCol: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '0.5rem',
+    },
+    controlBtn: {
+        background: '#3b82f6',
+        color: 'white',
+        border: 'none',
+        padding: '0.6rem',
+        borderRadius: '8px',
+        fontSize: '0.8rem',
+        fontWeight: 'bold',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.4rem',
     }
 };

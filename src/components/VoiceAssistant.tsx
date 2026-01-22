@@ -1,127 +1,207 @@
 'use client';
 
-import React from 'react';
-import { Mic, MicOff, X } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 import useVoiceNavigation from '@/hooks/useVoiceNavigation';
+import { Mic, X, Volume2 } from 'lucide-react';
 
-export default function VoiceAssistant() {
-    const { isListening, startListening, transcript, feedback } = useVoiceNavigation();
+interface VoiceAssistantProps {
+    isOpen: boolean;
+    onClose: () => void;
+}
+
+export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps) {
+    const {
+        isListening,
+        isSpeaking,
+        transcript,
+        feedback,
+        startListening,
+        stopListening,
+        speak
+    } = useVoiceNavigation();
+
+    // Auto-start listening when opened
+    useEffect(() => {
+        if (isOpen) {
+            startListening();
+            speak("How can I help you?", "en-US");
+        } else {
+            stopListening();
+        }
+    }, [isOpen]);
+
+    if (!isOpen) return null;
 
     return (
-        <>
-            {/* Floating Mic Trigger */}
-            <button
-                onClick={startListening}
-                style={styles.micButton}
-                aria-label="Activate Voice Commands"
-                className="mic-pulse"
-                title="Speak Commands"
-            >
-                <Mic color="white" size={28} />
-            </button>
+        <div style={styles.overlay}>
+            <div style={styles.container}>
+                <button onClick={onClose} style={styles.closeBtn}>
+                    <X size={24} />
+                </button>
 
-            {/* Overlay when Active */}
-            {isListening && (
-                <div style={styles.overlay}>
-                    <div style={styles.dialog}>
-                        <div style={styles.waveContainer}>
-                            <div className="voice-wave"></div>
-                            <div className="voice-wave delay-1"></div>
-                            <div className="voice-wave delay-2"></div>
-                            <Mic size={50} color="#8b5cf6" style={{ zIndex: 2, position: 'relative' }} />
-                        </div>
-                        <h2 style={styles.text}>{feedback}</h2>
-                        {transcript && <p style={styles.subtext}>detected: {transcript}</p>}
+                <div style={styles.visualizer}>
+                    <div style={{
+                        ...styles.micCircle,
+                        transform: isListening ? 'scale(1.2)' : 'scale(1)',
+                        boxShadow: isListening ? '0 0 40px rgba(239, 68, 68, 0.4)' : 'none',
+                        backgroundColor: isListening ? '#ef4444' : (isSpeaking ? '#3b82f6' : '#94a3b8')
+                    }}>
+                        {isSpeaking ? <Volume2 size={40} color="white" /> : <Mic size={40} color="white" />}
                     </div>
+                    {isListening && <div style={styles.ripple}></div>}
                 </div>
-            )}
 
-            <style jsx global>{`
-                .mic-pulse {
-                    animation: pulse-mic 2s infinite;
-                }
-                @keyframes pulse-mic {
-                    0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7); }
-                    70% { box-shadow: 0 0 0 15px rgba(139, 92, 246, 0); }
-                    100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
-                }
-                .voice-wave {
-                    position: absolute;
-                    width: 100%;
-                    height: 100%;
-                    border-radius: 50%;
-                    border: 2px solid #8b5cf6;
-                    opacity: 0;
-                    animation: wave 1.5s infinite;
-                }
-                .delay-1 { animation-delay: 0.5s; }
-                .delay-2 { animation-delay: 1s; }
-                @keyframes wave {
-                    0% { transform: scale(1); opacity: 0.8; }
-                    100% { transform: scale(2); opacity: 0; }
+                <div style={styles.content}>
+                    <h2 style={styles.statusText}>
+                        {isListening ? "Listening..." : (isSpeaking ? "Speaking..." : "Ready")}
+                    </h2>
+
+                    {transcript && (
+                        <p style={styles.transcript}>
+                            "{transcript}"
+                        </p>
+                    )}
+
+                    {feedback && (
+                        <p style={styles.feedback}>
+                            <span style={styles.aiLabel}>AI:</span> {feedback}
+                        </p>
+                    )}
+                </div>
+
+                <div style={styles.controls}>
+                    <button
+                        onClick={isListening ? stopListening : startListening}
+                        style={styles.actionBtn}
+                    >
+                        {isListening ? "Stop" : "Tap to Speak"}
+                    </button>
+                </div>
+            </div>
+            <style jsx>{`
+                @keyframes ripple {
+                    0% { transform: scale(1); opacity: 0.6; }
+                    100% { transform: scale(3); opacity: 0; }
                 }
             `}</style>
-        </>
+        </div>
     );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    micButton: {
-        position: 'fixed',
-        bottom: '100px', // Above chatbot
-        right: '20px',
-        width: '60px',
-        height: '60px',
-        borderRadius: '50%',
-        backgroundColor: '#8b5cf6',
-        border: 'none',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        cursor: 'pointer',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-        zIndex: 9999,
-    },
     overlay: {
         position: 'fixed',
         top: 0,
         left: 0,
-        width: '100%',
-        height: '100%',
-        backgroundColor: 'rgba(0,0,0,0.8)',
-        zIndex: 10000,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.6)',
+        backdropFilter: 'blur(8px)',
+        zIndex: 9999,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backdropFilter: 'blur(5px)',
+        animation: 'fadeIn 0.2s ease-out',
     },
-    dialog: {
+    container: {
+        width: '90%',
+        maxWidth: '400px',
         backgroundColor: 'white',
-        padding: '3rem',
-        borderRadius: '20px',
+        borderRadius: '24px',
+        padding: '2rem',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '1.5rem',
-        minWidth: '300px',
-    },
-    waveContainer: {
         position: 'relative',
-        width: '80px',
-        height: '80px',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.2)',
+    },
+    closeBtn: {
+        position: 'absolute',
+        top: '1rem',
+        right: '1rem',
+        background: '#f1f5f9',
+        border: 'none',
+        borderRadius: '50%',
+        width: '40px',
+        height: '40px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-    },
-    text: {
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
-        color: '#1e293b',
-        margin: 0,
-    },
-    subtext: {
-        fontSize: '1rem',
+        cursor: 'pointer',
         color: '#64748b',
-        margin: 0,
+    },
+    visualizer: {
+        position: 'relative',
+        marginBottom: '2rem',
+        marginTop: '1rem',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    micCircle: {
+        width: '80px',
+        height: '80px',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        transition: 'all 0.3s ease',
+        zIndex: 2,
+    },
+    ripple: {
+        position: 'absolute',
+        width: '80px',
+        height: '80px',
+        borderRadius: '50%',
+        backgroundColor: 'rgba(239, 68, 68, 0.4)',
+        animation: 'ripple 1.5s infinite ease-out',
+        zIndex: 1,
+    },
+    content: {
+        textAlign: 'center',
+        marginBottom: '2rem',
+        width: '100%',
+        minHeight: '100px',
+    },
+    statusText: {
+        fontSize: '1.5rem',
+        fontWeight: 700,
+        marginBottom: '1rem',
+        color: '#1e293b',
+    },
+    transcript: {
+        fontSize: '1.1rem',
+        color: '#475569',
+        marginBottom: '0.5rem',
+        fontStyle: 'italic',
+    },
+    feedback: {
+        fontSize: '1rem',
+        color: '#059669',
+        fontWeight: 600,
+        backgroundColor: '#ecfdf5',
+        padding: '0.5rem 1rem',
+        borderRadius: '12px',
+        display: 'inline-block',
+    },
+    aiLabel: {
+        color: '#059669',
+        fontWeight: 800,
+        marginRight: '0.5rem',
+    },
+    controls: {
+        width: '100%',
+    },
+    actionBtn: {
+        width: '100%',
+        padding: '1rem',
+        backgroundColor: '#0f172a',
+        color: 'white',
+        border: 'none',
+        borderRadius: '16px',
+        fontSize: '1.1rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'opacity 0.2s',
     }
 };

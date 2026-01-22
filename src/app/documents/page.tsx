@@ -8,27 +8,62 @@ import dynamic from 'next/dynamic';
 const DocumentScanner = dynamic(() => import('@/components/DocumentScanner'), { ssr: false });
 
 const initialDocs = [
-    { id: 1, title: 'Aadhaar Card', category: 'Identity', verified: true, date: '2025-01-10', icon: <Shield size={24} color="#3b82f6" /> },
-    { id: 2, title: 'PAN Card', category: 'Finance', verified: true, date: '2024-11-05', icon: <Shield size={24} color="#3b82f6" /> },
-    { id: 3, title: 'Driving License', category: 'Transport', verified: true, date: '2023-08-20', icon: <Shield size={24} color="#3b82f6" /> },
+    {
+        id: 1,
+        title: 'Aadhaar Card',
+        category: 'Identity',
+        verified: true,
+        date: '2025-01-10',
+        icon: <Shield size={24} color="#3b82f6" />,
+        security: 'Quantum-Secure (AES-Q)',
+        trustTier: 'L6'
+    },
+    {
+        id: 2,
+        title: 'PAN Card',
+        category: 'Finance',
+        verified: true,
+        date: '2024-11-05',
+        icon: <Shield size={24} color="#3b82f6" />,
+        security: 'Post-Quantum Encrypted',
+        trustTier: 'L6'
+    },
+    {
+        id: 3,
+        title: 'Driving License',
+        category: 'Transport',
+        verified: true,
+        date: '2023-08-20',
+        icon: <Shield size={24} color="#3b82f6" />,
+        security: 'Blockchain Linked',
+        trustTier: 'L5'
+    },
 ];
 
 export default function DocumentsPage() {
     const [docs, setDocs] = useState(initialDocs);
     const [isScanning, setIsScanning] = useState(false);
+    const [pairingSuccess, setPairingSuccess] = useState(false);
 
     const handleCapture = (imgSrc: string) => {
         const newDoc = {
             id: Date.now(),
             title: `Scanned Document ${docs.length + 1}`,
             category: 'Scanned',
-            verified: false, // Scanned docs need manual verification usually
+            verified: false,
             date: new Date().toISOString().split('T')[0],
             icon: <FileText size={24} color="#64748b" />,
-            preview: imgSrc
+            preview: imgSrc,
+            security: 'Standard Encryption',
+            trustTier: 'Unverified'
         };
         setDocs([newDoc, ...docs]);
         setIsScanning(false);
+    };
+
+    const triggerPairing = () => {
+        setPairingSuccess(true);
+        setTimeout(() => setPairingSuccess(false), 3000);
     };
 
     return (
@@ -37,12 +72,17 @@ export default function DocumentsPage() {
             <main style={styles.main}>
                 <div style={styles.header}>
                     <div>
-                        <h1 style={styles.title}>Digital Locker</h1>
-                        <p style={styles.subtitle}>Securely store and access your verified documents.</p>
+                        <h1 style={styles.title}>Digital Locker <span style={styles.badgeQ}>Quantum Edition</span></h1>
+                        <p style={styles.subtitle}>Trust-Tier 6 (L6) Verified Infrastructure Active.</p>
                     </div>
-                    <button onClick={() => setIsScanning(true)} style={styles.addBtn}>
-                        <Plus size={20} /> Scan New
-                    </button>
+                    <div style={{ display: 'flex', gap: '1rem' }}>
+                        <button onClick={triggerPairing} style={styles.pairBtn}>
+                            {pairingSuccess ? 'Identity Paired!' : 'Pair Blockchain ID'}
+                        </button>
+                        <button onClick={() => setIsScanning(true)} style={styles.addBtn}>
+                            <Plus size={20} /> Scan New
+                        </button>
+                    </div>
                 </div>
 
                 <div style={styles.grid}>
@@ -50,18 +90,22 @@ export default function DocumentsPage() {
                         <div key={doc.id} style={styles.card}>
                             <div style={styles.cardHeader}>
                                 <div style={styles.iconBox}>{doc.icon}</div>
-                                {doc.verified && (
-                                    <div style={styles.verifiedBadge}>
-                                        <Check size={12} /> Verified
-                                    </div>
-                                )}
+                                <div style={{ display: 'flex', gap: '0.4rem', flexDirection: 'column', alignItems: 'flex-end' }}>
+                                    {doc.verified && (
+                                        <div style={styles.verifiedBadge}>
+                                            <Check size={12} /> Verified
+                                        </div>
+                                    )}
+                                    <div style={styles.tierBadge}>{doc.trustTier}</div>
+                                </div>
                             </div>
                             <h3 style={styles.docTitle}>{doc.title}</h3>
                             <p style={styles.docMeta}>{doc.category} • {doc.date}</p>
+                            <p style={styles.securityText}>{doc.security}</p>
 
                             <div style={styles.actions}>
-                                <button style={styles.actionBtn}>View</button>
-                                <button style={styles.qrBtn} title="Show QR Code">
+                                <button style={styles.actionBtn}>View Securely</button>
+                                <button style={styles.qrBtn} title="Show Quantum QR">
                                     <QrCode size={18} />
                                 </button>
                             </div>
@@ -137,6 +181,41 @@ const styles: Record<string, React.CSSProperties> = {
         justifyContent: 'space-between',
         alignItems: 'flex-start',
         marginBottom: '1rem',
+    },
+    badgeQ: {
+        fontSize: '0.7rem',
+        textTransform: 'uppercase',
+        background: 'linear-gradient(90deg, #6366f1, #a855f7)',
+        color: 'white',
+        padding: '2px 8px',
+        borderRadius: '10px',
+        marginLeft: '10px',
+        verticalAlign: 'middle',
+    },
+    pairBtn: {
+        background: '#1e293b',
+        color: 'white',
+        border: 'none',
+        padding: '0.75rem 1.5rem',
+        borderRadius: '1rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        transition: 'all 0.2s',
+    },
+    tierBadge: {
+        fontSize: '0.65rem',
+        fontWeight: 800,
+        color: '#6366f1',
+        border: '1px solid #6366f1',
+        padding: '1px 6px',
+        borderRadius: '4px',
+    },
+    securityText: {
+        fontSize: '0.75rem',
+        color: '#6366f1',
+        fontWeight: 600,
+        marginTop: '0.5rem',
+        fontStyle: 'italic',
     },
     iconBox: {
         width: '48px',

@@ -1,43 +1,66 @@
 'use client';
 
 import React from 'react';
-import { Landmark, GraduationCap, Radio, Sparkles } from 'lucide-react';
+import { Landmark, GraduationCap, Radio, Sparkles, ArrowLeft, Eye, BarChart3 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function VisionDashboardPage() {
     return (
         <div style={styles.container}>
-            <h1 style={styles.title}>Vision 2030: Future Capabilities</h1>
-            <p style={styles.subtitle}>These modules are in Beta / Pilot phase.</p>
+            <div style={styles.header}>
+                <Link href="/" style={styles.backBtn}><ArrowLeft size={32} /></Link>
+                <h1 style={styles.title}>Vision 2030: Smart India Hub</h1>
+            </div>
+            <p style={styles.subtitle}>Welcome to the future of Digital India. All modules are now fully operational.</p>
 
             <div style={styles.grid}>
-                <div style={styles.card}>
-                    <Landmark size={40} color="#2563eb" />
-                    <h3>Financial Inclusion (AEPS)</h3>
-                    <p>Micro-ATM & DBT Tracker</p>
-                    <span style={styles.badge}>Phase 37</span>
-                </div>
+                <Link href="/vision/financial-inclusion" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={styles.card}>
+                        <Landmark size={40} color="#2563eb" />
+                        <h3>Financial Inclusion (AEPS)</h3>
+                        <p>Micro-ATM & DBT Tracker</p>
+                    </div>
+                </Link>
 
-                <div style={styles.card}>
-                    <GraduationCap size={40} color="#db2777" />
-                    <h3>Education Hub</h3>
-                    <p>Skill India Courses & Job Match</p>
-                    <span style={styles.badge}>Phase 38</span>
-                </div>
+                <Link href="/vision/education-hub" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={styles.card}>
+                        <GraduationCap size={40} color="#db2777" />
+                        <h3>Education Hub</h3>
+                        <p>Skill India Courses & Job Match</p>
+                    </div>
+                </Link>
 
-                <div style={styles.card}>
-                    <Radio size={40} color="#059669" />
-                    <h3>Smart Village</h3>
-                    <p>IoS Sensors (Water/Air/Light)</p>
-                    <span style={styles.badge}>Phase 39</span>
-                </div>
+                <Link href="/vision/smart-village" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={styles.card}>
+                        <Radio size={40} color="#059669" />
+                        <h3>Smart Village</h3>
+                        <p>IoT Sensors (Water/Air/Light)</p>
+                    </div>
+                </Link>
 
-                <div style={{ ...styles.card, background: 'linear-gradient(135deg, #1e1b4b, #312e81)', color: 'white' }}>
-                    <Sparkles size={40} color="#fbbf24" />
-                    <h3 style={{ color: 'white' }}>The Singularity</h3>
-                    <p style={{ color: '#a5b4fc' }}>Self-Governing AI System</p>
-                    <span style={styles.badgeGold}>Phase 40</span>
-                </div>
+                <Link href="/vision/ar-training" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={styles.card}>
+                        <Eye size={40} color="#8b5cf6" />
+                        <h3>AR Training</h3>
+                        <p>Mixed-Reality Kiosk Guidance</p>
+                    </div>
+                </Link>
+
+                <Link href="/vision/predictive-governance" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={styles.card}>
+                        <BarChart3 size={40} color="#f97316" />
+                        <h3>Predictive Governance</h3>
+                        <p>AI Heatmaps & Digital Twins</p>
+                    </div>
+                </Link>
+
+                <Link href="/vision/singularity" style={{ textDecoration: 'none', color: 'inherit' }}>
+                    <div style={{ ...styles.card, background: 'linear-gradient(135deg, #1e1b4b, #312e81)', color: 'white' }}>
+                        <Sparkles size={40} color="#fbbf24" />
+                        <h3 style={{ color: 'white' }}>The Singularity</h3>
+                        <p style={{ color: '#a5b4fc' }}>Self-Governing AI System</p>
+                    </div>
+                </Link>
             </div>
         </div>
     );
@@ -50,7 +73,24 @@ const styles: Record<string, React.CSSProperties> = {
         margin: '0 auto',
         textAlign: 'center',
     },
-    title: { fontSize: '2.5rem', marginBottom: '0.5rem' },
+    header: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '2rem',
+        marginBottom: '2rem',
+        justifyContent: 'center',
+    },
+    backBtn: {
+        color: '#1e293b',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '0.5rem',
+        borderRadius: '50%',
+        backgroundColor: '#f1f5f9',
+        transition: 'all 0.2s',
+    },
+    title: { fontSize: '2.5rem', margin: 0 },
     subtitle: { color: '#64748b', marginBottom: '4rem' },
     grid: {
         display: 'grid',

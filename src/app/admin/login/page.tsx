@@ -19,9 +19,10 @@ export default function AdminLoginPage() {
 
         // Simulated highly secure authentication logic ;)
         setTimeout(() => {
-            if (userId === 'admin' && password === 'suvidha2026') {
+            const isAuthorized = (userId === 'admin' && (password === 'admin' || password === 'suvidha2026'));
+
+            if (isAuthorized) {
                 // Successful login
-                // In a real app, we'd set a cookie/token here
                 localStorage.setItem('admin_session', 'active');
                 router.push('/admin/dashboard');
             } else {

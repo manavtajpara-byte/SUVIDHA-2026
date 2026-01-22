@@ -1,303 +1,364 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
-import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
-import { ArrowLeft, Smartphone, CheckCircle, Shield } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { ShieldCheck, Lock, Phone, ArrowRight, Eye, EyeOff, LayoutGrid, Zap, Droplets, CreditCard } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 
 export default function LoginPage() {
-    const { language, setIsLoggedIn, setUser } = useAppState();
-    const t = translations[language];
+    const { setIsLoggedIn, setUser } = useAppState();
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
-    const [step, setStep] = useState(1); // 1: Mobile, 2: OTP, 3: Success
-    const [timer, setTimer] = useState(30);
+    const [mobile, setMobile] = useState('');
+    const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        if (step === 2 && timer > 0) {
-            const interval = setInterval(() => setTimer(t => t - 1), 1000);
-            return () => clearInterval(interval);
-        }
-    }, [step, timer]);
-
-    const handleSendOTP = (e: React.FormEvent) => {
+    const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (values.mobile && values.mobile.length === 10) {
-            setStep(2);
-            setTimer(30);
-        }
-    };
+        setError('');
+        setLoading(true);
 
-    const handleVerifyOTP = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (values.otp && values.otp.length === 6) {
-            setUser({ name: 'Guest User', mobile: values.mobile || '' });
+        setTimeout(() => {
+            const storedData = localStorage.getItem(`user_${mobile}`);
+            if (!storedData) {
+                setError("User not found. Please register first.");
+                setLoading(false);
+                return;
+            }
+
+            const user = JSON.parse(storedData);
+            if (user.password !== password) {
+                setError("Incorrect Password. Try again.");
+                setLoading(false);
+                return;
+            }
+
+            // Success
+            localStorage.setItem('suvidha_session_user', JSON.stringify({ name: user.name, mobile }));
+            setUser({ name: user.name, mobile });
             setIsLoggedIn(true);
-            setStep(3);
-            setTimeout(() => router.push('/'), 2000);
-        }
+            setLoading(false);
+            router.push('/');
+        }, 1000);
     };
 
     return (
         <div style={styles.container}>
-            <div style={styles.header}>
-                <button onClick={() => router.back()} style={styles.backBtn}>
-                    <ArrowLeft size={32} />
-                </button>
-                <h2 style={styles.title}>{t.login}</h2>
+            {/* Watermark Logo */}
+            <div style={styles.watermarkContainer}>
+                <Image src="/logo.png" alt="Watermark" width={800} height={800} style={styles.watermark} />
             </div>
 
-            <div style={styles.card}>
-                {step === 1 && (
-                    <form onSubmit={handleSendOTP} style={styles.form}>
-                        <div style={styles.iconHeader}>
-                            <Smartphone size={70} color="var(--primary)" />
-                            <h3 style={styles.formTitle}>Login with Mobile OTP</h3>
-                            <p style={styles.formSub}>No password required. We'll send you a one-time code.</p>
-                        </div>
-
-                        <div style={styles.field}>
-                            <label style={styles.label}>Mobile Number</label>
-                            <input
-                                readOnly
-                                value={values.mobile || ''}
-                                onFocus={() => openKeyboard('mobile')}
-                                placeholder="10-digit number"
-                                style={styles.input}
-                                maxLength={10}
-                            />
-                        </div>
-
-                        <button
-                            type="submit"
-                            style={styles.submitBtn}
-                            disabled={!values.mobile || values.mobile.length !== 10}
-                        >
-                            Send OTP
-                        </button>
-
-                        <div style={styles.guestNote}>
-                            <Shield size={20} />
-                            <span>Secure authentication for accessing personalized services</span>
-                        </div>
-                    </form>
-                )}
-
-                {step === 2 && (
-                    <form onSubmit={handleVerifyOTP} style={styles.form}>
-                        <div style={styles.iconHeader}>
-                            <div style={styles.otpIcon}>
-                                <Smartphone size={50} color="white" />
-                            </div>
-                            <h3 style={styles.formTitle}>Enter OTP</h3>
-                            <p style={styles.formSub}>
-                                We've sent a 6-digit code to<br />
-                                <strong>{values.mobile}</strong>
-                            </p>
-                        </div>
-
-                        <div style={styles.field}>
-                            <input
-                                readOnly
-                                value={values.otp || ''}
-                                onFocus={() => openKeyboard('otp')}
-                                placeholder="000000"
-                                style={{ ...styles.input, letterSpacing: '1rem', textAlign: 'center', fontSize: '2.5rem' }}
-                                maxLength={6}
-                            />
-                        </div>
-
-                        <div style={styles.timerBox}>
-                            {timer > 0 ? (
-                                <span>Resend OTP in {timer}s</span>
-                            ) : (
-                                <button type="button" onClick={() => setTimer(30)} style={styles.resendBtn}>
-                                    Resend OTP
-                                </button>
-                            )}
-                        </div>
-
-                        <button
-                            type="submit"
-                            style={styles.submitBtn}
-                            disabled={!values.otp || values.otp.length !== 6}
-                        >
-                            Verify & Login
-                        </button>
-
-                        <button type="button" onClick={() => setStep(1)} style={styles.changeNumberBtn}>
-                            Change Number
-                        </button>
-                    </form>
-                )}
-
-                {step === 3 && (
-                    <div style={styles.success}>
-                        <CheckCircle size={100} color="var(--municipal)" />
-                        <h2 style={styles.successTitle}>Login Successful!</h2>
-                        <p style={styles.successSub}>Welcome back! Redirecting to home...</p>
+            <div style={styles.grid} className="grid-responsive">
+                {/* Left Side: Work Information */}
+                <div style={styles.infoPanel} className="info-panel-responsive">
+                    <div style={styles.brand}>
+                        <Image src="/logo.png" alt="Logo" width={60} height={60} />
+                        <h1 style={styles.brandName}>SUVIDHA KIOSK</h1>
                     </div>
-                )}
-            </div>
 
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
+                    <h2 style={styles.infoTitle}>One Portal, <br />Infinite Possibilities.</h2>
+                    <p style={styles.infoDesc}>Access all government services securely from a single digital gateway.</p>
+
+                    <div style={styles.features}>
+                        <div style={styles.featureItem}>
+                            <Zap size={24} color="#facc15" />
+                            <div>
+                                <h3>Utility Payments</h3>
+                                <p>Pay Electricity, Water, and Gas bills instantly.</p>
+                            </div>
+                        </div>
+                        <div style={styles.featureItem}>
+                            <LayoutGrid size={24} color="#8b5cf6" />
+                            <div>
+                                <h3>Digital Documents</h3>
+                                <p>Access Aadhaar, PAN, and Certificates securely.</p>
+                            </div>
+                        </div>
+                        <div style={styles.featureItem}>
+                            <CreditCard size={24} color="#ec4899" />
+                            <div>
+                                <h3>Financial Inclusion</h3>
+                                <p>AEPS, DBT Status, and Micro-ATM services.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Right Side: Login Form */}
+                <div style={styles.formPanel}>
+                    <div style={styles.card}>
+                        <div style={styles.formHeader}>
+                            <h2 style={styles.formTitle}>Citizen Login</h2>
+                            <p style={styles.formSub}>Secure access with your password</p>
+                        </div>
+
+                        <form onSubmit={handleLogin} style={styles.form}>
+                            {error && <div style={styles.errorBanner}>{error}</div>}
+
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Mobile Number</label>
+                                <div style={styles.inputWrapper}>
+                                    <Phone size={20} color="#64748b" />
+                                    <input
+                                        type="tel"
+                                        placeholder="Enter 10-digit mobile"
+                                        style={styles.input}
+                                        value={mobile}
+                                        onChange={e => setMobile(e.target.value)}
+                                        maxLength={10}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Password</label>
+                                <div style={styles.inputWrapper}>
+                                    <Lock size={20} color="#64748b" />
+                                    <input
+                                        type={showPassword ? "text" : "password"}
+                                        placeholder="Enter your password"
+                                        style={styles.input}
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        style={styles.eyeBtn}
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div style={styles.forgotRow}>
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                                    <input type="checkbox" /> Remember me
+                                </label>
+                                <button type="button" style={styles.forgotBtn}>Forgot Password?</button>
+                            </div>
+
+                            <button type="submit" style={styles.submitBtn} disabled={loading}>
+                                {loading ? 'Authenticating...' : 'Secure Login'}
+                                <ArrowRight size={20} />
+                            </button>
+                        </form>
+
+                        <div style={styles.footer}>
+                            <p>New to Suvidha?</p>
+                            <Link href="/register" style={styles.registerLink}>Create new account</Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <style jsx>{`
+                @media (max-width: 768px) {
+                    .info-panel-responsive {
+                        display: none !important;
+                    }
+                    .grid-responsive {
+                        grid-template-columns: 1fr !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }
 
 const styles: Record<string, React.CSSProperties> = {
     container: {
-        padding: '2rem',
-        maxWidth: '600px',
-        margin: '0 auto',
+        minHeight: '100vh',
+        width: '100vw',
+        position: 'relative',
+        backgroundColor: '#f8fafc',
+        overflow: 'hidden',
+    },
+    watermarkContainer: {
+        position: 'absolute',
+        top: '50%',
+        left: '50%',
+        transform: 'translate(-50%, -50%)',
+        zIndex: 0,
+        opacity: 0.05,
+        pointerEvents: 'none',
+    },
+    watermark: {
+        objectFit: 'contain',
+    },
+    grid: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        minHeight: '100vh',
+        position: 'relative',
+        zIndex: 1,
+    },
+    infoPanel: {
+        backgroundColor: 'rgba(139, 92, 246, 0.05)',
+        padding: '4rem',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'center',
+        borderRight: '1px solid rgba(0,0,0,0.05)',
+    },
+    brand: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem',
+        marginBottom: '3rem',
+    },
+    brandName: {
+        fontSize: '2rem',
+        fontWeight: 900,
+        background: 'linear-gradient(to right, var(--primary), #ec4899)',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+    },
+    infoTitle: {
+        fontSize: '3.5rem',
+        fontWeight: 800,
+        lineHeight: 1.1,
+        marginBottom: '1.5rem',
+        color: '#1e293b',
+    },
+    infoDesc: {
+        fontSize: '1.25rem',
+        color: '#64748b',
+        maxWidth: '500px',
+        marginBottom: '4rem',
+    },
+    features: {
         display: 'flex',
         flexDirection: 'column',
         gap: '2rem',
     },
-    header: {
+    featureItem: {
         display: 'flex',
-        alignItems: 'center',
-        gap: '2rem',
+        alignItems: 'flex-start',
+        gap: '1rem',
     },
-    backBtn: {
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        color: 'var(--primary)',
-    },
-    title: {
-        fontSize: '2.5rem',
-        fontWeight: 900,
-        margin: 0,
-    },
-    card: {
-        backgroundColor: 'white',
-        padding: '3rem',
-        borderRadius: '2rem',
-        boxShadow: 'var(--card-shadow)',
-        minHeight: '500px',
+    formPanel: {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        padding: '2rem',
+    },
+    card: {
+        background: 'white',
+        padding: '3rem',
+        borderRadius: '24px',
+        boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
+        width: '100%',
+        maxWidth: '500px',
+    },
+    formHeader: {
+        marginBottom: '2rem',
+        textAlign: 'center',
+    },
+    formTitle: {
+        fontSize: '2rem',
+        fontWeight: 700,
+        color: '#1e293b',
+        marginBottom: '0.5rem',
+    },
+    formSub: {
+        color: '#64748b',
     },
     form: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '2rem',
-        width: '100%',
+        gap: '1.5rem',
     },
-    iconHeader: {
-        textAlign: 'center',
+    inputGroup: {
         display: 'flex',
         flexDirection: 'column',
-        alignItems: 'center',
-        gap: '1rem',
-    },
-    formTitle: {
-        fontSize: '2rem',
-        fontWeight: 'bold',
-        margin: 0,
-    },
-    formSub: {
-        fontSize: '1.1rem',
-        opacity: 0.7,
-        margin: 0,
-    },
-    otpIcon: {
-        backgroundColor: 'var(--primary)',
-        borderRadius: '50%',
-        width: '100px',
-        height: '100px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    field: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.75rem',
+        gap: '0.5rem',
     },
     label: {
-        fontSize: '1.3rem',
-        fontWeight: 'bold',
+        fontSize: '0.9rem',
+        fontWeight: 600,
         color: '#475569',
     },
-    input: {
-        padding: '1.5rem',
-        fontSize: '2rem',
-        borderRadius: '1rem',
-        border: '3px solid #e2e8f0',
-        backgroundColor: '#f8fafc',
-        cursor: 'pointer',
-    },
-    submitBtn: {
-        padding: '1.5rem',
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
-        backgroundColor: 'var(--primary)',
-        color: 'white',
-        border: 'none',
-        borderRadius: '1rem',
-        cursor: 'pointer',
-    },
-    guestNote: {
+    inputWrapper: {
         display: 'flex',
         alignItems: 'center',
-        gap: '0.75rem',
-        justifyContent: 'center',
-        fontSize: '0.95rem',
-        opacity: 0.7,
+        gap: '1rem',
+        background: '#f1f5f9',
         padding: '1rem',
-        backgroundColor: '#f1f5f9',
-        borderRadius: '0.75rem',
+        borderRadius: '12px',
+        border: '1px solid #e2e8f0',
+        transition: 'all 0.2s',
     },
-    timerBox: {
-        textAlign: 'center',
+    input: {
+        border: 'none',
+        background: 'none',
+        outline: 'none',
+        width: '100%',
         fontSize: '1.1rem',
-        color: '#64748b',
-        fontWeight: 'bold',
+        color: '#1e293b',
     },
-    resendBtn: {
+    eyeBtn: {
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: '#94a3b8',
+    },
+    submitBtn: {
+        background: 'var(--primary)',
+        color: 'white',
+        padding: '1.25rem',
+        borderRadius: '12px',
+        border: 'none',
+        fontSize: '1.1rem',
+        fontWeight: 700,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.75rem',
+        boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)',
+        marginTop: '1rem',
+    },
+    errorBanner: {
+        background: '#fee2e2',
+        color: '#dc2626',
+        padding: '1rem',
+        borderRadius: '8px',
+        textAlign: 'center',
+        fontSize: '0.9rem',
+        fontWeight: 600,
+    },
+    footer: {
+        marginTop: '2rem',
+        textAlign: 'center',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '0.5rem',
+        color: '#64748b',
+    },
+    registerLink: {
+        color: 'var(--primary)',
+        fontWeight: 700,
+        textDecoration: 'none',
+    },
+    forgotRow: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        fontSize: '0.9rem',
+        color: '#64748b',
+    },
+    forgotBtn: {
         background: 'none',
         border: 'none',
         color: 'var(--primary)',
-        fontWeight: 'bold',
-        fontSize: '1.1rem',
+        fontWeight: 600,
         cursor: 'pointer',
-        textDecoration: 'underline',
-    },
-    changeNumberBtn: {
-        background: 'none',
-        border: '2px solid #e2e8f0',
-        padding: '1rem',
-        borderRadius: '1rem',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        color: '#64748b',
-    },
-    success: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        gap: '1.5rem',
-    },
-    successTitle: {
-        fontSize: '2.5rem',
-        fontWeight: 900,
-        color: 'var(--municipal)',
-        margin: 0,
-    },
-    successSub: {
-        fontSize: '1.3rem',
     }
 };

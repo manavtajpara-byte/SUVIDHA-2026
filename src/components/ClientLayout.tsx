@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StateProvider, useAppState } from "@/context/StateContext";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
@@ -9,25 +9,41 @@ import Chatbot from "@/components/Chatbot";
 import ToastContainer from "@/components/Toast";
 import SessionTimeout from "@/components/SessionTimeout";
 import KeyboardShortcuts from "@/components/KeyboardShortcuts";
-import VoiceAssistant from "@/components/VoiceAssistant";
 import OfflineIndicator from "@/components/OfflineIndicator";
 import EmergencyBroadcast from "@/components/EmergencyBroadcast";
 import HardwareBridge from "@/components/HardwareBridge";
 import SahayakAvatar from "@/components/SahayakAvatar";
+import { usePathname, useRouter } from 'next/navigation';
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
-    const { toasts, removeToast } = useAppState();
+    const { toasts, removeToast, isLoggedIn } = useAppState();
+    const pathname = usePathname();
+    const router = useRouter();
+
+    const isAuthPage = pathname === '/login' || pathname === '/register';
+
+    useEffect(() => {
+        // Simple Route Protection
+        // If not logged in, and trying to access restricted pages, redirect to login
+        if (!isLoggedIn && !isAuthPage && pathname !== '/privacy' && pathname !== '/terms') {
+            router.push('/login');
+        }
+    }, [isLoggedIn, isAuthPage, pathname, router]);
 
     return (
         <>
-            <UtilityBar />
-            <Header />
-            <main style={{ flex: 1 }}>
+            {!isAuthPage && <UtilityBar />}
+            {!isAuthPage && <Header />}
+
+            <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 {children}
             </main>
-            <Footer />
-            <Chatbot />
-            <VoiceAssistant />
+
+            {!isAuthPage && <Footer />}
+
+            {!isAuthPage && <Chatbot />}
+            {!isAuthPage && <SahayakAvatar />}
+
             <OfflineIndicator />
             <EmergencyBroadcast />
             <ToastContainer toasts={toasts} onClose={removeToast} />

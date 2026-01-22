@@ -1,9 +1,11 @@
 'use client';
 
 import React from 'react';
-import { Locate, Droplets, ThermometerSun, Leaf, CheckCircle, Printer } from 'lucide-react';
+import { Locate, Droplets, ThermometerSun, Leaf, CheckCircle, Printer, ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function AgriTechPage() {
+    const router = useRouter();
     const [bookingStatus, setBookingStatus] = React.useState<'idle' | 'booking' | 'confirmed'>('idle');
     const [selectedService, setSelectedService] = React.useState('');
 
@@ -47,6 +49,9 @@ export default function AgriTechPage() {
                 </div>
             )}
             <div style={styles.header}>
+                <button onClick={() => router.back()} style={styles.headerBackBtn}>
+                    <ArrowLeft size={32} />
+                </button>
                 <Leaf size={48} color="#16a34a" />
                 <div>
                     <h1 style={styles.title}>Kisan Agri-Tech Connect</h1>
@@ -115,6 +120,16 @@ const styles: Record<string, React.CSSProperties> = {
         alignItems: 'center',
         gap: '1.5rem',
         marginBottom: '2rem',
+    },
+    headerBackBtn: {
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: '#16a34a',
+        padding: '0.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     title: {
         fontSize: '2rem',

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useAppState } from '@/context/StateContext';
 import { ShieldCheck, Printer, Download, Share2, X, Landmark } from 'lucide-react';
 
 interface ReceiptProps {
@@ -14,6 +15,8 @@ interface ReceiptProps {
 }
 
 export default function Receipt({ type, transactionId, amount, customerName, details, onClose, autoPrint = false }: ReceiptProps) {
+    const { addToast } = useAppState();
+
     React.useEffect(() => {
         if (autoPrint) {
             setTimeout(() => window.print(), 500); // Small delay to ensure render
@@ -35,7 +38,7 @@ export default function Receipt({ type, transactionId, amount, customerName, det
     };
 
     const handleShare = () => {
-        alert(`Official Receipt link sent to ${customerName}'s registered mobile.`);
+        addToast({ message: `Receipt link sent to ${customerName}'s mobile`, type: 'success' });
     };
 
     return (
@@ -175,13 +178,16 @@ const styles: Record<string, React.CSSProperties> = {
     },
     modal: {
         backgroundColor: 'white', borderRadius: '1.5rem',
-        width: '100%', maxWidth: '650px',
+        width: '95%', maxWidth: '600px',
+        maxHeight: '90vh', // Prevent overflow off screen
         overflow: 'hidden', boxShadow: '0 50px 100px -20px rgba(0,0,0,0.5)',
         display: 'flex', flexDirection: 'column'
     },
     receiptContainer: {
-        padding: '3rem', backgroundColor: '#fff',
-        fontFamily: '"Times New Roman", Times, serif', color: '#1a1a1a'
+        padding: '2rem', backgroundColor: '#fff',
+        fontFamily: '"Times New Roman", Times, serif', color: '#1a1a1a',
+        overflowY: 'auto', // Enable internal scrolling
+        flex: 1, // Take available space
     },
     govHeader: {
         display: 'flex', alignItems: 'center', gap: '1.5rem',
@@ -227,9 +233,11 @@ const styles: Record<string, React.CSSProperties> = {
     footerNote: { fontSize: '0.7rem', opacity: 0.6, margin: '0 0 10px' },
     footerUrl: { fontSize: '0.7rem', fontWeight: 700, color: '#3b82f6', margin: 0 },
     actions: {
-        padding: '1.5rem', backgroundColor: '#f8fafc',
-        display: 'flex', gap: '1rem', justifyContent: 'center',
-        borderTop: '1px solid #e2e8f0'
+        padding: '1rem', backgroundColor: '#f8fafc',
+        display: 'flex', gap: '0.5rem', justifyContent: 'center',
+        borderTop: '1px solid #e2e8f0',
+        flexWrap: 'wrap', // Allow wrapping on small screens
+        flexShrink: 0, // Prevent shrinking
     },
     btnAction: {
         display: 'flex', alignItems: 'center', gap: '0.5rem',

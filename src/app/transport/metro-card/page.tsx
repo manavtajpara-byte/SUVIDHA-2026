@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, CheckCircle2, CreditCard, RefreshCw, Zap, Landmark } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Receipt from '@/components/Receipt';
@@ -13,7 +11,8 @@ export default function MetroCardPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [cardNo, setCardNo] = useState('');
+    const [amount, setAmount] = useState('');
     const [step, setStep] = useState(1); // 1: ID, 2: Amount, 3: Success
     const [isProcessing, setIsProcessing] = useState(false);
     const [showReceipt, setShowReceipt] = useState(false);
@@ -46,13 +45,12 @@ export default function MetroCardPage() {
                             <p>Found on the back of your card (8-12 digits)</p>
                         </div>
                         <input
-                            readOnly
-                            value={values.cardNo || ''}
-                            onFocus={() => openKeyboard('cardNo')}
+                            value={cardNo}
+                            onChange={(e) => setCardNo(e.target.value)}
                             placeholder="Card Number"
                             style={styles.input}
                         />
-                        <button onClick={handleNext} style={styles.submitBtn} disabled={!values.cardNo}>
+                        <button onClick={handleNext} style={styles.submitBtn} disabled={!cardNo}>
                             Check Card Balance
                         </button>
                     </div>
@@ -68,7 +66,7 @@ export default function MetroCardPage() {
                             {[100, 200, 500, 1000].map(amt => (
                                 <button
                                     key={amt}
-                                    onClick={() => handleInput(amt.toString())}
+                                    onClick={() => setAmount(amt.toString())}
                                     style={styles.amtBtn}
                                 >
                                     ₹ {amt}
@@ -78,19 +76,18 @@ export default function MetroCardPage() {
                         <div style={styles.inputGroup}>
                             <label>Recharge Amount</label>
                             <input
-                                readOnly
-                                value={values.amount || ''}
-                                onFocus={() => openKeyboard('amount')}
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
                                 style={styles.input}
                             />
                         </div>
-                        <button onClick={handleRecharge} style={styles.rechargeBtn} disabled={!values.amount || isProcessing}>
+                        <button onClick={handleRecharge} style={styles.rechargeBtn} disabled={!amount || isProcessing}>
                             {isProcessing ? (
                                 <>
                                     <RefreshCw className="spin" size={24} /> Processing...
                                 </>
                             ) : (
-                                `Pay ₹ ${values.amount || '0'}`
+                                `Pay ₹ ${amount || '0'}`
                             )}
                         </button>
                     </div>
@@ -100,7 +97,7 @@ export default function MetroCardPage() {
                     <div style={styles.success}>
                         <CheckCircle2 size={120} color="#06b6d4" />
                         <h3 style={styles.successTitle}>Recharge Successful!</h3>
-                        <p>Your Metro card has been updated. New Balance: <strong>₹ {(parseFloat(values.amount || '0') + 42.50).toFixed(2)}</strong></p>
+                        <p>Your Metro card has been updated. New Balance: <strong>₹ {(parseFloat(amount || '0') + 42.50).toFixed(2)}</strong></p>
                         <div style={styles.receiptActions}>
                             <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print Receipt</button>
                         </div>
@@ -109,19 +106,17 @@ export default function MetroCardPage() {
                 )}
             </div>
 
-            {isOpen && <VirtualKeyboard onInput={handleInput} onDelete={handleDelete} onClose={closeKeyboard} />}
-
             {showReceipt && (
                 <Receipt
                     type="Metro Card Recharge"
                     transactionId={`METRO-${Date.now()}`}
-                    amount={parseFloat(values.amount || '0')}
+                    amount={parseFloat(amount || '0')}
                     customerName="Metro User"
                     details={{
-                        'Card Number': values.cardNo || 'XXXX-XXXX',
+                        'Card Number': cardNo || 'XXXX-XXXX',
                         'Previous Balance': '₹ 42.50',
-                        'Added Amount': `₹ ${values.amount}`,
-                        'New Balance': `₹ ${(parseFloat(values.amount || '0') + 42.50).toFixed(2)}`,
+                        'Added Amount': `₹ ${amount}`,
+                        'New Balance': `₹ ${(parseFloat(amount || '0') + 42.50).toFixed(2)}`,
                         'Operator': 'Metro Rail Corp'
                     }}
                     onClose={() => setShowReceipt(false)}

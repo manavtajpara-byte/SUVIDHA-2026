@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, CheckCircle2, Heart, Fingerprint, Search, Smartphone, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Receipt from '@/components/Receipt';
@@ -13,7 +11,8 @@ export default function HealthCardPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [aadharNo, setAadharNo] = useState('');
+    const [otp, setOtp] = useState('');
     const [step, setStep] = useState(1); // 1: Info, 2: Verification, 3: Success/Card
     const [showReceipt, setShowReceipt] = useState(false);
 
@@ -42,14 +41,13 @@ export default function HealthCardPage() {
                         <div style={styles.fieldGroup}>
                             <label style={styles.label}>Aadhar Number</label>
                             <input
-                                readOnly
-                                value={values.aadharNo || ''}
-                                onFocus={() => openKeyboard('aadharNo')}
+                                value={aadharNo}
+                                onChange={(e) => setAadharNo(e.target.value)}
                                 placeholder="XXXX-XXXX-XXXX"
                                 style={styles.input}
                             />
                         </div>
-                        <button onClick={() => setStep(2)} style={styles.submitBtn} disabled={!values.aadharNo}>
+                        <button onClick={() => setStep(2)} style={styles.submitBtn} disabled={!aadharNo}>
                             Start Aadhaar Authentication
                         </button>
                     </div>
@@ -61,13 +59,12 @@ export default function HealthCardPage() {
                         <h3>OTP Verification</h3>
                         <p>Enter the 6-digit code sent to your Aadhaar-linked mobile (XXXXX-9812)</p>
                         <input
-                            readOnly
-                            value={values.otp || ''}
-                            onFocus={() => openKeyboard('otp')}
+                            value={otp}
+                            onChange={(e) => setOtp(e.target.value)}
                             placeholder="· · · · · ·"
                             style={styles.otpInput}
                         />
-                        <button onClick={handleVerify} style={styles.submitBtn} disabled={!values.otp}>
+                        <button onClick={handleVerify} style={styles.submitBtn} disabled={!otp}>
                             Verify & Create Card
                         </button>
                     </div>
@@ -98,14 +95,6 @@ export default function HealthCardPage() {
                     </div>
                 )}
             </div>
-
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
 
             {showReceipt && (
                 <Receipt

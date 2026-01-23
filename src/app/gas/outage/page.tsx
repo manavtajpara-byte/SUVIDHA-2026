@@ -5,14 +5,12 @@ import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
 import { ArrowLeft, AlertTriangle, ShieldAlert, Phone, MapPin, Send } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 
 export default function GasLeakReportPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [emergencyMobile, setEmergencyMobile] = useState('');
     const [submitted, setSubmitted] = useState(false);
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -51,14 +49,13 @@ export default function GasLeakReportPage() {
                             <div style={styles.fieldGroup}>
                                 <label style={styles.label}>Emergency Mobile Number</label>
                                 <input
-                                    readOnly
-                                    value={values.mergencyMobile || ''}
-                                    onFocus={() => openKeyboard('mergencyMobile')}
+                                    value={emergencyMobile}
+                                    onChange={(e) => setEmergencyMobile(e.target.value)}
                                     style={styles.input}
                                     placeholder="Enter your number"
                                 />
                             </div>
-                            <button type="submit" style={styles.reportBtn} disabled={!values.mergencyMobile}>
+                            <button type="submit" style={styles.reportBtn} disabled={!emergencyMobile}>
                                 <Send size={24} />
                                 SUBMIT EMERGENCY ALERT
                             </button>
@@ -86,14 +83,6 @@ export default function GasLeakReportPage() {
                     </div>
                 )}
             </div>
-
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
         </div>
     );
 }

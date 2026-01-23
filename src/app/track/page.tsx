@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, Search, CheckCircle, Clock, FileCheck, Truck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -14,13 +12,13 @@ export default function TrackPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [ticketId, setTicketId] = useState('');
     const [tracking, setTracking] = useState(false);
     const [showReceipt, setShowReceipt] = useState(false);
 
     const handleTrack = (e: React.FormEvent) => {
         e.preventDefault();
-        if (values.ticketId) setTracking(true);
+        if (ticketId) setTracking(true);
     };
 
     const timeline = [
@@ -49,14 +47,13 @@ export default function TrackPage() {
                         </div>
                         <div style={styles.field}>
                             <input
-                                readOnly
-                                value={values.ticketId || ''}
-                                onFocus={() => openKeyboard('ticketId')}
+                                value={ticketId}
+                                onChange={(e) => setTicketId(e.target.value)}
                                 placeholder="Ex: REQ-ELE-2026-4401"
                                 style={styles.input}
                             />
                         </div>
-                        <button type="submit" style={styles.submitBtn} disabled={!values.ticketId}>
+                        <button type="submit" style={styles.submitBtn} disabled={!ticketId}>
                             Track Status
                         </button>
                     </form>
@@ -101,14 +98,6 @@ export default function TrackPage() {
                         <button onClick={() => setTracking(false)} style={styles.newSearchBtn}>Check Another</button>
                     </div>
                 </div>
-            )}
-
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
             )}
 
             {showReceipt && (

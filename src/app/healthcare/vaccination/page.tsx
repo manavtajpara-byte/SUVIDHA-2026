@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, CheckCircle2, Shield, Calendar, User, Search, MapPin } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Receipt from '@/components/Receipt';
@@ -13,7 +11,7 @@ export default function VaccinationPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [aadharNo, setAadharNo] = useState('');
     const [step, setStep] = useState(1); // 1: Search, 2: Slot Selection, 3: Success
     const [showReceipt, setShowReceipt] = useState(false);
 
@@ -27,7 +25,7 @@ export default function VaccinationPage() {
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (values.aadharNo) setStep(2);
+        if (aadharNo) setStep(2);
     };
 
     return (
@@ -49,14 +47,13 @@ export default function VaccinationPage() {
                         <div style={styles.fieldGroup}>
                             <label style={styles.label}>Aadhar Number / CoWIN Registered ID</label>
                             <input
-                                readOnly
-                                value={values.aadharNo || ''}
-                                onFocus={() => openKeyboard('aadharNo')}
+                                value={aadharNo}
+                                onChange={(e) => setAadharNo(e.target.value)}
                                 placeholder="XXXX-XXXX-XXXX"
                                 style={styles.input}
                             />
                         </div>
-                        <button type="submit" style={styles.submitBtn} disabled={!values.aadharNo}>
+                        <button type="submit" style={styles.submitBtn} disabled={!aadharNo}>
                             Check Eligibility & Find Centers
                         </button>
                     </form>
@@ -108,21 +105,13 @@ export default function VaccinationPage() {
                 )}
             </div>
 
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
-
             {showReceipt && (
                 <Receipt
                     type="vaccination-booking"
                     transactionId="VAC-REF-44201"
                     customerName="Karan Verma"
                     details={{
-                        'Beneficiary ID': values.aadharNo || 'XXXX-XXXX-XXXX',
+                        'Beneficiary ID': aadharNo || 'XXXX-XXXX-XXXX',
                         'Vaccine Dose': 'Dose 2 (Covishield)',
                         'Center Name': selectedCenter.name,
                         'Slot Date': '20 Jan 2026',

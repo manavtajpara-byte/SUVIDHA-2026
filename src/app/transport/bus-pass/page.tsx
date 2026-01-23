@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, CheckCircle2, Bus, MapPin, Calendar, CreditCard } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Receipt from '@/components/Receipt';
@@ -13,7 +11,8 @@ export default function BusPassPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [applicantName, setApplicantName] = useState('');
+    const [idNo, setIdNo] = useState('');
     const [step, setStep] = useState(1); // 1: Routes, 2: Details, 3: Payment, 4: Success
     const [showReceipt, setShowReceipt] = useState(false);
 
@@ -72,9 +71,8 @@ export default function BusPassPage() {
                         <div style={styles.fieldGroup}>
                             <label style={styles.label}>Applicant Full Name</label>
                             <input
-                                readOnly
-                                value={values.applicantName || ''}
-                                onFocus={() => openKeyboard('applicantName')}
+                                value={applicantName}
+                                onChange={(e) => setApplicantName(e.target.value)}
                                 placeholder="As per Identity Proof"
                                 style={styles.input}
                             />
@@ -82,9 +80,8 @@ export default function BusPassPage() {
                         <div style={styles.fieldGroup}>
                             <label style={styles.label}>Aadhar Number / ID Number</label>
                             <input
-                                readOnly
-                                value={values.idNo || ''}
-                                onFocus={() => openKeyboard('idNo')}
+                                value={idNo}
+                                onChange={(e) => setIdNo(e.target.value)}
                                 placeholder="XXXX-XXXX-XXXX"
                                 style={styles.input}
                             />
@@ -96,7 +93,7 @@ export default function BusPassPage() {
                                 <span>{new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' })}</span>
                             </div>
                         </div>
-                        <button onClick={handleNext} style={styles.submitBtn} disabled={!values.applicantName || !values.idNo}>
+                        <button onClick={handleNext} style={styles.submitBtn} disabled={!applicantName || !idNo}>
                             Proceed to Payment
                         </button>
                     </form>
@@ -137,24 +134,16 @@ export default function BusPassPage() {
                 )}
             </div>
 
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
-
             {showReceipt && (
                 <Receipt
                     type="bus-pass-issue"
                     transactionId={`BUS-PASS-${Date.now()}`}
                     amount={selectedRoute.price}
-                    customerName={values.applicantName || 'Applicant'}
+                    customerName={applicantName || 'Applicant'}
                     details={{
                         'Route Name': selectedRoute.name,
                         'Pass ID': `BP-${Math.floor(Math.random() * 900000 + 100000)}`,
-                        'ID Number': values.idNo || 'XXXX-XXXX-XXXX',
+                        'ID Number': idNo || 'XXXX-XXXX-XXXX',
                         'Valid From': new Date().toLocaleDateString('en-GB'),
                         'Valid To': new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('en-GB')
                     }}

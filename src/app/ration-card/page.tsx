@@ -7,16 +7,17 @@ import BigButton from '@/components/BigButton';
 import { FilePlus, Download, CheckCircle, ArrowLeft, Wheat } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import Receipt from '@/components/Receipt';
 
 export default function RationCardPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
     const [view, setView] = useState<'menu' | 'apply' | 'download' | 'success'>('menu');
+    const [name, setName] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [members, setMembers] = useState('');
+    const [cardNo, setCardNo] = useState('');
     const [showReceipt, setShowReceipt] = useState(false);
 
     const services = [
@@ -77,17 +78,17 @@ export default function RationCardPage() {
                         </div>
                         <div style={styles.field}>
                             <label>Head of Family Name</label>
-                            <input readOnly value={values.name || ''} onFocus={() => openKeyboard('name')} style={styles.input} />
+                            <input value={name} onChange={(e) => setName(e.target.value)} style={styles.input} />
                         </div>
                         <div style={styles.field}>
                             <label>Mobile Number</label>
-                            <input readOnly value={values.mobile || ''} onFocus={() => openKeyboard('mobile')} style={styles.input} />
+                            <input value={mobile} onChange={(e) => setMobile(e.target.value)} style={styles.input} />
                         </div>
                         <div style={styles.field}>
                             <label>Number of Family Members</label>
-                            <input readOnly value={values.members || ''} onFocus={() => openKeyboard('members')} style={styles.input} />
+                            <input value={members} onChange={(e) => setMembers(e.target.value)} style={styles.input} />
                         </div>
-                        <button type="submit" style={styles.submitBtn} disabled={!values.name || !values.mobile}>Submit Application</button>
+                        <button type="submit" style={styles.submitBtn} disabled={!name || !mobile}>Submit Application</button>
                     </form>
                 </div>
             )}
@@ -98,8 +99,8 @@ export default function RationCardPage() {
                         <Wheat size={80} color="#16a34a" />
                         <h3>Download Ration Card</h3>
                         <p>Enter your Ration Card Number to download</p>
-                        <input readOnly value={values.cardNo || ''} onFocus={() => openKeyboard('cardNo')} placeholder="Card Number" style={styles.input} />
-                        <button onClick={() => setShowReceipt(true)} style={styles.submitBtn} disabled={!values.cardNo}>Download Card (PDF)</button>
+                        <input value={cardNo} onChange={(e) => setCardNo(e.target.value)} placeholder="Card Number" style={styles.input} />
+                        <button onClick={() => setShowReceipt(true)} style={styles.submitBtn} disabled={!cardNo}>Download Card (PDF)</button>
                     </div>
                 </div>
             )}
@@ -117,17 +118,15 @@ export default function RationCardPage() {
                 </div>
             )}
 
-            {isOpen && <VirtualKeyboard onInput={handleInput} onDelete={handleDelete} onClose={closeKeyboard} />}
-
             {showReceipt && (
                 <Receipt
                     type="ration"
                     transactionId={`RATION-DL-${Date.now()}`}
-                    customerName={values.name || 'Cardholder'}
+                    customerName={name || 'Cardholder'}
                     details={{
-                        'Card Number': values.cardNo || 'XXXX-XXXX-XXXX',
+                        'Card Number': cardNo || 'XXXX-XXXX-XXXX',
                         'Card Type': 'APL (Above Poverty Line)',
-                        'Family Members': '4',
+                        'Family Members': members || '4',
                         'Valid Until': 'Dec 2026'
                     }}
                     onClose={() => setShowReceipt(false)}

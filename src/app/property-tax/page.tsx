@@ -5,21 +5,19 @@ import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
 import { ArrowLeft, Home as HomeIcon, CreditCard, FileText, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import Receipt from '@/components/Receipt';
 
 export default function PropertyTaxPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [propertyId, setPropertyId] = useState('');
     const [step, setStep] = useState(1);
     const [showReceipt, setShowReceipt] = useState(false);
 
     const handleFetch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (values.propertyId) setStep(2);
+        if (propertyId) setStep(2);
     };
 
     const handlePay = () => {
@@ -40,14 +38,14 @@ export default function PropertyTaxPage() {
                             <HomeIcon size={60} color="#dc2626" />
                             <p>Enter Property ID to view tax details</p>
                         </div>
-                        <input readOnly value={values.propertyId || ''} onFocus={() => openKeyboard('propertyId')} placeholder="Property ID" style={styles.input} />
-                        <button type="submit" style={styles.submitBtn} disabled={!values.propertyId}>Fetch Tax Details</button>
+                        <input value={propertyId} onChange={(e) => setPropertyId(e.target.value)} placeholder="Property ID" style={styles.input} />
+                        <button type="submit" style={styles.submitBtn} disabled={!propertyId}>Fetch Tax Details</button>
                     </form>
                 )}
 
                 {step === 2 && (
                     <div style={styles.summary}>
-                        <div style={styles.summaryItem}><span>Property ID:</span><strong>{values.propertyId}</strong></div>
+                        <div style={styles.summaryItem}><span>Property ID:</span><strong>{propertyId}</strong></div>
                         <div style={styles.summaryItem}><span>Owner Name:</span><strong>Suresh Patel</strong></div>
                         <div style={styles.summaryItem}><span>Property Type:</span><strong>Residential</strong></div>
                         <div style={styles.summaryItem}><span>Area (sq ft):</span><strong>1,200</strong></div>
@@ -57,8 +55,6 @@ export default function PropertyTaxPage() {
                 )}
             </div>
 
-            {isOpen && <VirtualKeyboard onInput={handleInput} onDelete={handleDelete} onClose={closeKeyboard} />}
-
             {showReceipt && (
                 <Receipt
                     type="property-tax"
@@ -66,7 +62,7 @@ export default function PropertyTaxPage() {
                     amount={8500}
                     customerName="Suresh Patel"
                     details={{
-                        'Property ID': values.propertyId || 'PROP-45012',
+                        'Property ID': propertyId || 'PROP-45012',
                         'Property Type': 'Residential',
                         'Area': '1,200 sq ft',
                         'Assessment Year': '2025-2026',

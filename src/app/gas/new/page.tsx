@@ -5,15 +5,15 @@ import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
 import { ArrowLeft, CheckCircle2, Flame, MapPin, Smartphone, FileText, Camera } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { KioskCamera } from '@/components/DocHandling';
 
 export default function GasNewConnectionPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [fullName, setFullName] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [address, setAddress] = useState('');
     const [step, setStep] = useState(1); // 1: Details, 2: Documents, 3: Success
 
     const handleNext = () => setStep(step + 1);
@@ -37,23 +37,22 @@ export default function GasNewConnectionPage() {
                         <div style={styles.form}>
                             <div style={styles.fieldGroup}>
                                 <label style={styles.label}>Applicant Full Name</label>
-                                <input readOnly value={values.fullName || ''} onFocus={() => openKeyboard('fullName')} style={styles.input} placeholder="Enter name" />
+                                <input value={fullName} onChange={(e) => setFullName(e.target.value)} style={styles.input} placeholder="Enter name" />
                             </div>
                             <div style={styles.fieldGroup}>
                                 <label style={styles.label}>Mobile Number</label>
-                                <input readOnly value={values.mobile || ''} onFocus={() => openKeyboard('mobile')} style={styles.input} placeholder="10-digit mobile" />
+                                <input value={mobile} onChange={(e) => setMobile(e.target.value)} style={styles.input} placeholder="10-digit mobile" />
                             </div>
                             <div style={styles.fieldGroup}>
                                 <label style={styles.label}>Installation Address</label>
                                 <textarea
-                                    readOnly
-                                    value={values.address || ''}
-                                    onFocus={() => openKeyboard('address')}
+                                    value={address}
+                                    onChange={(e) => setAddress(e.target.value)}
                                     style={{ ...styles.input, height: '100px', textAlign: 'left' }}
                                     placeholder="Full address for installation"
                                 />
                             </div>
-                            <button onClick={handleNext} style={styles.submitBtn} disabled={!values.fullName || !values.mobile || !values.address}>
+                            <button onClick={handleNext} style={styles.submitBtn} disabled={!fullName || !mobile || !address}>
                                 Next: Upload Documents
                             </button>
                         </div>
@@ -88,14 +87,6 @@ export default function GasNewConnectionPage() {
                     </div>
                 )}
             </div>
-
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
         </div>
     );
 }

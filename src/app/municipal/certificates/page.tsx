@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, Baby, Heart, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -14,7 +12,9 @@ export default function CertificatesPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [personName, setPersonName] = useState('');
+    const [regNo, setRegNo] = useState('');
+    const [mobile, setMobile] = useState('');
     const [certType, setCertType] = useState<'birth' | 'death' | null>(null);
     const [submitted, setSubmitted] = useState(false);
     const [showReceipt, setShowReceipt] = useState(false);
@@ -61,9 +61,8 @@ export default function CertificatesPage() {
                             <div style={styles.field}>
                                 <label style={styles.label}>Full Name (as per record)</label>
                                 <input
-                                    readOnly
-                                    value={values.personName || ''}
-                                    onFocus={() => openKeyboard('personName')}
+                                    value={personName}
+                                    onChange={(e) => setPersonName(e.target.value)}
                                     placeholder="Enter name"
                                     style={styles.input}
                                 />
@@ -72,9 +71,8 @@ export default function CertificatesPage() {
                             <div style={styles.field}>
                                 <label style={styles.label}>Registration Number (if known)</label>
                                 <input
-                                    readOnly
-                                    value={values.regNo || ''}
-                                    onFocus={() => openKeyboard('regNo')}
+                                    value={regNo}
+                                    onChange={(e) => setRegNo(e.target.value)}
                                     placeholder="Optional"
                                     style={styles.input}
                                 />
@@ -83,9 +81,8 @@ export default function CertificatesPage() {
                             <div style={styles.field}>
                                 <label style={styles.label}>Your Mobile Number</label>
                                 <input
-                                    readOnly
-                                    value={values.mobile || ''}
-                                    onFocus={() => openKeyboard('mobile')}
+                                    value={mobile}
+                                    onChange={(e) => setMobile(e.target.value)}
                                     placeholder="For updates"
                                     style={styles.input}
                                 />
@@ -98,7 +95,7 @@ export default function CertificatesPage() {
                                 <button
                                     type="submit"
                                     style={styles.submitBtn}
-                                    disabled={!values.personName || !values.mobile}
+                                    disabled={!personName || !mobile}
                                 >
                                     Request Certificate
                                 </button>
@@ -128,22 +125,14 @@ export default function CertificatesPage() {
                 </div>
             )}
 
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
-
             {showReceipt && (
                 <Receipt
                     type={`${certType} Certificate Request`}
                     transactionId={`CERT-${certType?.toUpperCase()}-1029`}
-                    customerName={values.personName || 'Citizen'}
+                    customerName={personName || 'Citizen'}
                     details={{
-                        'Reg No': values.regNo || 'N/A',
-                        'Mobile': values.mobile || 'N/A',
+                        'Reg No': regNo || 'N/A',
+                        'Mobile': mobile || 'N/A',
                         'Status': 'Submitted for Processing',
                         'Date': new Date().toLocaleDateString()
                     }}

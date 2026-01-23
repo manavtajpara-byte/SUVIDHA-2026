@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, Trash2, Droplet, Construction, CheckCircle, Camera } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -12,7 +10,9 @@ export default function GrievancePage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [name, setName] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [location, setLocation] = useState('');
     const [selectedIssue, setSelectedIssue] = useState<string | null>(null);
     const [submitted, setSubmitted] = useState(false);
 
@@ -63,9 +63,8 @@ export default function GrievancePage() {
                             <div style={styles.field}>
                                 <label style={styles.label}>Your Name</label>
                                 <input
-                                    readOnly
-                                    value={values.name || ''}
-                                    onFocus={() => openKeyboard('name')}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                     placeholder="Enter your name"
                                     style={styles.input}
                                 />
@@ -74,9 +73,8 @@ export default function GrievancePage() {
                             <div style={styles.field}>
                                 <label style={styles.label}>Mobile Number</label>
                                 <input
-                                    readOnly
-                                    value={values.mobile || ''}
-                                    onFocus={() => openKeyboard('mobile')}
+                                    value={mobile}
+                                    onChange={(e) => setMobile(e.target.value)}
                                     placeholder="10-digit number"
                                     style={styles.input}
                                 />
@@ -85,9 +83,8 @@ export default function GrievancePage() {
                             <div style={styles.field}>
                                 <label style={styles.label}>Location / Address</label>
                                 <input
-                                    readOnly
-                                    value={values.location || ''}
-                                    onFocus={() => openKeyboard('location')}
+                                    value={location}
+                                    onChange={(e) => setLocation(e.target.value)}
                                     placeholder="Where is the issue?"
                                     style={styles.input}
                                 />
@@ -96,7 +93,7 @@ export default function GrievancePage() {
                             <button
                                 type="submit"
                                 style={styles.submitBtn}
-                                disabled={!values.name || !values.mobile || !values.location}
+                                disabled={!name || !mobile || !location}
                             >
                                 Submit Grievance
                             </button>
@@ -116,14 +113,6 @@ export default function GrievancePage() {
                     </div>
                     <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
                 </div>
-            )}
-
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
             )}
         </div>
     );

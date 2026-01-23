@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, Landmark, Wallet, ShieldCheck, Fingerprint, Receipt as ReceiptIcon, Banknote } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { translations } from '@/constants/translations';
@@ -13,11 +11,12 @@ export default function AEPSPage() {
     const { language } = useAppState();
     const t = (translations as any)[language] || translations.en;
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
     const [step, setStep] = useState(1); // 1: Select Type, 2: Aadhaar, 3: Amount (if withdraw), 4: Biometric, 5: Success
     const [type, setType] = useState<'balance' | 'withdraw' | 'statement'>('balance');
     const [isScanning, setIsScanning] = useState(false);
     const [showReceipt, setShowReceipt] = useState(false);
+    const [aadharNo, setAadharNo] = useState('');
+    const [amount, setAmount] = useState('');
 
     const startBiometric = () => {
         setIsScanning(true);
@@ -69,9 +68,8 @@ export default function AEPSPage() {
                         <div style={styles.inputGroup}>
                             <label>Aadhaar Number</label>
                             <input
-                                readOnly
-                                value={values.aadharNo || ''}
-                                onFocus={() => openKeyboard('aadharNo')}
+                                value={aadharNo}
+                                onChange={(e) => setAadharNo(e.target.value)}
                                 placeholder="XXXX-XXXX-XXXX"
                                 style={styles.input}
                             />
@@ -94,7 +92,7 @@ export default function AEPSPage() {
                         <button
                             onClick={() => type === 'withdraw' ? setStep(3) : setStep(4)}
                             style={styles.submitBtn}
-                            disabled={!values.aadharNo || values.aadharNo.length < 12}
+                            disabled={!aadharNo || aadharNo.length < 12}
                         >
                             {type === 'withdraw' ? 'Enter Amount' : 'Proceed to Biometric'}
                         </button>
@@ -111,14 +109,13 @@ export default function AEPSPage() {
                         <div style={styles.inputGroup}>
                             <label>Amount (₹)</label>
                             <input
-                                readOnly
-                                value={values.amount || ''}
-                                onFocus={() => openKeyboard('amount')}
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value)}
                                 placeholder="Enter Amount (Multiples of 100)"
                                 style={{ ...styles.input, color: '#059669', fontWeight: 'bold' }}
                             />
                         </div>
-                        <button onClick={() => setStep(4)} style={styles.submitBtn} disabled={!values.amount}>
+                        <button onClick={() => setStep(4)} style={styles.submitBtn} disabled={!amount}>
                             Proceed to Biometric
                         </button>
                     </div>
@@ -149,7 +146,7 @@ export default function AEPSPage() {
                             {type === 'withdraw' ? (
                                 <>
                                     <span>Withdrawal Successful</span>
-                                    <strong style={{ color: '#059669' }}>- ₹ {values.amount}.00</strong>
+                                    <strong style={{ color: '#059669' }}>- ₹ {amount}.00</strong>
                                     <p style={{ marginTop: '1rem', fontSize: '1rem', color: '#64748b' }}>Balance: ₹ 8,420.00</p>
                                 </>
                             ) : type === 'balance' ? (
@@ -169,7 +166,7 @@ export default function AEPSPage() {
                             )}
                         </div>
                         <h3 style={styles.successTitle}>Transaction Complete</h3>
-                        <p>Aadhaar ending in XXXX-{values.aadharNo?.slice(-4) || '9912'} verified.</p>
+                        <p>Aadhaar ending in XXXX-{aadharNo?.slice(-4) || '9912'} verified.</p>
                         {type === 'withdraw' && (
                             <div style={styles.cashNotice}>
                                 <Banknote size={24} />
@@ -184,16 +181,14 @@ export default function AEPSPage() {
                 )}
             </div>
 
-            {isOpen && <VirtualKeyboard onInput={handleInput} onDelete={handleDelete} onClose={closeKeyboard} />}
-
             {showReceipt && (
                 <Receipt
                     type={type === 'withdraw' ? "AEPS Cash Withdrawal" : "AEPS Balance Inquiry"}
                     transactionId={`AEPS-${Date.now()}`}
                     customerName="Verified Citizen"
-                    amount={type === 'withdraw' ? Number(values.amount) : 0}
+                    amount={type === 'withdraw' ? Number(amount) : 0}
                     details={{
-                        'Aadhaar Mask': `XXXX-XXXX-${values.aadharNo?.slice(-4) || '9912'}`,
+                        'Aadhaar Mask': `XXXX-XXXX-${aadharNo?.slice(-4) || '9912'}`,
                         'Bank Name': 'State Bank of India',
                         'Auth ID': 'NPCI-9921-X',
                         'LEDGER BALANCE': '₹ 8,420.00',

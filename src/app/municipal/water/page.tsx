@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, CreditCard, CheckCircle2, Droplets } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Receipt from '@/components/Receipt';
@@ -13,13 +11,13 @@ export default function WaterTaxPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [propertyId, setPropertyId] = useState('');
     const [step, setStep] = useState(1);
     const [showReceipt, setShowReceipt] = useState(false);
 
     const handleFetch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (values.propertyId) setStep(2);
+        if (propertyId) setStep(2);
     };
 
     return (
@@ -42,14 +40,13 @@ export default function WaterTaxPage() {
                             <label style={styles.label}>Enter Property ID / Service No.</label>
                             <input
                                 type="text"
-                                readOnly
                                 placeholder="Ex: PROP-45012"
-                                value={values.propertyId || ''}
-                                onFocus={() => openKeyboard('propertyId')}
+                                value={propertyId}
+                                onChange={(e) => setPropertyId(e.target.value)}
                                 style={styles.input}
                             />
                         </div>
-                        <button type="submit" style={styles.submitBtn} disabled={!values.propertyId}>
+                        <button type="submit" style={styles.submitBtn} disabled={!propertyId}>
                             Fetch Details
                         </button>
                     </form>
@@ -90,14 +87,6 @@ export default function WaterTaxPage() {
                 )}
             </div>
 
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
-
             {showReceipt && (
                 <Receipt
                     type="water-tax"
@@ -105,7 +94,7 @@ export default function WaterTaxPage() {
                     amount={3420}
                     customerName="Anita Sharma"
                     details={{
-                        'Property ID': values.propertyId || 'PROP-45012',
+                        'Property ID': propertyId || 'PROP-45012',
                         'Address': 'Flat 4B, Skyview Apts',
                         'Connection Type': 'Residential Metered',
                         'Period': 'Q4 2025'

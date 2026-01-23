@@ -10,6 +10,9 @@ import NearbyFacilities from '@/components/NearbyFacilities';
 import QRConnect from '@/components/QRConnect';
 
 import TopStrip from '@/components/TopStrip';
+import StudentDashboard from '@/components/dashboards/StudentDashboard';
+import YouthDashboard from '@/components/dashboards/YouthDashboard';
+import GovtDashboard from '@/components/dashboards/GovtDashboard';
 
 export default function Home() {
   const { language, searchQuery } = useAppState();
@@ -120,6 +123,11 @@ export default function Home() {
       {/* Header is global in layout, but TopStrip is per page if not in layout. Putting it here for now. */}
 
       <main style={styles.mainContent}>
+        {/* Role Specific Dashboards */}
+        {useAppState().user?.role === 'student' && <StudentDashboard />}
+        {useAppState().user?.role === 'youth' && <YouthDashboard />}
+        {useAppState().user?.role === 'government' && <GovtDashboard />}
+
         <div style={{ marginBottom: '2rem' }}>
           <h2 style={styles.sectionTitle}>Essential Services / आवश्यक सेवाएँ</h2>
           {/* Simple Marquee for 'Village News' */}

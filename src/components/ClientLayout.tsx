@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { StateProvider, useAppState } from "@/context/StateContext";
 import Footer from "@/components/Footer";
-import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 import UtilityBar from "@/components/UtilityBar";
 import Chatbot from "@/components/Chatbot";
 import ToastContainer from "@/components/Toast";
@@ -24,7 +24,6 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         // Simple Route Protection
-        // If not logged in, and trying to access restricted pages, redirect to login
         if (!isLoggedIn && !isAuthPage && pathname !== '/privacy' && pathname !== '/terms') {
             router.push('/login');
         }
@@ -32,8 +31,9 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
 
     return (
         <>
-            {!isAuthPage && <UtilityBar />}
-            {!isAuthPage && <Header />}
+            {!isAuthPage && <Sidebar />}
+            {/* UtilityBar kept but Header removed as Sidebar replaces nav */}
+            {!isAuthPage && <div className="hidden-mobile"><UtilityBar /></div>}
 
             <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
                 {children}

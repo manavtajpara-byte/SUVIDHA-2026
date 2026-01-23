@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, CreditCard, CheckCircle2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Receipt from '@/components/Receipt';
@@ -13,13 +11,13 @@ export default function BillPayPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [consumerId, setConsumerId] = useState('');
     const [step, setStep] = useState(1); // 1: Fetch, 2: Confirm, 3: Success
     const [showReceipt, setShowReceipt] = useState(false);
 
     const handleFetch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (values.consumerId) setStep(2);
+        if (consumerId) setStep(2);
     };
 
     const handlePay = () => {
@@ -42,14 +40,13 @@ export default function BillPayPage() {
                             <label style={styles.label}>Enter Consumer Number / Customer ID</label>
                             <input
                                 type="text"
-                                readOnly
                                 placeholder="Ex: 123456789"
-                                value={values.consumerId || ''}
-                                onFocus={() => openKeyboard('consumerId')}
+                                value={consumerId}
+                                onChange={(e) => setConsumerId(e.target.value)}
                                 style={styles.input}
                             />
                         </div>
-                        <button type="submit" style={styles.submitBtn} disabled={!values.consumerId}>
+                        <button type="submit" style={styles.submitBtn} disabled={!consumerId}>
                             Fetch Pending Bill
                         </button>
                     </form>
@@ -90,14 +87,6 @@ export default function BillPayPage() {
                 )}
             </div>
 
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
-
             {showReceipt && (
                 <Receipt
                     type="electricity"
@@ -105,7 +94,7 @@ export default function BillPayPage() {
                     amount={1245}
                     customerName="Rajesh Kumar"
                     details={{
-                        'Consumer ID': values.consumerId || '88273641',
+                        'Consumer ID': consumerId || '88273641',
                         'Bill Month': 'January 2026',
                         'Units Consumed': '450 units',
                         'Due Date': '25 Jan 2026'

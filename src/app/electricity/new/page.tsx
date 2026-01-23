@@ -3,8 +3,6 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { KioskCamera, QRHandshake } from '@/components/DocHandling';
 import { ArrowLeft, ArrowRight, User, MapPin, Camera, CheckCircle, Smartphone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -13,7 +11,10 @@ export default function NewConnectionPage() {
     const { language } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [name, setName] = useState('');
+    const [mobile, setMobile] = useState('');
+    const [house, setHouse] = useState('');
+    const [area, setArea] = useState('');
     const [step, setStep] = useState(1);
     const [docMethod, setDocMethod] = useState<'camera' | 'qr' | null>(null);
 
@@ -46,9 +47,8 @@ export default function NewConnectionPage() {
                             <div style={styles.field}>
                                 <label>Full Name</label>
                                 <input
-                                    readOnly
-                                    value={values.name || ''}
-                                    onFocus={() => openKeyboard('name')}
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                     placeholder="Enter your name"
                                     style={styles.input}
                                 />
@@ -56,9 +56,8 @@ export default function NewConnectionPage() {
                             <div style={styles.field}>
                                 <label>Mobile Number</label>
                                 <input
-                                    readOnly
-                                    value={values.mobile || ''}
-                                    onFocus={() => openKeyboard('mobile')}
+                                    value={mobile}
+                                    onChange={(e) => setMobile(e.target.value)}
                                     placeholder="10-digit mobile number"
                                     style={styles.input}
                                 />
@@ -66,7 +65,7 @@ export default function NewConnectionPage() {
                             <button
                                 onClick={nextStep}
                                 style={styles.nextBtn}
-                                disabled={!values.name || !values.mobile}
+                                disabled={!name || !mobile}
                             >Continue <ArrowRight size={24} /></button>
                         </div>
                     </div>
@@ -82,9 +81,8 @@ export default function NewConnectionPage() {
                             <div style={styles.field}>
                                 <label>House/Plot No.</label>
                                 <input
-                                    readOnly
-                                    value={values.house || ''}
-                                    onFocus={() => openKeyboard('house')}
+                                    value={house}
+                                    onChange={(e) => setHouse(e.target.value)}
                                     placeholder="Ex: 42-A"
                                     style={styles.input}
                                 />
@@ -92,9 +90,8 @@ export default function NewConnectionPage() {
                             <div style={styles.field}>
                                 <label>Street / Area</label>
                                 <input
-                                    readOnly
-                                    value={values.area || ''}
-                                    onFocus={() => openKeyboard('area')}
+                                    value={area}
+                                    onChange={(e) => setArea(e.target.value)}
                                     placeholder="Ex: Green Park"
                                     style={styles.input}
                                 />
@@ -155,14 +152,6 @@ export default function NewConnectionPage() {
                     </div>
                 )}
             </div>
-
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
-                />
-            )}
         </div>
     );
 }

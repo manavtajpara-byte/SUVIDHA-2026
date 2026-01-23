@@ -16,6 +16,13 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
+    const handleNumericInput = (e: React.ChangeEvent<HTMLInputElement>, setter: (value: string) => void, maxLen: number) => {
+        const val = e.target.value;
+        if (/^\d*$/.test(val) && val.length <= maxLen) {
+            setter(val);
+        }
+    };
+
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
@@ -108,7 +115,7 @@ export default function LoginPage() {
                                         placeholder="Enter 10-digit mobile"
                                         style={styles.input}
                                         value={mobile}
-                                        onChange={e => setMobile(e.target.value)}
+                                        onChange={e => handleNumericInput(e, setMobile, 10)}
                                         maxLength={10}
                                         required
                                     />

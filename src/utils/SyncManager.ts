@@ -41,7 +41,6 @@ class SyncManagerClass {
 
         if (pending.length === 0) return;
 
-        console.log(`Attempting to sync ${pending.length} requests...`);
 
         // Mock Sync Process
         const updatedQueue = queue.map(q => {

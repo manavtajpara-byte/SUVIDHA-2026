@@ -3,23 +3,21 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { useVirtualKeyboard } from '@/hooks/useVirtualKeyboard';
-import VirtualKeyboard from '@/components/VirtualKeyboard';
 import { ArrowLeft, CreditCard, CheckCircle2, Flame } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Receipt from '@/components/Receipt';
 
 export default function GasBillPayPage() {
-    const { language } = useAppState();
+    const { language, addToast } = useAppState();
     const t = translations[language];
     const router = useRouter();
-    const { isOpen, openKeyboard, closeKeyboard, handleInput, handleDelete, values } = useVirtualKeyboard();
+    const [consumerNumber, setConsumerNumber] = useState('');
     const [step, setStep] = useState(1);
     const [showReceipt, setShowReceipt] = useState(false);
 
     const handleFetch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (values.consumerNumber) setStep(2);
+        if (consumerNumber) setStep(2);
     };
 
     const handlePay = () => {
@@ -46,14 +44,13 @@ export default function GasBillPayPage() {
                             <label style={styles.label}>Consumer ID / BP Number</label>
                             <input
                                 type="text"
-                                readOnly
                                 placeholder="Ex: 50021489"
-                                value={values.consumerNumber || ''}
-                                onFocus={() => openKeyboard('consumerNumber')}
+                                value={consumerNumber}
+                                onChange={(e) => setConsumerNumber(e.target.value)}
                                 style={styles.input}
                             />
                         </div>
-                        <button type="submit" style={styles.submitBtn} disabled={!values.consumerNumber}>
+                        <button type="submit" style={styles.submitBtn} disabled={!consumerNumber}>
                             Fetch Billing Details
                         </button>
                     </form>
@@ -87,18 +84,26 @@ export default function GasBillPayPage() {
                         <p>Booking ID: GAS-REF-5521</p>
                         <div style={styles.receiptActions}>
                             <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print Receipt</button>
-                            <button onClick={() => alert('Confirmed to Distributor')} style={styles.receiptBtn}>Notify Agent</button>
+                            <button onClick={() => addToast({ message: 'Notification sent to local distributor.', type: 'success' })} style={styles.receiptBtn}>Notify Agent</button>
                         </div>
                         <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
                     </div>
                 )}
             </div>
 
-            {isOpen && (
-                <VirtualKeyboard
-                    onInput={handleInput}
-                    onDelete={handleDelete}
-                    onClose={closeKeyboard}
+            {showReceipt && (
+                <Receipt
+                    type="gas-utility"
+                    transactionId="GAS-REF-5521"
+                    amount={950}
+                    customerName="Sunita Devi"
+                    details={{
+                        'Consumer ID': consumerNumber || '50021489',
+                        'Distributor': 'Indane Gas Service',
+                        'Booking Type': 'Cylinder Refill',
+                        'Sub-Station': 'North-East Hub'
+                    }}
+                    onClose={() => setShowReceipt(false)}
                 />
             )}
 
@@ -109,7 +114,7 @@ export default function GasBillPayPage() {
                     amount={950}
                     customerName="Sunita Devi"
                     details={{
-                        'Consumer ID': values.consumerNumber || '50021489',
+                        'Consumer ID': consumerNumber || '50021489',
                         'Distributor': 'Indane Gas Service',
                         'Booking Type': 'Cylinder Refill',
                         'Sub-Station': 'North-East Hub'

@@ -488,25 +488,28 @@ export default function Chatbot() {
         setLearnedCount(analytics.totalPatterns);
     };
 
+    // --- FIX: Hooks must be called unconditionally ---
+    // Moved the `if (!isOpen)` check inside the render return or kept custom styles logic below
+
+    // Handle Proactive Nudge Dismissal via State (No direct DOM removal)
+    const handleDismissNudge = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setIsProactiveDismissed(true);
+        if (typeof window !== 'undefined') {
+            localStorage.setItem('suvidha_proactive_dismissed', 'true');
+        }
+    };
+
     if (!isOpen) {
         return (
             <div style={{ position: 'fixed', bottom: '2rem', left: '2rem', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
                 {/* Proactive Nudge (Level 4) */}
-                {!isOpen && !isProactiveDismissed && (
+                {!isProactiveDismissed && (
                     <div className="proactive-nudge" style={styles.proactiveBubble}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                             <span>💡 <b>Tip:</b> Your electricity bill is due in 2 days. Pay now?</span>
                             <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    const el = (e.target as HTMLElement).closest('.proactive-nudge');
-                                    if (el) el.remove();
-
-                                    setIsProactiveDismissed(true);
-                                    if (typeof window !== 'undefined') {
-                                        localStorage.setItem('suvidha_proactive_dismissed', 'true');
-                                    }
-                                }}
+                                onClick={handleDismissNudge}
                                 style={{ border: 'none', background: 'none', cursor: 'pointer', marginLeft: '10px', color: '#666' }}
                             >
                                 <X size={14} />

@@ -15,7 +15,7 @@ export default function SahayakAvatar({ isSpeaking = false }: { isSpeaking?: boo
     }, []);
 
     return (
-        <div style={styles.container}>
+        <div style={{ ...styles.container, filter: isSpeaking ? 'drop-shadow(0 0 10px rgba(99, 102, 241, 0.4))' : 'none' }}>
             <div style={styles.head}>
                 <div style={styles.hair}></div>
                 <div style={styles.face}>
@@ -34,6 +34,7 @@ export default function SahayakAvatar({ isSpeaking = false }: { isSpeaking?: boo
                         height: isSpeaking ? '20px' : '10px'
                     }}></div>
                 </div>
+                {isSpeaking && <div style={styles.spectralAura}></div>}
             </div>
             <div style={styles.shoulders}></div>
 
@@ -41,6 +42,11 @@ export default function SahayakAvatar({ isSpeaking = false }: { isSpeaking?: boo
                 @keyframes speak {
                     0% { height: 5px; width: 30px; border-radius: 10px; }
                     100% { height: 25px; width: 35px; border-radius: 50%; }
+                }
+                @keyframes auraPulse {
+                    0% { transform: scale(1); opacity: 0.3; }
+                    50% { transform: scale(1.5); opacity: 0.1; }
+                    100% { transform: scale(1); opacity: 0.3; }
                 }
             `}</style>
         </div>
@@ -125,5 +131,14 @@ const styles: Record<string, React.CSSProperties> = {
         borderRadius: '40px 40px 0 0',
         marginTop: '-10px',
         zIndex: 1,
+    },
+    spectralAura: {
+        position: 'absolute',
+        width: '100%',
+        height: '100%',
+        borderRadius: '30px',
+        background: 'radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%)',
+        animation: 'auraPulse 2s infinite ease-in-out',
+        zIndex: -1
     }
 };

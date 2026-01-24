@@ -449,7 +449,10 @@ export const additionalTraining: TrainingData[] = [
     }
 ];
 
-// Combine all training data
-export const fullTrainingDataset = [...trainingDataset, ...additionalTraining];
+import { stage2Dataset } from './trainingDatasetExpansion';
+import { stage3Dataset } from './trainingDatasetStage3';
 
-// Total: 105 questions covering all SUVIDHA services
+// Combine all training data
+export const fullTrainingDataset = [...trainingDataset, ...additionalTraining, ...stage2Dataset, ...stage3Dataset];
+
+// Total: 320+ questions covering all SUVIDHA services (Stage 3 Hyper-Intelligence)

@@ -22,7 +22,39 @@ export interface TrainingData {
     keywords: string[];
 }
 
+import { fullTrainingDataset } from './trainingDataset';
+
 class AILearningEngine {
+    processQuery(query: string): { response: string, category: string, reasoning?: string[] } {
+        const q = query.toLowerCase();
+
+        // Find best match in dataset
+        const match = fullTrainingDataset.find(item =>
+            item.keywords.some(k => q.includes(k.toLowerCase())) ||
+            q.includes(item.question.toLowerCase())
+        );
+
+        if (match) {
+            // Generate simulated reasoning for Stage 3
+            let reasoning: string[] = [];
+            if (match.response.includes('Reasoning:')) {
+                const parts = match.response.split('\n');
+                reasoning = parts[0].replace('Reasoning:', '').split('→').map(p => p.trim());
+            }
+
+            return {
+                response: match.response,
+                category: match.category,
+                reasoning: reasoning.length > 0 ? reasoning : undefined
+            };
+        }
+
+        return {
+            response: "I am analyzing your request across all government databases... I don't have a specific local answer yet. Would you like me to perform a Global Web Search?",
+            category: "unknown"
+        };
+    }
+
     private storageKey = 'suvidha_ai_learned_patterns';
     private conversationKey = 'suvidha_ai_context'; // New Context Stoarge
 
@@ -200,17 +232,10 @@ class AILearningEngine {
         this.saveLearnedPatterns(patterns);
     }
 
-    // Get best matching pattern for a question
+    // Get best matching pattern for a question (Legacy - please use processQuery)
     getBestMatch(question: string): LearnedPattern | null {
-        const similar = this.findSimilarPatterns(question, 0.55); // Slightly Lower threshold due to fuzzy logic
-
+        const similar = this.findSimilarPatterns(question, 0.55);
         if (similar.length === 0) return null;
-
-        // Prefer approved patterns with high confidence
-        const approved = similar.filter(p => p.approved && p.confidence >= 0.7);
-        if (approved.length > 0) return approved[0];
-
-        // Otherwise return highest confidence
         return similar.sort((a, b) => b.confidence - a.confidence)[0];
     }
 

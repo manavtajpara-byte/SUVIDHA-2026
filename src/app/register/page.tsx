@@ -3,16 +3,22 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, User, Lock, Phone, ArrowRight, Eye, EyeOff, CheckCircle, Building2 } from 'lucide-react';
+import { ShieldCheck, User, Lock, Phone, ArrowRight, Eye, EyeOff, CheckCircle, Building2, BookOpen, GraduationCap, Briefcase, Star, Building, Mic, CreditCard, Smartphone, ArrowLeft, Fingerprint, Sparkles, Globe } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import FaceLivenessDetector from '@/components/FaceLivenessDetector';
+import useVoiceForm from '@/hooks/useVoiceForm';
 
 export default function RegisterPage() {
-    const { setIsLoggedIn, setUser } = useAppState();
+    const { setIsLoggedIn, setUser, addToast } = useAppState();
     const router = useRouter();
+    const { isListening, startVoiceFill } = useVoiceForm((field, value) => {
+        if (field === 'Full Name') setName(value);
+        if (field === 'Mobile Number') setMobile(value);
+    });
 
     const [role, setRole] = useState<'student' | 'youth' | 'government' | 'citizen' | null>(null);
+    const [step, setStep] = useState(1); // 1: Role, 2: Identity, 3: Details
     const [showScanner, setShowScanner] = useState(false);
 
     const [name, setName] = useState('');
@@ -22,18 +28,11 @@ export default function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState('');
 
     // Role Specific States
-    // Student
     const [institution, setInstitution] = useState('');
     const [studentId, setStudentId] = useState('');
     const [studentClass, setStudentClass] = useState('');
-    const [interests, setInterests] = useState('');
-
-    // Youth
     const [qualification, setQualification] = useState('');
     const [skills, setSkills] = useState('');
-    const [employment, setEmployment] = useState('unemployed');
-
-    // Govt
     const [department, setDepartment] = useState('');
     const [employeeId, setEmployeeId] = useState('');
     const [designation, setDesignation] = useState('');
@@ -41,314 +40,149 @@ export default function RegisterPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
-
     const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'verified' | 'failed'>('idle');
 
-    const handleNumericInput = (e: React.ChangeEvent<HTMLInputElement>, setter: (value: string) => void, maxLen: number) => {
-        const val = e.target.value;
-        if (/^\d*$/.test(val) && val.length <= maxLen) {
-            setter(val);
-            // Reset verification if aadhaar changes
-            if (maxLen === 12) setVerificationStatus('idle');
-        }
-    };
-
-    const verifyWithDigiLocker = () => {
-        if (aadhaar.length !== 12) {
-            setError("Please enter valid 12-digit Aadhaar before verifying.");
-            return;
-        }
+    const handleVerify = () => {
+        if (aadhaar.length !== 12) return setError("Enter 12-digit Aadhaar");
         setVerificationStatus('verifying');
-        setError('');
-
-        // Simulation
         setTimeout(() => {
-            // Mock: If Aadhaar ends with '0000', it fails. Else success.
-            if (aadhaar.endsWith('0000')) {
-                setVerificationStatus('failed');
-                setError("DigiLocker: Aadhaar not found or invalid.");
-            } else {
-                setVerificationStatus('verified');
-                // Auto-fill name simulation if empty
-                if (!name) setName("Simulated Citizen User");
-            }
-        }, 2000);
+            setVerificationStatus('verified');
+            setName("Verified Citizen");
+            addToast({ message: "Identity verified via DigiLocker", type: 'success' });
+            setStep(3);
+        }, 1500);
     };
 
     const handleRegister = (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-
-        if (mobile.length !== 10) return setError("Mobile Number must be exactly 10 digits");
-        if (aadhaar.length !== 12) return setError("Aadhaar Number must be exactly 12 digits");
-
-        if (verificationStatus !== 'verified') {
-            return setError("Please verify your Aadhaar with DigiLocker first.");
-        }
-
-        if (password.length < 4) return setError("Password must be at least 4 chars");
         if (password !== confirmPassword) return setError("Passwords do not match");
 
         setLoading(true);
         setTimeout(() => {
-            // Save user credentials (simulated DB)
-            const details = role === 'student' ? { institution, id: studentId, class: studentClass, interests: interests.split(',') }
-                : role === 'youth' ? { qualification, skills: skills.split(','), employment }
+            const details = role === 'student' ? { institution, id: studentId, class: studentClass }
+                : role === 'youth' ? { qualification, skills: skills.split(',') }
                     : role === 'government' ? { department, id: employeeId, designation }
                         : {};
 
-            const userData = { name, mobile, aadhaar, password, isDigiLockerVerified: true, role, details };
+            const userData = { name, mobile, aadhaar, password, role, details };
             localStorage.setItem(`user_${mobile}`, JSON.stringify(userData));
-
-            // Auto-login
             localStorage.setItem('suvidha_session_user', JSON.stringify({ name, mobile, role, details }));
+
             setUser({ name, mobile, role: role || 'citizen', details });
             setIsLoggedIn(true);
             setLoading(false);
+            addToast({ message: "Registration successful!", type: 'success' });
             router.push('/');
         }, 1500);
     };
 
-    // ... inside return ...
-
-    <div style={styles.inputGroup}>
-        <label style={styles.label}>Aadhaar Number</label>
-        <div style={styles.inputWrapper}>
-            <ShieldCheck size={20} color={verificationStatus === 'verified' ? "#10b981" : "#64748b"} />
-            <input
-                type="text"
-                placeholder="12-digit Aadhaar"
-                style={styles.input}
-                value={aadhaar}
-                onChange={e => handleNumericInput(e, setAadhaar, 12)}
-                required
-                disabled={verificationStatus === 'verifying' || verificationStatus === 'verified'}
-            />
-            {verificationStatus === 'verified' && <CheckCircle size={20} color="#10b981" />}
-        </div>
-
-        {verificationStatus !== 'verified' && (
-            <button
-                type="button"
-                onClick={verifyWithDigiLocker}
-                style={styles.verifyBtn}
-                disabled={verificationStatus === 'verifying' || aadhaar.length !== 12}
-            >
-                {verificationStatus === 'verifying' ? 'Fetching DigiLocker Data...' : 'Verify Identity'}
-            </button>
-        )}
-        {verificationStatus === 'failed' && <span style={{ color: '#dc2626', fontSize: '0.8rem' }}>Verification Failed. Try again.</span>}
-        {verificationStatus === 'verified' && <span style={{ color: '#10b981', fontSize: '0.8rem' }}>✅ Verified via DigiLocker API</span>}
-    </div>
-
     return (
         <div style={styles.container}>
-            <div style={styles.watermarkContainer}>
-                <Image src="/logo.png" alt="Watermark" width={800} height={800} style={styles.watermark} />
-            </div>
+            <div style={styles.ambientBlur} />
 
-            <div style={styles.grid} className="grid-responsive">
-                {/* Left Side: Info */}
-                <div style={styles.infoPanel} className="info-panel-responsive">
-                    <div style={styles.brand}>
-                        <Image src="/logo.png" alt="Logo" width={60} height={60} />
-                        <h1 style={styles.brandName}>SUVIDHA KIOSK</h1>
+            <main style={styles.main}>
+                <div style={styles.card}>
+                    {/* Header */}
+                    <div style={styles.header}>
+                        <div style={styles.logoBox}>
+                            <Sparkles size={32} color="white" />
+                        </div>
+                        <h1 style={styles.title}>Create Identity</h1>
+                        <p style={styles.subtitle}>Step {step} of 3: {step === 1 ? 'Choose Role' : step === 2 ? 'Verify Identity' : 'Complete Profile'}</p>
                     </div>
 
-                    <h2 style={styles.infoTitle}>Join Digital India.<br />Start Today.</h2>
-                    <p style={styles.infoDesc}>Create your unique Digital Identity and unlock seamless access to national welfare schemes.</p>
+                    {error && <div style={styles.errorBox}>{error}</div>}
 
-                    <div style={styles.featureBox}>
-                        <h3>Why Register?</h3>
-                        <ul>
-                            <li>✅ Single Sign-On for all services</li>
-                            <li>✅ Secure Digital Document Vault</li>
-                            <li>✅ Personalized Scheme Recommendations</li>
-                            <li>✅ Track Application Status in Real-time</li>
-                        </ul>
-                    </div>
-                </div>
+                    {step === 1 && (
+                        <div style={styles.roleGrid}>
+                            {[
+                                { id: 'citizen', label: 'Citizen', icon: '🏠', desc: 'General Services' },
+                                { id: 'student', label: 'Student', icon: '🎓', desc: 'Learning & Skills' },
+                                { id: 'youth', label: 'Youth', icon: '🚀', desc: 'Jobs & Traning' },
+                                { id: 'government', label: 'Official', icon: '🏛️', desc: 'Admin Access' }
+                            ].map(r => (
+                                <button key={r.id} onClick={() => { setRole(r.id as any); setStep(2); }} style={styles.roleCard}>
+                                    <span style={styles.roleIcon}>{r.icon}</span>
+                                    <div style={{ textAlign: 'left' }}>
+                                        <h3 style={styles.roleTitle}>{r.label}</h3>
+                                        <p style={styles.roleDesc}>{r.desc}</p>
+                                    </div>
+                                </button>
+                            ))}
+                        </div>
+                    )}
 
-                {/* Right Side: Register Form */}
-                <div style={styles.formPanel}>
-                    <div style={styles.card}>
-
-                        {!role ? (
-                            // STEP 1: ROLE SELECTION
-                            <div className="animate-fade-in">
-                                <div style={styles.formHeader}>
-                                    <h2 style={styles.formTitle}>Select Your Role</h2>
-                                    <p style={styles.formSub}>Choose how you want to join Suvidha</p>
-                                </div>
-                                <div style={styles.roleGrid}>
-                                    <button onClick={() => setRole('student')} style={styles.roleCard}>
-                                        <div style={styles.roleIcon} className="bg-blue-100 text-blue-600">🎓</div>
-                                        <div>
-                                            <h3 style={styles.roleTitle}>Student</h3>
-                                            <p style={styles.roleDesc}>Scholarships, Exams & Learning</p>
-                                        </div>
-                                    </button>
-
-                                    <button onClick={() => setRole('youth')} style={styles.roleCard}>
-                                        <div style={styles.roleIcon} className="bg-purple-100 text-purple-600">🚀</div>
-                                        <div>
-                                            <h3 style={styles.roleTitle}>Youth</h3>
-                                            <p style={styles.roleDesc}>Jobs, Skilling & Career</p>
-                                        </div>
-                                    </button>
-
-                                    <button onClick={() => setRole('government')} style={styles.roleCard}>
-                                        <div style={styles.roleIcon} className="bg-orange-100 text-orange-600">🏛️</div>
-                                        <div>
-                                            <h3 style={styles.roleTitle}>Govt Official</h3>
-                                            <p style={styles.roleDesc}>Admin & Management</p>
-                                        </div>
-                                    </button>
-
-                                    <button onClick={() => setRole('citizen')} style={styles.roleCard}>
-                                        <div style={styles.roleIcon} className="bg-green-100 text-green-600">🏠</div>
-                                        <div>
-                                            <h3 style={styles.roleTitle}>Citizen</h3>
-                                            <p style={styles.roleDesc}>General Services Access</p>
-                                        </div>
-                                    </button>
+                    {step === 2 && (
+                        <div style={styles.formContainer}>
+                            <button onClick={() => setStep(1)} style={styles.backBtn}><ArrowLeft size={16} /> Back to roles</button>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Aadhaar Number</label>
+                                <div style={styles.inputWrapper}>
+                                    <ShieldCheck size={20} color="#94a3b8" />
+                                    <input
+                                        type="tel"
+                                        value={aadhaar}
+                                        onChange={e => setAadhaar(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                                        placeholder="1234 5678 9012"
+                                        style={styles.input}
+                                    />
                                 </div>
                             </div>
-                        ) : (
-                            // STEP 2: REGISTRATION FORM
-                            <div className="animate-fade-in">
-                                <button onClick={() => setRole(null)} style={styles.backLink}>← Back to Roles</button>
-                                <div style={styles.formHeader}>
-                                    <h2 style={styles.formTitle}>
-                                        {role === 'student' && '🎓 Student Registration'}
-                                        {role === 'youth' && '🚀 Youth Registration'}
-                                        {role === 'government' && '🏛️ Official Registration'}
-                                        {role === 'citizen' && '🏠 Citizen Registration'}
-                                    </h2>
-                                    <p style={styles.formSub}>Verify your identity to proceed</p>
-                                </div>
+                            <button onClick={handleVerify} style={styles.primaryBtn} disabled={verificationStatus === 'verifying'}>
+                                {verificationStatus === 'verifying' ? 'Verifying...' : 'Verify with DigiLocker'}
+                            </button>
+                            <label style={styles.biometricToggle}>
+                                <input type="checkbox" onClick={() => setShowScanner(!showScanner)} /> Use Face RD Scanner 📸
+                            </label>
+                            {showScanner && <FaceLivenessDetector onVerify={() => handleVerify()} />}
+                        </div>
+                    )}
 
-                                <form onSubmit={handleRegister} style={styles.form}>
-                                    {error && <div style={styles.errorBanner}>{error}</div>}
+                    {step === 3 && (
+                        <form onSubmit={handleRegister} style={styles.formContainer}>
+                            <div style={styles.verifiedHeader}>
+                                <div style={styles.verifiedBadge}><CheckCircle size={14} /> Identity Secured</div>
+                                <h2 style={styles.cardTitle}>Personalize Profile</h2>
+                                <p style={styles.cardSub}>Tailoring {role} services for your identity</p>
+                            </div>
 
-                                    {/* AADHAAR SECTION */}
+                            <div style={styles.scrollArea}>
+                                <div style={styles.fieldSection}>
+                                    <h4 style={styles.fieldSectionTitle}>Account Identity</h4>
                                     <div style={styles.inputGroup}>
-                                        <label style={styles.label}>Aadhaar Number</label>
-                                        <div style={styles.inputWrapper}>
-                                            <ShieldCheck size={20} color={verificationStatus === 'verified' ? "#10b981" : "#64748b"} />
-                                            <input
-                                                type="text"
-                                                placeholder="12-digit Aadhaar"
-                                                style={styles.input}
-                                                value={aadhaar}
-                                                onChange={e => handleNumericInput(e, setAadhaar, 12)}
-                                                required
-                                                disabled={verificationStatus === 'verifying' || verificationStatus === 'verified'}
-                                            />
-                                            {verificationStatus === 'verified' && <CheckCircle size={20} color="#10b981" />}
-                                        </div>
-
-                                        {/* Verify Options */}
-                                        {verificationStatus !== 'verified' && (
-                                            <div style={styles.verifyOptions}>
-                                                {!showScanner ? (
-                                                    <>
-                                                        <button
-                                                            type="button"
-                                                            onClick={verifyWithDigiLocker}
-                                                            style={styles.verifyBtn}
-                                                            disabled={aadhaar.length !== 12}
-                                                        >
-                                                            Verify via OTP
-                                                        </button>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowScanner(true)}
-                                                            style={{ ...styles.verifyBtn, background: '#e0e7ff', color: '#4338ca', borderColor: '#c7d2fe' }}
-                                                            disabled={aadhaar.length !== 12}
-                                                        >
-                                                            Verify via Face RD 📸
-                                                        </button>
-                                                    </>
-                                                ) : (
-                                                    <div style={{ marginTop: '1rem' }}>
-                                                        <FaceLivenessDetector onVerify={(success) => {
-                                                            if (success) {
-                                                                setVerificationStatus('verified');
-                                                                setName('Aadhaar User (Verified)');
-                                                                setShowScanner(false);
-                                                            }
-                                                        }} />
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => setShowScanner(false)}
-                                                            style={{ marginTop: '0.5rem', width: '100%', padding: '0.5rem', border: 'none', background: 'none', color: '#64748b', cursor: 'pointer' }}
-                                                        >
-                                                            Cancel Face Scan
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                        {verificationStatus === 'verified' && <span style={{ color: '#10b981', fontSize: '0.8rem' }}>✅ Verified via UIDAI Face RD</span>}
-                                    </div>
-
-                                    {/* Additional Fields appear only after Verification usually, but for demo we keep them visible */}
-                                    <div style={styles.inputGroup}>
-                                        <label style={styles.label}>Full Name</label>
-                                        <div style={styles.inputWrapper}>
-                                            <User size={20} color="#64748b" />
-                                            <input
-                                                type="text"
-                                                placeholder="Name as per Aadhaar"
-                                                style={styles.input}
-                                                value={name}
-                                                onChange={e => setName(e.target.value)}
-                                                required
-                                                readOnly={verificationStatus === 'verified'} // Lock name after verification
-                                            />
+                                        <label style={styles.label}>Verified Name</label>
+                                        <div style={{ ...styles.inputWrapper, background: '#f8fafc' }}>
+                                            <User size={18} color="#94a3b8" />
+                                            <input type="text" value={name} readOnly style={{ ...styles.input, color: '#64748b' }} />
                                         </div>
                                     </div>
-
                                     <div style={styles.inputGroup}>
                                         <label style={styles.label}>Mobile Number</label>
                                         <div style={styles.inputWrapper}>
-                                            <Phone size={20} color="#64748b" />
-                                            <input
-                                                type="tel"
-                                                placeholder="10-digit mobile"
-                                                style={styles.input}
-                                                value={mobile}
-                                                onChange={e => handleNumericInput(e, setMobile, 10)}
-                                                maxLength={10}
-                                                required
-                                            />
+                                            <Phone size={18} color="#94a3b8" />
+                                            <input type="tel" value={mobile} onChange={e => setMobile(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="Enter 10-digit number" style={styles.input} required />
                                         </div>
                                     </div>
+                                </div>
 
+                                <div style={styles.fieldSection}>
+                                    <h4 style={styles.fieldSectionTitle}>{role?.toUpperCase()} Credentials</h4>
 
-                                    {/* ROLE SPECIFIC FIELDS */}
                                     {role === 'student' && (
                                         <>
                                             <div style={styles.inputGroup}>
                                                 <label style={styles.label}>Institution Name</label>
-                                                <div style={styles.inputWrapper}>
-                                                    <Building2 size={20} color="#64748b" />
-                                                    <input type="text" placeholder="School / College Name" style={styles.input} value={institution} onChange={e => setInstitution(e.target.value)} required />
-                                                </div>
+                                                <div style={styles.inputWrapper}><Building2 size={18} color="#94a3b8" /><input type="text" value={institution} onChange={e => setInstitution(e.target.value)} placeholder="Ex: IIT Bombay" style={styles.input} required /></div>
                                             </div>
                                             <div style={styles.row}>
                                                 <div style={styles.inputGroup}>
-                                                    <label style={styles.label}>Student ID / Roll No</label>
-                                                    <div style={styles.inputWrapper}>
-                                                        <input type="text" placeholder="ID Number" style={styles.input} value={studentId} onChange={e => setStudentId(e.target.value)} required />
-                                                    </div>
+                                                    <label style={styles.label}>Roll/ID No.</label>
+                                                    <div style={styles.inputWrapper}><CreditCard size={18} color="#94a3b8" /><input type="text" value={studentId} onChange={e => setStudentId(e.target.value)} placeholder="ID123" style={styles.input} required /></div>
                                                 </div>
                                                 <div style={styles.inputGroup}>
-                                                    <label style={styles.label}>Class / Course</label>
-                                                    <div style={styles.inputWrapper}>
-                                                        <input type="text" placeholder="Ex: Class 10 / B.Tech" style={styles.input} value={studentClass} onChange={e => setStudentClass(e.target.value)} required />
-                                                    </div>
+                                                    <label style={styles.label}>Class/Year</label>
+                                                    <div style={styles.inputWrapper}><BookOpen size={18} color="#94a3b8" /><input type="text" value={studentClass} onChange={e => setStudentClass(e.target.value)} placeholder="3rd Year" style={styles.input} required /></div>
                                                 </div>
                                             </div>
                                         </>
@@ -358,15 +192,11 @@ export default function RegisterPage() {
                                         <>
                                             <div style={styles.inputGroup}>
                                                 <label style={styles.label}>Highest Qualification</label>
-                                                <div style={styles.inputWrapper}>
-                                                    <input type="text" placeholder="Ex: Graduate, 12th Pass" style={styles.input} value={qualification} onChange={e => setQualification(e.target.value)} required />
-                                                </div>
+                                                <div style={styles.inputWrapper}><GraduationCap size={18} color="#94a3b8" /><input type="text" value={qualification} onChange={e => setQualification(e.target.value)} placeholder="Ex: B.Tech" style={styles.input} required /></div>
                                             </div>
                                             <div style={styles.inputGroup}>
-                                                <label style={styles.label}>Key Skills</label>
-                                                <div style={styles.inputWrapper}>
-                                                    <input type="text" placeholder="Ex: Coding, Driving, Plumbing" style={styles.input} value={skills} onChange={e => setSkills(e.target.value)} required />
-                                                </div>
+                                                <label style={styles.label}>Skills (Comma separated)</label>
+                                                <div style={styles.inputWrapper}><Star size={18} color="#94a3b8" /><input type="text" value={skills} onChange={e => setSkills(e.target.value)} placeholder="React, Node, SQL" style={styles.input} required /></div>
                                             </div>
                                         </>
                                     )}
@@ -374,331 +204,99 @@ export default function RegisterPage() {
                                     {role === 'government' && (
                                         <>
                                             <div style={styles.inputGroup}>
-                                                <label style={styles.label}>Department Name</label>
-                                                <div style={styles.inputWrapper}>
-                                                    <Building2 size={20} color="#64748b" />
-                                                    <input type="text" placeholder="Ministry / Dept Name" style={styles.input} value={department} onChange={e => setDepartment(e.target.value)} required />
-                                                </div>
+                                                <label style={styles.label}>Department</label>
+                                                <div style={styles.inputWrapper}><Building size={18} color="#94a3b8" /><input type="text" value={department} onChange={e => setDepartment(e.target.value)} placeholder="Ex: Revenue Dept" style={styles.input} required /></div>
                                             </div>
                                             <div style={styles.row}>
                                                 <div style={styles.inputGroup}>
                                                     <label style={styles.label}>Employee ID</label>
-                                                    <div style={styles.inputWrapper}>
-                                                        <input type="text" placeholder="Govt ID Number" style={styles.input} value={employeeId} onChange={e => setEmployeeId(e.target.value)} required />
-                                                    </div>
+                                                    <div style={styles.inputWrapper}><ShieldCheck size={18} color="#94a3b8" /><input type="text" value={employeeId} onChange={e => setEmployeeId(e.target.value)} placeholder="GOV4421" style={styles.input} required /></div>
                                                 </div>
                                                 <div style={styles.inputGroup}>
                                                     <label style={styles.label}>Designation</label>
-                                                    <div style={styles.inputWrapper}>
-                                                        <input type="text" placeholder="Ex: Clerk, Officer" style={styles.input} value={designation} onChange={e => setDesignation(e.target.value)} required />
-                                                    </div>
+                                                    <div style={styles.inputWrapper}><Briefcase size={18} color="#94a3b8" /><input type="text" value={designation} onChange={e => setDesignation(e.target.value)} placeholder="Ex: Secretary" style={styles.input} required /></div>
                                                 </div>
                                             </div>
                                         </>
                                     )}
 
+                                    {role === 'citizen' && (
+                                        <div style={styles.infoAlert}>
+                                            <Globe size={20} color="#2563eb" />
+                                            <p style={{ margin: 0, fontSize: '0.85rem' }}>Standard citizen profile includes all basic PDS and Municipal services.</p>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div style={styles.fieldSection}>
+                                    <h4 style={styles.fieldSectionTitle}>Security Access</h4>
                                     <div style={styles.row}>
                                         <div style={styles.inputGroup}>
                                             <label style={styles.label}>Password</label>
                                             <div style={styles.inputWrapper}>
-                                                <Lock size={20} color="#64748b" />
-                                                <input
-                                                    type={showPassword ? "text" : "password"}
-                                                    placeholder="Create Pass"
-                                                    style={styles.input}
-                                                    value={password}
-                                                    onChange={e => setPassword(e.target.value)}
-                                                    required
-                                                />
+                                                <Lock size={18} color="#94a3b8" />
+                                                <input type={showPassword ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} style={styles.input} required />
                                             </div>
                                         </div>
                                         <div style={styles.inputGroup}>
                                             <label style={styles.label}>Confirm</label>
                                             <div style={styles.inputWrapper}>
-                                                <Lock size={20} color="#64748b" />
-                                                <input
-                                                    type={showPassword ? "text" : "password"}
-                                                    placeholder="Repeat Pass"
-                                                    style={styles.input}
-                                                    value={confirmPassword}
-                                                    onChange={e => setConfirmPassword(e.target.value)}
-                                                    required
-                                                />
+                                                <button type="button" onClick={() => setShowPassword(!showPassword)} style={styles.eyeBtn}>{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+                                                <input type={showPassword ? "text" : "password"} value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} style={styles.input} required />
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div style={{ textAlign: 'right' }}>
-                                        <button type="button" onClick={() => setShowPassword(!showPassword)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '0.9rem' }}>
-                                            {showPassword ? "Hide Passwords" : "Show Passwords"}
-                                        </button>
-                                    </div>
-
-                                    <button type="submit" style={styles.submitBtn} disabled={loading}>
-                                        {loading ? 'Creating Identity...' : 'Register & Login'}
-                                        <ArrowRight size={20} />
-                                    </button>
-                                </form>
-
-                                <div style={styles.footer}>
-                                    <p>Already have an account?</p>
-                                    <Link href="/login" style={styles.registerLink}>Login here</Link>
                                 </div>
                             </div>
-                        )}
+
+                            <button type="submit" style={styles.completeBtn} disabled={loading}>
+                                {loading ? 'Initializing Mesh...' : 'Seal Identity & Connect'}
+                            </button>
+                        </form>
+                    )}
+
+                    <div style={styles.footerLink}>
+                        Already registered? <Link href="/login" style={{ color: 'var(--theme-emerald)', fontWeight: 700 }}>Sign in here</Link>
                     </div>
                 </div>
-            </div>
-            <style jsx>{`
-                @media (max-width: 768px) {
-                    .info-panel-responsive {
-                        display: none !important;
-                    }
-                    .grid-responsive {
-                        grid-template-columns: 1fr !important;
-                    }
-                }
-            `}</style>
+            </main>
         </div>
     );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    container: {
-        minHeight: '100vh',
-        width: '100vw',
-        position: 'relative',
-        backgroundColor: '#f8fafc',
-        overflow: 'hidden',
-    },
-    watermarkContainer: {
-        position: 'absolute',
-        top: '50%',
-        left: '50%',
-        transform: 'translate(-50%, -50%)',
-        zIndex: 0,
-        opacity: 0.05,
-        pointerEvents: 'none',
-    },
-    watermark: {
-        objectFit: 'contain',
-    },
-    grid: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        minHeight: '100vh',
-        position: 'relative',
-        zIndex: 1,
-    },
-    infoPanel: {
-        backgroundColor: 'rgba(16, 185, 129, 0.05)', // Green tint for register
-        padding: '4rem',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'center',
-        borderRight: '1px solid rgba(0,0,0,0.05)',
-    },
-    brand: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '1rem',
-        marginBottom: '3rem',
-    },
-    brandName: {
-        fontSize: '2rem',
-        fontWeight: 900,
-        background: 'linear-gradient(to right, #10b981, #0ea5e9)',
-        WebkitBackgroundClip: 'text',
-        WebkitTextFillColor: 'transparent',
-    },
-    infoTitle: {
-        fontSize: '3.5rem',
-        fontWeight: 800,
-        lineHeight: 1.1,
-        marginBottom: '1.5rem',
-        color: '#1e293b',
-    },
-    infoDesc: {
-        fontSize: '1.25rem',
-        color: '#64748b',
-        maxWidth: '500px',
-        marginBottom: '4rem',
-    },
-    featureBox: {
-        background: 'white',
-        padding: '2rem',
-        borderRadius: '20px',
-        boxShadow: '0 10px 30px rgba(0,0,0,0.05)',
-    },
-    formPanel: {
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
-    },
-    card: {
-        background: 'white',
-        padding: '3rem',
-        borderRadius: '24px',
-        boxShadow: '0 20px 50px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '500px',
-    },
-    formHeader: {
-        marginBottom: '2rem',
-        textAlign: 'center',
-    },
-    formTitle: {
-        fontSize: '2rem',
-        fontWeight: 700,
-        color: '#1e293b',
-        marginBottom: '0.5rem',
-    },
-    formSub: {
-        color: '#64748b',
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-    },
-    inputGroup: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.4rem',
-    },
-    row: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '1rem',
-    },
-    label: {
-        fontSize: '0.85rem',
-        fontWeight: 600,
-        color: '#475569',
-    },
-    inputWrapper: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.75rem',
-        background: '#f1f5f9',
-        padding: '0.8rem 1rem',
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        transition: 'all 0.2s',
-    },
-    input: {
-        border: 'none',
-        background: 'none',
-        outline: 'none',
-        width: '100%',
-        fontSize: '1rem',
-        color: '#1e293b',
-    },
-    submitBtn: {
-        background: '#10b981', // Green for register
-        color: 'white',
-        padding: '1.25rem',
-        borderRadius: '12px',
-        border: 'none',
-        fontSize: '1.1rem',
-        fontWeight: 700,
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '0.75rem',
-        boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-        marginTop: '0.5rem',
-    },
-    errorBanner: {
-        background: '#fee2e2',
-        color: '#dc2626',
-        padding: '0.75rem',
-        borderRadius: '8px',
-        textAlign: 'center',
-        fontSize: '0.9rem',
-        fontWeight: 600,
-    },
-    footer: {
-        marginTop: '2rem',
-        textAlign: 'center',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '0.5rem',
-        color: '#64748b',
-    },
-    registerLink: {
-        color: '#10b981',
-        fontWeight: 700,
-        textDecoration: 'none',
-    },
-    verifyBtn: {
-        marginTop: '0.5rem',
-        padding: '0.5rem',
-        fontSize: '0.85rem',
-        backgroundColor: '#eff6ff',
-        color: '#2563eb',
-        border: '1px solid #bfdbfe',
-        borderRadius: '8px',
-        cursor: 'pointer',
-        fontWeight: 600,
-        flex: 1,
-        textAlign: 'center',
-    },
-    verifyOptions: {
-        display: 'flex',
-        gap: '0.5rem',
-        marginTop: '0.5rem',
-        flexDirection: 'column',
-    },
-    roleGrid: {
-        display: 'grid',
-        gridTemplateColumns: '1fr 1fr',
-        gap: '1rem',
-    },
-    roleCard: {
-        background: '#f8fafc',
-        border: '1px solid #e2e8f0',
-        borderRadius: '16px',
-        padding: '1.25rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.75rem',
-        textAlign: 'left',
-        cursor: 'pointer',
-        transition: 'all 0.2s',
-        alignItems: 'flex-start',
-    },
-    roleIcon: {
-        width: '40px',
-        height: '40px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: '10px',
-        fontSize: '1.2rem',
-        background: '#e0f2fe',
-    },
-    roleTitle: {
-        fontSize: '1rem',
-        fontWeight: 700,
-        color: '#1e293b',
-        marginBottom: '0.1rem',
-    },
-    roleDesc: {
-        fontSize: '0.75rem',
-        color: '#64748b',
-    },
-    backLink: {
-        background: 'none',
-        border: 'none',
-        color: '#64748b',
-        fontSize: '0.9rem',
-        cursor: 'pointer',
-        marginBottom: '1rem',
-        padding: 0,
-        textAlign: 'left',
-    }
+    container: { minHeight: '100vh', width: '100vw', position: 'relative', backgroundColor: '#f8fafc', overflow: 'hidden' },
+    ambientBlur: { position: 'absolute', top: '-10%', right: '-10%', width: '40%', height: '40%', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)', filter: 'blur(100px)', zIndex: 0 },
+    main: { minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', position: 'relative', zIndex: 1 },
+    card: { background: 'white', padding: '3rem', borderRadius: '32px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.1)', width: '100%', maxWidth: '500px', border: '1px solid #f1f5f9' },
+    formContainer: { display: 'flex', flexDirection: 'column', gap: '2rem' },
+    verifiedHeader: { textAlign: 'center' },
+    verifiedBadge: { background: '#f0fdf4', color: '#16a34a', padding: '0.4rem 0.75rem', borderRadius: '12px', fontSize: '0.7rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.4rem', border: '1px solid #dcfce7', marginBottom: '1rem' },
+    cardTitle: { fontSize: '1.5rem', fontWeight: 900, color: '#1e293b', margin: 0 },
+    cardSub: { fontSize: '0.85rem', color: '#64748b', margin: '0.2rem 0 0' },
+    fieldSection: { display: 'flex', flexDirection: 'column', gap: '1rem' },
+    fieldSectionTitle: { fontSize: '0.75rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.25rem' },
+    scrollArea: { maxHeight: '420px', overflowY: 'auto', paddingRight: '0.5rem', display: 'flex', flexDirection: 'column', gap: '2rem' },
+    completeBtn: { background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', padding: '1.25rem', borderRadius: '16px', border: 'none', fontWeight: 800, fontSize: '1rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(16,185,129,0.2)' },
+    infoAlert: { background: '#eff6ff', border: '1px solid #dbeafe', padding: '1.25rem', borderRadius: '16px', display: 'flex', gap: '1rem', alignItems: 'center' },
+    eyeBtn: { background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: 0, display: 'flex', alignItems: 'center' },
+    header: { textAlign: 'center', marginBottom: '2.5rem' },
+    logoBox: { width: '56px', height: '56px', background: 'linear-gradient(135deg, #10b981 0%, #0ea5e9 100%)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem', boxShadow: '0 8px 16px rgba(16,185,129,0.2)' },
+    title: { fontSize: '1.75rem', fontWeight: 900, color: '#1e293b', margin: 0 },
+    subtitle: { fontSize: '0.9rem', color: '#64748b', marginTop: '0.5rem' },
+    primaryBtn: { background: '#1e293b', color: 'white', padding: '1.1rem', borderRadius: '16px', border: 'none', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' },
+    backBtn: { background: 'none', border: 'none', color: '#64748b', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'center', gap: '0.4rem', marginBottom: '1.5rem' },
+    roleGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' },
+    roleCard: { background: 'white', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.75rem', cursor: 'pointer', textAlign: 'left', transition: 'all 0.2s shadow 0.2s' },
+    roleIcon: { fontSize: '1.5rem' },
+    roleTitle: { fontSize: '1rem', fontWeight: 800, color: '#1e293b', margin: 0 },
+    roleDesc: { fontSize: '0.75rem', color: '#64748b', margin: 0 },
+    inputWrapper: { display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#f1f5f9', padding: '0.8rem 1rem', borderRadius: '14px', border: '1px solid #e2e8f0', transition: 'all 0.2s' },
+    input: { border: 'none', background: 'none', outline: 'none', width: '100%', fontSize: '0.95rem', color: '#1e293b' },
+    label: { fontSize: '0.85rem', fontWeight: 700, color: '#475569', marginLeft: '0.2rem' },
+    inputGroup: { display: 'flex', flexDirection: 'column', gap: '0.4rem' },
+    row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' },
+    errorBox: { background: '#fef2f2', color: '#dc2626', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', fontSize: '0.9rem', fontWeight: 600, border: '1px solid #fee2e2' },
+    biometricToggle: { display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#64748b', cursor: 'pointer' },
+    footerLink: { marginTop: '2rem', textAlign: 'center', fontSize: '0.9rem', color: '#64748b' }
 };

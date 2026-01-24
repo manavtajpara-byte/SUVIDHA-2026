@@ -19,6 +19,7 @@ interface Message {
     feedbackGiven?: boolean;
     userQuestion?: string; // Store original question for learning
     category?: string; // Response category for learning
+    reasoning?: string[]; // Chain of thought
 }
 
 export default function Chatbot() {
@@ -89,7 +90,7 @@ export default function Chatbot() {
     }, [messages, isTyping, processingStep]);
 
 
-    const handleSend = async () => { // Keep async
+    const handleSend = async () => {
         if (!inputValue.trim()) return;
 
         const userMsg: Message = {
@@ -109,25 +110,25 @@ export default function Chatbot() {
         setTimeout(() => {
             setProcessingStep(t.analyzing || 'Analyzing your request...');
 
-            setTimeout(async () => { // Make this callback async
-                // Now await the response directly
-                const { response: botResponse, category } = await generateResponse(currentInput, pathname, language);
+            setTimeout(async () => {
+                const { response: botResponse, category, reasoning } = await generateResponse(currentInput, pathname, language);
                 const botMsg: Message = {
                     id: (Date.now() + 1).toString(),
                     text: botResponse,
                     sender: 'bot',
                     timestamp: new Date(),
                     userQuestion: currentInput,
-                    category
+                    category,
+                    reasoning
                 };
                 setMessages(prev => [...prev, botMsg]);
                 setIsTyping(false);
                 setProcessingStep('');
-            }, 1000); // Reduced delay slightly as web search adds latency
+            }, 1000);
         }, 800);
     };
 
-    const generateResponse = async (input: string, path: string, lang: string): Promise<{ response: string; category: string }> => {
+    const generateResponse = async (input: string, path: string, lang: string): Promise<{ response: string; category: string; reasoning?: string[] }> => {
         const lowerInput = input.toLowerCase();
 
         // --- PHASE 4: MULTI-INTENT RECOGNITION ---
@@ -190,11 +191,12 @@ export default function Chatbot() {
         }
 
         // PRIORITY 1: Check learned patterns (Fuzzy Logic Enhanced)
-        const learnedMatch = aiLearningEngine.getBestMatch(input);
-        if (learnedMatch && learnedMatch.confidence >= 0.6) {
+        const learnedMatch = aiLearningEngine.processQuery(input);
+        if (learnedMatch && learnedMatch.category !== 'unknown') {
             return {
                 response: learnedMatch.response,
-                category: learnedMatch.category
+                category: learnedMatch.category,
+                reasoning: learnedMatch.reasoning
             };
         }
 
@@ -583,6 +585,15 @@ export default function Chatbot() {
                         }}>
                             {msg.text}
 
+                            {msg.reasoning && (
+                                <div style={styles.reasoningChain}>
+                                    <div style={styles.reasoningTitle}>Deep Reasoning Mode Enabled:</div>
+                                    {msg.reasoning.map((step, idx) => (
+                                        <div key={idx} style={styles.reasoningStep}>↳ {step}</div>
+                                    ))}
+                                </div>
+                            )}
+
                             {msg.sender === 'bot' && !msg.feedbackGiven && (
                                 <div style={styles.feedbackRow}>
                                     <button
@@ -843,5 +854,26 @@ const styles: { [key: string]: React.CSSProperties } = {
         animation: 'slideInUp 0.5s ease-out',
         border: '1px solid #e5e7eb',
         color: '#1f2937',
+    },
+    reasoningChain: {
+        marginTop: '0.8rem',
+        padding: '0.6rem',
+        background: 'rgba(99, 102, 241, 0.05)',
+        borderRadius: '8px',
+        borderLeft: '2px solid #6366f1',
+        fontSize: '0.8rem',
+    },
+    reasoningTitle: {
+        fontWeight: 'bold',
+        color: '#6366f1',
+        marginBottom: '0.3rem',
+        fontSize: '0.75rem',
+        textTransform: 'uppercase',
+        letterSpacing: '0.05em',
+    },
+    reasoningStep: {
+        color: '#64748b',
+        paddingLeft: '0.5rem',
+        marginBottom: '0.2rem',
     },
 };

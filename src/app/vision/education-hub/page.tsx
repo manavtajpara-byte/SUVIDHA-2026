@@ -20,9 +20,15 @@ export default function EducationHubPage() {
         { id: 1, title: 'Basics of Digital Literacy', duration: '4 Weeks', level: 'Beginner', rating: 4.8, students: '12K+', category: 'Digital Skills' },
         { id: 2, title: 'Modern Sustainable Farming', duration: '6 Weeks', level: 'Intermediate', rating: 4.9, students: '8K+', category: 'Agriculture' },
         { id: 3, title: 'Financial Management for Small Business', duration: '3 Weeks', level: 'Advanced', rating: 4.7, students: '5K+', category: 'Finance' },
+        { id: 4, title: 'Disaster Resilience Training', duration: 'Interactive', level: 'General', rating: 5.0, students: 'New', category: 'Emergency', link: '/training/disaster' },
+        { id: 5, title: 'First Aid Masterclass', duration: 'Interactive', level: 'General', rating: 5.0, students: 'New', category: 'Healthcare', link: '/training/first-aid' },
     ];
 
     const handleEnroll = (course: any) => {
+        if (course.link) {
+            router.push(course.link);
+            return;
+        }
         setSelectedCourse(course);
         setView('course-detail');
     };

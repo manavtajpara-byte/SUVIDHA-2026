@@ -4,7 +4,7 @@ import React from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
 import BigButton from '@/components/BigButton';
-import { Bus, CreditCard, ArrowLeft } from 'lucide-react';
+import { Bus, CreditCard, ArrowLeft, Navigation, QrCode } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function TransportPage() {
@@ -14,7 +14,9 @@ export default function TransportPage() {
 
     const services = [
         { label: t.busPass, icon: <Bus size={60} />, color: '#9333ea', link: '/transport/bus-pass' },
-        { label: t.metroCard, icon: <CreditCard size={60} />, color: '#06b6d4', link: '/transport/metro-card' }
+        { label: t.metroCard, icon: <CreditCard size={60} />, color: '#06b6d4', link: '/transport/metro-card' },
+        { label: "Live Status", icon: <Navigation size={60} />, color: '#7c3aed', link: '/transport/live-tracking' },
+        { label: "Metro QR Ticket", icon: <QrCode size={60} />, color: '#0891b2', link: '/transport/metro-qr' }
     ];
 
     return (

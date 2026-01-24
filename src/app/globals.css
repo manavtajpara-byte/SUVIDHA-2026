@@ -3,26 +3,62 @@
 @tailwind utilities;
 
 :root {
-  /* Monochrome & Blue Theme */
-  --background: #ffffff;
-  --foreground: #000000;
+  /* Core Foundation - Crextio/Treasure Patterns */
+  --background: #fefefe;
+  --foreground: #1e293b;
+  --card-bg: #ffffff;
+  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --shadow-premium: 0 10px 40px rgba(0, 0, 0, 0.02);
+  --sidebar-bg: #f8fafc;
 
-  /* Official Blue Primary */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+  /* THEME MATRIX - 10 PREMIUM SCHEMES */
 
-  /* Utility Colors (Kept functional but cleaner) */
-  --electricity: #f59e0b;
-  --gas: #3b82f6;
-  --municipal: #10b981;
-  --ration: #f97316;
-  --property-tax: #ef4444;
-  --transport: #8b5cf6;
-  --healthcare: #ec4899;
-  --emergency: #dc2626;
+  /* 1. Azure Gateway (Home) */
+  --theme-azure: #3b82f6;
+  --theme-azure-soft: #eff6ff;
 
-  --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --btn-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  /* 2. Emerald Identity (Auth) */
+  --theme-emerald: #10b981;
+  --theme-emerald-soft: #ecfdf5;
+
+  /* 3. Solar Amber (Energy) */
+  --theme-amber: #f59e0b;
+  --theme-amber-soft: #fffbeb;
+
+  /* 4. Deep Ocean (Municipal) */
+  --theme-ocean: #0891b2;
+  --theme-ocean-soft: #ecfeff;
+
+  /* 5. Ruby Shield (Emergency) */
+  --theme-ruby: #e11d48;
+  --theme-ruby-soft: #fff1f2;
+
+  /* 6. Amethyst Wisdom (Education) */
+  --theme-amethyst: #8b5cf6;
+  --theme-amethyst-soft: #f5f3ff;
+
+  /* 7. Midnight Indigo (Vision) */
+  --theme-indigo: #4f46e5;
+  --theme-indigo-soft: #eef2ff;
+
+  /* 8. Terra Harvest (Agriculture) */
+  --theme-terra: #b45309;
+  --theme-terra-soft: #fff7ed;
+
+  /* 9. Slate Carbon (Meta/System) */
+  --theme-slate: #475569;
+  --theme-slate-soft: #f1f5f9;
+
+  /* 10. Golden Elite (Premium/Dashboard) */
+  --theme-gold: #fbbf24;
+  --theme-gold-soft: #fffbeb;
+
+  --primary: var(--theme-azure);
+  --primary-soft: var(--theme-azure-soft);
+
+  --card-shadow: var(--shadow-premium);
   --font-base: 16px;
 }
 

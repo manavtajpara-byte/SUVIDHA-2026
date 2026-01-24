@@ -3,198 +3,142 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { ArrowLeft, Phone, AlertTriangle, Flame } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { PhoneCall, Phone, AlertCircle, ShieldAlert, Heart, Siren, Search, LayoutDashboard, History, Bell, Search as SearchIcon, Globe, ChevronRight, AlertTriangle, Flame } from 'lucide-react';
+import AethelLayout from '@/components/AethelLayout';
 
 export default function EmergencyPage() {
     const { language } = useAppState();
-    const t = translations[language];
+    const t = translations[language] || translations.en;
     const router = useRouter();
     const [calling, setCalling] = useState<string | null>(null);
-
-    const emergencyServices = [
-        // Primary Emergency
-        { label: t.nationalEmergency || "National Emergency", number: '112', purpose: "Single emergency number for all services", icon: <AlertTriangle size={60} />, color: '#ef4444', category: 'Emergency' },
-        { label: t.police, number: '100', purpose: "Police help and security", icon: <AlertTriangle size={60} />, color: '#3b82f6', category: 'Emergency' },
-        { label: t.fireService, number: '101', purpose: "Fire and rescue services", icon: <Flame size={60} />, color: '#f59e0b', category: 'Emergency' },
-        { label: t.ambulance, number: '108', purpose: "Immediate medical assistance", icon: <Phone size={60} />, color: '#10b981', category: 'Emergency' },
-
-        // Women & Child Safety
-        { label: t.womenHelpline || "Women Helpline", number: '1091', purpose: "Safety and support for women", icon: <Phone size={60} />, color: '#ec4899', category: 'Women & Child' },
-        { label: "Women Helpline (NCW)", number: '7827170170', purpose: "National Commission for Women", icon: <Phone size={60} />, color: '#ec4899', category: 'Women & Child' },
-        { label: t.childHelpline || "Child Helpline", number: '1098', purpose: "Child protection and support", icon: <Phone size={60} />, color: '#f43f5e', category: 'Women & Child' },
-        { label: "Missing Child", number: '1094', purpose: "Report missing children", icon: <Phone size={60} />, color: '#f43f5e', category: 'Women & Child' },
-
-        // Health Services
-        { label: t.covidHelpline || "COVID-19 Helpline", number: '1075', purpose: "COVID-19 information and support", icon: <Phone size={60} />, color: '#8b5cf6', category: 'Health' },
-        { label: "Mental Health", number: '08046110007', purpose: "NIMHANS mental health support", icon: <Phone size={60} />, color: '#8b5cf6', category: 'Health' },
-        { label: "Kiran Mental Health", number: '18005990019', purpose: "24/7 mental health support", icon: <Phone size={60} />, color: '#8b5cf6', category: 'Health' },
-        { label: "AIDS Helpline", number: '1097', purpose: "HIV/AIDS information", icon: <Phone size={60} />, color: '#8b5cf6', category: 'Health' },
-        { label: "Blood Bank", number: '104', purpose: "Blood donation and availability", icon: <Phone size={60} />, color: '#dc2626', category: 'Health' },
-
-        // Senior Citizens
-        { label: "Senior Citizen Helpline", number: '14567', purpose: "Support for elderly citizens", icon: <Phone size={60} />, color: '#059669', category: 'Senior Citizens' },
-        { label: "Elder Abuse Helpline", number: '1091', purpose: "Report abuse of elderly", icon: <Phone size={60} />, color: '#059669', category: 'Senior Citizens' },
-
-        // Crime & Safety
-        { label: t.cyberCrime || "Cyber Crime", number: '155260', purpose: "Reporting online fraud and abuse", icon: <AlertTriangle size={60} />, color: '#1e293b', category: 'Crime & Safety' },
-        { label: "Anti-Corruption", number: '1031', purpose: "Report corruption", icon: <AlertTriangle size={60} />, color: '#1e293b', category: 'Crime & Safety' },
-        { label: "Vigilance", number: '1064', purpose: "Central Vigilance Commission", icon: <AlertTriangle size={60} />, color: '#1e293b', category: 'Crime & Safety' },
-
-        // Transport & Travel
-        { label: t.railwaySecurity || "Railway Security", number: '139', purpose: "Help during train travel", icon: <Phone size={60} />, color: '#6366f1', category: 'Transport' },
-        { label: t.roadAccident || "Road Accident", number: '1073', purpose: "Highways and city road accidents", icon: <AlertTriangle size={60} />, color: '#ef4444', category: 'Transport' },
-        { label: "Road Safety", number: '1033', purpose: "Traffic and road safety", icon: <Phone size={60} />, color: '#6366f1', category: 'Transport' },
-
-        // Consumer & Utilities
-        { label: "Consumer Helpline", number: '1800-11-4000', purpose: "Consumer complaints", icon: <Phone size={60} />, color: '#0891b2', category: 'Consumer' },
-        { label: "LPG Leak", number: '1906', purpose: "Report gas leakage", icon: <Flame size={60} />, color: '#f59e0b', category: 'Consumer' },
-        { label: "Electricity Complaint", number: '1912', purpose: "Power supply issues", icon: <Phone size={60} />, color: '#eab308', category: 'Consumer' },
-
-        // Disaster Management
-        { label: "Disaster Management", number: '1070', purpose: "Natural disaster helpline", icon: <AlertTriangle size={60} />, color: '#dc2626', category: 'Disaster' },
-        { label: "Earthquake/Flood", number: '1077', purpose: "Natural calamity support", icon: <AlertTriangle size={60} />, color: '#dc2626', category: 'Disaster' },
-
-        // Government Services
-        { label: "Passport Seva", number: '1800-258-1800', purpose: "Passport related queries", icon: <Phone size={60} />, color: '#4f46e5', category: 'Government' },
-        { label: "Income Tax", number: '1800-180-1961', purpose: "Tax related queries", icon: <Phone size={60} />, color: '#4f46e5', category: 'Government' },
-        { label: "Railway Enquiry", number: '139', purpose: "Train information", icon: <Phone size={60} />, color: '#6366f1', category: 'Government' },
-        { label: "Kisan Call Center", number: '1800-180-1551', purpose: "Farmer support", icon: <Phone size={60} />, color: '#16a34a', category: 'Government' },
-    ];
-
     const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-    const categories = ['All', 'Emergency', 'Women & Child', 'Health', 'Senior Citizens', 'Crime & Safety', 'Transport', 'Consumer', 'Disaster', 'Government'];
+    const emergencyServices = [
+        { label: 'Panic Button', number: '112', desc: 'SOS - All Emergencies', icon: <Siren size={32} />, color: '#e11d48', category: 'Priority' },
+        { label: 'Police Help', number: '100', desc: 'Law Enforcement', icon: <ShieldAlert size={32} />, color: '#1d4ed8', category: 'Emergency' },
+        { label: 'Fire & Rescue', number: '101', desc: 'Accidents & Fire', icon: <Flame size={32} />, color: '#ea580c', category: 'Emergency' },
+        { label: 'Ambulance', number: '108', desc: 'Medical Emergency', icon: <Heart size={32} />, color: '#16a34a', category: 'Emergency' },
+        { label: 'Women Helpline', number: '1091', desc: 'Safety & Protection', icon: <Phone size={32} />, color: '#db2777', category: 'Safety' },
+        { label: 'Child Helpline', number: '1098', desc: 'Child welfare/Missing', icon: <Phone size={32} />, color: '#be185d', category: 'Safety' },
+        { label: 'Cyber Crime', number: '1930', desc: 'Online Fraud/Abuse', icon: <AlertCircle size={32} />, color: '#1e293b', category: 'Crime' },
+        { label: 'LPG Leak', number: '1906', desc: 'Gas Emergency', icon: <Flame size={32} />, color: '#d97706', category: 'Home' }
+    ];
 
-    const filteredServices = selectedCategory === 'All'
-        ? emergencyServices
-        : emergencyServices.filter(s => s.category === selectedCategory);
+    const sidebarLinks = [
+        { label: 'Safety Dashboard', icon: <LayoutDashboard size={20} />, href: '/emergency', active: true },
+        { label: 'Heath Portal', icon: <Heart size={20} />, href: '/healthcare' },
+        { label: 'Recent Alerts', icon: <Bell size={20} />, href: '/alerts' },
+    ];
 
     const handleCall = (service: string, number: string) => {
         setCalling(service);
         setTimeout(() => {
-            alert(`Connecting to ${service} (${number})...\nThis is a simulation. In production, this would initiate a real call.`);
+            alert(`Emergency Call Simulation: Dialing ${number} for ${service}...`);
             setCalling(null);
-        }, 2000);
+        }, 1500);
     };
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <button onClick={() => router.back()} style={styles.backBtn}><ArrowLeft size={32} /></button>
-                <h2 style={styles.title}>{t.emergency}</h2>
-            </div>
-
-            <div style={styles.alert}>
-                <AlertTriangle size={40} color="#ef4444" />
-                <div style={{ flex: 1 }}>
-                    <p style={{ margin: 0 }}><strong>Complete Indian Helpline Directory</strong></p>
-                    <p style={{ margin: 0, opacity: 0.8 }}>35+ essential helplines across all categories</p>
+        <AethelLayout
+            title="Emergency Shield"
+            themeColor="var(--theme-ruby)"
+            themeSoft="var(--theme-ruby-soft)"
+            sidebarLinks={sidebarLinks}
+        >
+            <div style={styles.emergencyGrid}>
+                {/* Panic Row */}
+                <div style={styles.panicRow}>
+                    <div style={styles.panicBanner}>
+                        <div style={styles.panicIcon}><Siren size={40} color="white" /></div>
+                        <div>
+                            <h2 style={{ color: 'white', margin: 0, fontSize: '1.5rem' }}>National SOS Dial 112</h2>
+                            <p style={{ color: 'white', opacity: 0.9, margin: 0, fontSize: '0.9rem' }}>One number for Police, Fire, and Ambulance</p>
+                        </div>
+                        <button onClick={() => handleCall('National SOS', '112')} style={styles.sosBtn}>TRRIGGER SOS</button>
+                    </div>
                 </div>
-            </div>
 
-            {/* Category Filter */}
-            <div style={styles.categoryFilter}>
-                {categories.map(cat => (
-                    <button
-                        key={cat}
-                        onClick={() => setSelectedCategory(cat)}
-                        style={{
-                            ...styles.categoryBtn,
-                            backgroundColor: selectedCategory === cat ? 'var(--primary)' : '#f1f5f9',
-                            color: selectedCategory === cat ? 'white' : '#64748b',
-                        }}
-                    >
-                        {cat}
-                    </button>
-                ))}
-            </div>
+                <div style={styles.mainLayout}>
+                    <div style={styles.directorySection}>
+                        <div style={styles.sectionHeader}>
+                            <h2 style={styles.sectionTitle}>Emergency Directory</h2>
+                            <div style={styles.searchBox}><SearchIcon size={18} /><input placeholder="Search helplines..." style={styles.searchInput} /></div>
+                        </div>
 
-            <div style={styles.grid}>
-                {filteredServices.map((service) => (
-                    <button
-                        key={`${service.label}-${service.number}`}
-                        onClick={() => handleCall(service.label, service.number)}
-                        disabled={calling !== null}
-                        style={{
-                            ...styles.emergencyBtn,
-                            backgroundColor: service.color,
-                            opacity: calling && calling !== service.label ? 0.5 : 1
-                        }}
-                    >
-                        <div style={styles.btnTop}>
-                            {service.icon}
-                            <div style={styles.badgeWrapper}>
-                                <div style={styles.numberBadge}>{service.number}</div>
+                        <div style={styles.cardGrid}>
+                            {emergencyServices.map((svc, i) => (
+                                <button key={i} onClick={() => handleCall(svc.label, svc.number)} style={styles.serviceCard}>
+                                    <div style={{ ...styles.iconLabel, background: `${svc.color}15`, color: svc.color }}>{svc.icon}</div>
+                                    <div style={styles.serviceContent}>
+                                        <div style={styles.numberBadge}>{svc.number}</div>
+                                        <h3 style={styles.serviceTitle}>{svc.label}</h3>
+                                        <p style={styles.serviceDesc}>{svc.desc}</p>
+                                    </div>
+                                    <PhoneCall size={20} color="#94a3b8" />
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div style={styles.sidePanel}>
+                        <div style={styles.guidanceBox}>
+                            <Heart size={24} color="#e11d48" />
+                            <div>
+                                <h4 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700 }}>First Aid AI</h4>
+                                <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#64748b' }}>Tap for instant CPR or burns guidance.</p>
                             </div>
                         </div>
-                        <div style={styles.btnBottom}>
-                            <h3 style={styles.serviceLabel}>{service.label}</h3>
-                            <p style={styles.servicePurpose}>{service.purpose}</p>
-                        </div>
-                        {calling === service.label && <div style={styles.calling}>Dialing...</div>}
-                    </button>
-                ))}
-            </div>
 
-            <div style={styles.info}>
-                <p><strong>Important:</strong> These are direct emergency hotlines. Use only in case of genuine emergencies.</p>
+                        <div style={styles.statusCard}>
+                            <div style={styles.statusPulse}></div>
+                            <h3 style={{ margin: 0, color: '#1e293b' }}>Safe Area Status</h3>
+                            <p style={{ margin: 0, color: '#64748b', fontSize: '0.8rem' }}>Ward 12: High Alert (Monsoon)</p>
+                            <button style={styles.statusBtn}>View Map</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+            {calling && (
+                <div style={styles.callingOverlay}>
+                    <div style={styles.callingCard}>
+                        <div style={styles.pulseIcon}><PhoneCall size={48} color="white" /></div>
+                        <h2>Dialing {calling}...</h2>
+                        <p>Connecting you to the nearest emergency responder</p>
+                        <button onClick={() => setCalling(null)} style={styles.cancelCall}>Cancel Call</button>
+                    </div>
+                </div>
+            )}
+        </AethelLayout>
     );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    container: { padding: '2rem', maxWidth: '1200px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' },
-    header: { display: 'flex', alignItems: 'center', gap: '2rem' },
-    backBtn: { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)' },
-    title: { fontSize: '3rem', fontWeight: 900, margin: 0, color: '#ef4444' },
-    alert: { display: 'flex', alignItems: 'center', gap: '1.5rem', backgroundColor: '#fef2f2', border: '2px solid #ef4444', padding: '1.5rem', borderRadius: '1.5rem', fontSize: '1.2rem' },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' },
-    emergencyBtn: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'stretch',
-        padding: '0',
-        borderRadius: '2rem',
-        border: 'none',
-        color: 'white',
-        cursor: 'pointer',
-        minHeight: '280px',
-        gap: '0',
-        transition: 'transform 0.2s, box-shadow 0.2s',
-        position: 'relative',
-        overflow: 'hidden',
-        textAlign: 'left'
-    },
-    btnTop: {
-        padding: '2rem',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flex: 1
-    },
-    badgeWrapper: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'flex-end',
-        gap: '0.5rem'
-    },
-    btnBottom: {
-        backgroundColor: 'rgba(0,0,0,0.1)',
-        padding: '1.5rem 2rem',
-        backdropFilter: 'blur(10px)'
-    },
-    serviceLabel: { fontSize: '1.8rem', fontWeight: 900, margin: 0 },
-    servicePurpose: { fontSize: '1rem', opacity: 0.9, margin: '4px 0 0 0', fontWeight: 500 },
-    numberBadge: {
-        backgroundColor: 'rgba(255,255,255,0.2)',
-        padding: '0.5rem 1.5rem',
-        borderRadius: '1.5rem',
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
-        border: '2px solid rgba(255,255,255,0.4)'
-    },
-    calling: { position: 'absolute', top: '1rem', right: '1rem', backgroundColor: 'rgba(0,0,0,0.5)', padding: '0.5rem 1rem', borderRadius: '1rem', fontSize: '1rem', zIndex: 10 },
-    info: { backgroundColor: '#f1f5f9', padding: '1.5rem', borderRadius: '1rem', textAlign: 'center', fontSize: '1.1rem' }
+    emergencyGrid: { display: 'flex', flexDirection: 'column', gap: '2rem' },
+    panicRow: { background: 'linear-gradient(135deg, #e11d48 0%, #be185d 100%)', borderRadius: '32px', padding: '2rem', boxShadow: '0 20px 40px rgba(225, 29, 72, 0.2)' },
+    panicBanner: { display: 'flex', alignItems: 'center', gap: '2rem' },
+    panicIcon: { width: '80px', height: '80px', background: 'rgba(255,255,255,0.2)', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    sosBtn: { marginLeft: 'auto', background: 'white', color: '#e11d48', border: 'none', padding: '1rem 2.5rem', borderRadius: '16px', fontWeight: 900, fontSize: '1.1rem', cursor: 'pointer', boxShadow: '0 10px 20px rgba(0,0,0,0.1)' },
+    mainLayout: { display: 'grid', gridTemplateColumns: '1fr 340px', gap: '2rem' },
+    directorySection: { display: 'flex', flexDirection: 'column', gap: '2rem' },
+    sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    sectionTitle: { fontSize: '1.25rem', fontWeight: 800, color: '#1e293b', margin: 0 },
+    searchBox: { display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#f8fafc', padding: '0.75rem 1.25rem', borderRadius: '16px', border: '1px solid #e1e5e8' },
+    searchInput: { border: 'none', background: 'none', outline: 'none', color: '#1e293b', fontWeight: 600 },
+    cardGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' },
+    serviceCard: { background: 'white', border: '1px solid #f1f5f9', borderRadius: '24px', padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '1.25rem', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left' },
+    iconLabel: { width: '64px', height: '64px', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    serviceContent: { flex: 1 },
+    numberBadge: { background: '#f1f5f9', color: '#1e293b', padding: '0.2rem 0.6rem', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800, width: 'fit-content', marginBottom: '0.4rem' },
+    serviceTitle: { fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', margin: 0 },
+    serviceDesc: { fontSize: '0.8rem', color: '#64748b', margin: 0 },
+    sidePanel: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+    guidanceBox: { background: '#fff1f2', border: '1px solid #ffe4e6', borderRadius: '24px', padding: '1.5rem', display: 'flex', gap: '1.25rem', alignItems: 'center' },
+    statusCard: { background: 'white', border: '1px solid #f1f5f9', borderRadius: '24px', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative' },
+    statusPulse: { position: 'absolute', top: '2rem', right: '2rem', width: '12px', height: '12px', background: '#10b981', borderRadius: '50%', boxShadow: '0 0 0 4px rgba(16, 185, 129, 0.2)' },
+    statusBtn: { background: '#f8fafc', border: '1px solid #e2e8f0', padding: '0.75rem', borderRadius: '12px', fontWeight: 700, cursor: 'pointer' },
+    callingOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    callingCard: { background: '#1e293b', padding: '4rem', borderRadius: '40px', textAlign: 'center', color: 'white', display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '440px' },
+    pulseIcon: { width: '96px', height: '96px', background: '#e11d48', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto', animation: 'pulse 2s infinite' },
+    cancelCall: { background: '#334155', border: 'none', color: 'white', padding: '1.25rem', borderRadius: '20px', fontWeight: 700, cursor: 'pointer', marginTop: '1rem' }
 };

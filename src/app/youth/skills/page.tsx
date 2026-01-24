@@ -8,6 +8,16 @@ import { useRouter } from 'next/navigation';
 export default function SkillsPage() {
     const { addToast } = useAppState();
     const router = useRouter();
+    const [search, setSearch] = React.useState('');
+
+    const courses = [
+        { name: 'Mobile Repair Technician', icon: '📱', badge: 'Best Seller', rating: '4.8 (1.2k Reviews)', duration: 'Duration: 3 Months • Certified' },
+        { name: 'Basic Computer Course (CCC)', icon: '💻', badge: 'Trending', rating: '4.6 (5k Reviews)', duration: 'Duration: 1 Month • NIELIT' },
+        { name: 'Modern Agriculture', icon: '🌾', badge: 'New', rating: '4.9 (300 Reviews)', duration: 'Duration: 2 Weeks • Practical' },
+        { name: 'Solar Installation', icon: '☀️', badge: 'High Demand', rating: '4.5 (800 Reviews)', duration: 'Duration: 4 Weeks • Certified' },
+    ];
+
+    const filteredCourses = courses.filter(c => c.name.toLowerCase().includes(search.toLowerCase()));
 
     const handleEnroll = (course: string) => {
         addToast({ message: `Enrolled in ${course}. Happy Learning!`, type: 'success' });
@@ -28,60 +38,34 @@ export default function SkillsPage() {
                     <p style={styles.desc}>Free vocational training courses under PMKVY 4.0</p>
                 </div>
 
+                <div style={styles.searchBar}>
+                    <input
+                        type="text"
+                        placeholder="Find courses..."
+                        style={styles.input}
+                        onChange={(e) => setSearch(e.target.value)}
+                    />
+                </div>
+
                 <div style={styles.grid}>
-                    {/* Course 1 */}
-                    <div style={styles.courseCard}>
-                        <div style={styles.thumbnail} className="bg-red-100 flex items-center justify-center">
-                            <span style={{ fontSize: '3rem' }}>📱</span>
-                        </div>
-                        <div style={styles.content}>
-                            <div style={styles.badge}>Best Seller</div>
-                            <h3>Mobile Repair Technician</h3>
-                            <div style={styles.rating}>
-                                <Star size={16} fill="#eab308" color="#eab308" /> 4.8 (1.2k Reviews)
+                    {filteredCourses.map((course) => (
+                        <div key={course.name} style={styles.courseCard}>
+                            <div style={styles.thumbnail} className="bg-red-100 flex items-center justify-center">
+                                <span style={{ fontSize: '3rem' }}>{course.icon}</span>
                             </div>
-                            <p style={styles.duration}>Duration: 3 Months • Certified</p>
-                            <button onClick={() => handleEnroll('Mobile Repair')} style={styles.enrollBtn}>
-                                <PlayCircle size={20} /> Start Course
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* Course 2 */}
-                    <div style={styles.courseCard}>
-                        <div style={styles.thumbnail} className="bg-blue-100 flex items-center justify-center">
-                            <span style={{ fontSize: '3rem' }}>💻</span>
-                        </div>
-                        <div style={styles.content}>
-                            <div style={styles.badge}>Trending</div>
-                            <h3>Basic Computer Course (CCC)</h3>
-                            <div style={styles.rating}>
-                                <Star size={16} fill="#eab308" color="#eab308" /> 4.6 (5k Reviews)
+                            <div style={styles.content}>
+                                <div style={styles.badge}>{course.badge}</div>
+                                <h3>{course.name}</h3>
+                                <div style={styles.rating}>
+                                    <Star size={16} fill="#eab308" color="#eab308" /> {course.rating}
+                                </div>
+                                <p style={styles.duration}>{course.duration}</p>
+                                <button onClick={() => handleEnroll(course.name)} style={styles.enrollBtn}>
+                                    <PlayCircle size={20} /> Start Course
+                                </button>
                             </div>
-                            <p style={styles.duration}>Duration: 1 Month • NIELIT</p>
-                            <button onClick={() => handleEnroll('Computer Course')} style={styles.enrollBtn}>
-                                <PlayCircle size={20} /> Start Course
-                            </button>
                         </div>
-                    </div>
-
-                    {/* Course 3 */}
-                    <div style={styles.courseCard}>
-                        <div style={styles.thumbnail} className="bg-green-100 flex items-center justify-center">
-                            <span style={{ fontSize: '3rem' }}>🌾</span>
-                        </div>
-                        <div style={styles.content}>
-                            <div style={styles.badge}>New</div>
-                            <h3>Modern Agriculture</h3>
-                            <div style={styles.rating}>
-                                <Star size={16} fill="#eab308" color="#eab308" /> 4.9 (300 Reviews)
-                            </div>
-                            <p style={styles.duration}>Duration: 2 Weeks • Practical</p>
-                            <button onClick={() => handleEnroll('Modern Agriculture')} style={styles.enrollBtn}>
-                                <PlayCircle size={20} /> Start Course
-                            </button>
-                        </div>
-                    </div>
+                    ))}
                 </div>
             </div>
         </div>
@@ -103,5 +87,7 @@ const styles: Record<string, React.CSSProperties> = {
     badge: { display: 'inline-block', fontSize: '0.75rem', fontWeight: 'bold', color: 'white', background: '#ef4444', padding: '0.1rem 0.5rem', borderRadius: '4px', marginBottom: '0.5rem' },
     rating: { display: 'flex', alignItems: 'center', gap: '0.3rem', fontSize: '0.9rem', color: '#4b5563', margin: '0.2rem 0' },
     duration: { fontSize: '0.9rem', color: '#64748b', marginBottom: '0.8rem' },
-    enrollBtn: { padding: '0.6rem 1.2rem', background: '#dc2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }
+    enrollBtn: { padding: '0.6rem 1.2rem', background: '#dc2626', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' },
+    searchBar: { display: 'flex', gap: '1rem', marginBottom: '1.5rem' },
+    input: { flex: 1, padding: '0.8rem', borderRadius: '8px', border: '1px solid #e2e8f0' }
 };

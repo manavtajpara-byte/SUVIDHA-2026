@@ -3,7 +3,7 @@
 import React from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { Globe, ChevronDown, Search, Mic } from 'lucide-react';
+import { Globe, ChevronDown, Search, Mic, User } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { availableLanguages } from '@/constants/translations';
@@ -57,7 +57,7 @@ export default function Header() {
                 </div>
 
                 <div style={styles.controls} className="controls">
-                    {/* ... controls ... */}
+                    {/* Language Menu */}
                     <div style={{ position: 'relative' }}>
                         <button
                             onClick={() => setShowLangMenu(!showLangMenu)}
@@ -90,6 +90,20 @@ export default function Header() {
                             </div>
                         )}
                     </div>
+
+                    {/* User Profile / Login */}
+                    {useAppState().isLoggedIn ? (
+                        <Link href="/profile" style={styles.profileLink}>
+                            <div style={styles.avatarMini}>
+                                <User size={18} color="white" />
+                            </div>
+                            <span style={styles.userNameMini}>{useAppState().user?.name.split(' ')[0]}</span>
+                        </Link>
+                    ) : (
+                        <Link href="/login" style={styles.loginBtn}>
+                            {t?.login || "Login"}
+                        </Link>
+                    )}
                 </div>
             </div>
 
@@ -301,4 +315,39 @@ const styles: Record<string, React.CSSProperties> = {
         gap: '1rem',
         color: 'var(--foreground)',
     },
+    profileLink: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.6rem',
+        padding: '0.4rem 0.75rem',
+        background: '#f8fafc',
+        borderRadius: '50px',
+        textDecoration: 'none',
+        border: '1px solid #e2e8f0',
+        transition: 'all 0.2s',
+    },
+    avatarMini: {
+        width: '28px',
+        height: '28px',
+        borderRadius: '50%',
+        background: '#1e293b',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    userNameMini: {
+        fontSize: '0.85rem',
+        fontWeight: 600,
+        color: '#1e293b',
+    },
+    loginBtn: {
+        padding: '0.5rem 1.25rem',
+        background: 'var(--primary)',
+        color: 'white',
+        borderRadius: '50px',
+        textDecoration: 'none',
+        fontSize: '0.9rem',
+        fontWeight: 700,
+        boxShadow: '0 4px 12px rgba(139, 92, 246, 0.2)',
+    }
 };

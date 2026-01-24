@@ -54,15 +54,37 @@ export default function SingularityPage() {
                     <div style={styles.orb} />
                     <Sparkles size={48} color="#fbbf24" style={styles.orbIcon} />
                 </div>
-                <h3>Self-Governing AI Sovereign</h3>
-                <p>Experimental autonomous governance system for the Year 2030.</p>
+                <h3>Sovereign AI Singularity</h3>
+                <p>Gemini-3 Pro Hyper-Intelligence Cluster Active.</p>
             </div>
 
             <div style={styles.contentGrid}>
+                {/* Digital Twin Village Map */}
+                <div style={{ ...styles.card, gridColumn: 'span 2' }}>
+                    <div style={styles.aiHeader}>
+                        <Globe size={40} color="#6366f1" />
+                        <div>
+                            <h3 style={{ margin: 0 }}>Village Digital Twin (Live)</h3>
+                            <p style={{ fontSize: '0.8rem', opacity: 0.7 }}>Real-time IoT Telemetry & Predictive Simulation</p>
+                        </div>
+                    </div>
+                    <div style={styles.twinGrid}>
+                        {Array.from({ length: 32 }).map((_, i) => (
+                            <div key={i} style={{
+                                ...styles.twinNode,
+                                backgroundColor: Math.random() > 0.8 ? '#ef4444' : '#10b981',
+                                animation: Math.random() > 0.5 ? 'pulse-green 2s infinite' : 'none'
+                            }}>
+                                <span style={styles.nodeLabel}>Node {i + 1}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
                 <div style={styles.terminalCard}>
                     <div style={styles.terminalHeader}>
                         <Terminal size={20} />
-                        <span>System Logs (Live)</span>
+                        <span>Hyper-Intelligence Logs (Deep Reasoning)</span>
                     </div>
                     <div style={styles.logArea}>
                         {logs.map((log, i) => (
@@ -76,65 +98,31 @@ export default function SingularityPage() {
                 <div style={styles.aiCard}>
                     <div style={styles.aiHeader}>
                         <MessageSquare size={24} />
-                        <span>Consult the Sovereign</span>
+                        <span>Neural Sovereign Interface</span>
                     </div>
                     <div style={styles.chatInfo}>
-                        <Globe size={40} color="#6366f1" />
-                        <p>Ask about policy optimization, resource allocation, or future predictions.</p>
+                        <p>Direct access to the autonomous governance logic core.</p>
                     </div>
                     <form onSubmit={handleAsk} style={styles.chatForm}>
                         <input
                             value={inputValue}
                             onChange={(e) => setInputValue(e.target.value)}
-                            placeholder="Type your inquiry..."
+                            placeholder="Type sovereign inquiry..."
                             style={styles.chatInput}
                         />
                         <button type="submit" style={styles.sendBtn}><Zap size={20} /></button>
                     </form>
                 </div>
-
-                <div style={styles.votingCard}>
-                    <div style={styles.aiHeader}>
-                        <ShieldCheck size={24} />
-                        <span>Policy Voting Shelf</span>
-                    </div>
-                    {[
-                        'Solar Grids for All Wards',
-                        'Autonomous Health Drone Hub',
-                        'Universal Skill Grant v2'
-                    ].map((policy, i) => (
-                        <div key={i} style={styles.policyRow}>
-                            <span>{policy}</span>
-                            <div style={styles.voteBtns}>
-                                <button style={styles.voteBtn}>Aye</button>
-                                <button style={{ ...styles.voteBtn, color: '#ef4444' }}>Nay</button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-
-                <div style={styles.mapCard}>
-                    <div style={styles.aiHeader}>
-                        <Globe size={24} />
-                        <span>Sovereign Resource Map</span>
-                    </div>
-                    <div style={styles.miniMap}>
-                        {Array.from({ length: 16 }).map((_, i) => (
-                            <div key={i} style={{ ...styles.mapTile, opacity: Math.random() > 0.5 ? 1 : 0.3 }} />
-                        ))}
-                    </div>
-                    <p style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Grid synchronization with State Data Center.</p>
-                </div>
             </div>
 
             <div style={styles.warningBox}>
                 <ShieldAlert size={24} color="#f59e0b" />
-                <p>CAUTION: This system operates without human intervention. Use responsibly.</p>
+                <p>CRITICAL: High-Level AI reasoning is currently managing 94% of village utility efficiency.</p>
             </div>
 
             <style jsx>{`
-                @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-20px); } 100% { transform: translateY(0px); } }
-                @keyframes pulse-orb { 0% { box-shadow: 0 0 20px #4f46e5; } 50% { box-shadow: 0 0 60px #818cf8; } 100% { box-shadow: 0 0 20px #4f46e5; } }
+                @keyframes pulse-orb { 0% { box-shadow: 0 0 20px #4f46e5; } 50% { box-shadow: 0 0 80px #818cf8; } 100% { box-shadow: 0 0 20px #4f46e5; } }
+                @keyframes pulse-green { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
                 .orb { animation: pulse-orb 4s infinite ease-in-out; }
             `}</style>
         </div>
@@ -169,5 +157,8 @@ const styles: Record<string, React.CSSProperties> = {
     voteBtn: { background: 'none', border: 'none', color: '#10b981', fontWeight: 'bold', cursor: 'pointer', fontSize: '0.8rem' },
     mapCard: { backgroundColor: '#0f172a', borderRadius: '1.5rem', padding: '1.5rem', border: '1px solid #1e293b', display: 'flex', flexDirection: 'column', gap: '1rem' },
     miniMap: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '4px', height: '150px' },
-    mapTile: { backgroundColor: '#6366f1', borderRadius: '4px' }
+    mapTile: { backgroundColor: '#6366f1', borderRadius: '4px' },
+    twinGrid: { display: 'grid', gridTemplateColumns: 'repeat(8, 1fr)', gap: '1rem', marginTop: '1.5rem' },
+    twinNode: { height: '60px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' },
+    nodeLabel: { fontSize: '0.6rem', fontWeight: 'bold', color: 'rgba(255,255,255,0.8)' }
 };

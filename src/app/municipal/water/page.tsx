@@ -3,92 +3,122 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { ArrowLeft, CreditCard, CheckCircle2, Droplets } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import Receipt from '@/components/Receipt';
+import { Droplets, CreditCard, CheckCircle2, LayoutDashboard, History, Search, ChevronRight, FileText, QrCode, ShieldCheck, Fingerprint, Receipt } from 'lucide-react';
+import AethelLayout from '@/components/AethelLayout';
+import ReceiptComponent from '@/components/Receipt';
 
 export default function WaterTaxPage() {
-    const { language } = useAppState();
-    const t = translations[language];
+    const { language, addToast } = useAppState();
+    const t = translations[language] || translations.en;
     const router = useRouter();
     const [propertyId, setPropertyId] = useState('');
-    const [step, setStep] = useState(1);
+    const [step, setStep] = useState(1); // 1: Fetch, 2: Confirm, 3: Success
     const [showReceipt, setShowReceipt] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const sidebarLinks = [
+        { label: 'Citizen Hub', icon: <LayoutDashboard size={20} />, href: '/municipal' },
+        { label: 'Water Tax', icon: <Droplets size={20} />, href: '/municipal/water', active: true },
+        { label: 'Usage History', icon: <History size={20} />, href: '/municipal/water/history' },
+    ];
 
     const handleFetch = (e: React.FormEvent) => {
         e.preventDefault();
-        if (propertyId) setStep(2);
+        if (propertyId.length < 5) return addToast({ message: 'Enter valid Property ID', type: 'error' });
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            setStep(2);
+        }, 1200);
+    };
+
+    const handlePay = () => {
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            setStep(3);
+            addToast({ message: 'Water Tax paid successfully!', type: 'success' });
+        }, 2000);
     };
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <button onClick={() => router.back()} style={styles.backBtn}>
-                    <ArrowLeft size={32} />
-                </button>
-                <h2 style={styles.title}>Water Tax Payment</h2>
-            </div>
-
-            <div style={styles.card}>
+        <AethelLayout
+            title="Water Tax Portal"
+            themeColor="var(--theme-ocean)"
+            themeSoft="var(--theme-ocean-soft)"
+            sidebarLinks={sidebarLinks}
+        >
+            <div style={styles.payContainer}>
                 {step === 1 && (
-                    <form onSubmit={handleFetch} style={styles.form}>
-                        <div style={styles.iconHeader}>
-                            <Droplets size={60} color="var(--municipal)" />
-                            <p>Fetch details using Property ID</p>
+                    <div style={styles.card}>
+                        <div style={styles.formHeader}>
+                            <h2 style={styles.cardTitle}>Fetch Municipal Dues</h2>
+                            <p style={styles.cardSub}>Enter your Property ID or Consumer Number</p>
                         </div>
-                        <div style={styles.fieldGroup}>
-                            <label style={styles.label}>Enter Property ID / Service No.</label>
-                            <input
-                                type="text"
-                                placeholder="Ex: PROP-45012"
-                                value={propertyId}
-                                onChange={(e) => setPropertyId(e.target.value)}
-                                style={styles.input}
-                            />
-                        </div>
-                        <button type="submit" style={styles.submitBtn} disabled={!propertyId}>
-                            Fetch Details
-                        </button>
-                    </form>
+                        <form onSubmit={handleFetch} style={styles.form}>
+                            <div style={styles.inputGroup}>
+                                <label style={styles.label}>Property ID / Service No</label>
+                                <div style={styles.inputWrapper}>
+                                    <Droplets size={20} color="#94a3b8" />
+                                    <input
+                                        type="text"
+                                        value={propertyId}
+                                        onChange={e => setPropertyId(e.target.value.toUpperCase())}
+                                        placeholder="Ex: PROP-45012"
+                                        style={styles.input}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <button type="submit" style={styles.primaryBtn} disabled={loading}>
+                                {loading ? 'Checking Records...' : 'Fetch Water Tax Dues'}
+                            </button>
+                        </form>
+                    </div>
                 )}
 
                 {step === 2 && (
-                    <div style={styles.summary}>
-                        <div style={styles.summaryItem}>
-                            <span>Owner Name:</span>
-                            <strong>Anita Sharma</strong>
+                    <div style={styles.card}>
+                        <div style={styles.formHeader}>
+                            <h2 style={styles.cardTitle}>Tax Determination</h2>
+                            <p style={styles.cardSub}>Review assessment details for Q4 2025</p>
                         </div>
-                        <div style={styles.summaryItem}>
-                            <span>Address:</span>
-                            <strong>Flat 4B, Skyview Apts</strong>
+                        <div style={styles.billBox}>
+                            <div style={styles.billRow}><span>Owner Name</span><strong>Anita Sharma</strong></div>
+                            <div style={styles.billRow}><span>Address</span><strong>Flat 4B, Skyview Apts</strong></div>
+                            <div style={styles.billRow}><span>Connection Type</span><strong>Residential Metered</strong></div>
+                            <div style={styles.billDivider} />
+                            <div style={styles.billRowTotal}><span>Outstanding Balance</span><strong>₹ 3,420.00</strong></div>
                         </div>
-                        <div style={styles.summaryItem}>
-                            <span>Outstanding Tax:</span>
-                            <strong style={{ fontSize: '2.5rem', color: 'var(--municipal)' }}>₹ 3,420.00</strong>
+
+                        <div style={styles.paymentMethods}>
+                            <button style={styles.methodBtn}><CreditCard size={18} /> Card</button>
+                            <button style={{ ...styles.methodBtn, background: '#f8fafc' }}><QrCode size={18} /> UPI</button>
+                            <button style={{ ...styles.methodBtn, background: '#f8fafc' }}><Fingerprint size={18} /> AEPS</button>
                         </div>
-                        <button onClick={() => setStep(3)} style={styles.payBtn}>
-                            <CreditCard size={28} />
-                            Pay Water Tax Now
+
+                        <button onClick={handlePay} style={{ ...styles.primaryBtn, background: '#1e293b' }} disabled={loading}>
+                            {loading ? 'Processing Transaction...' : 'Confirm & Authorize Payment'}
                         </button>
                     </div>
                 )}
 
                 {step === 3 && (
-                    <div style={styles.success}>
-                        <CheckCircle2 size={120} color="var(--municipal)" />
-                        <h3 style={styles.successTitle}>Transaction Complete!</h3>
-                        <p>Receipt ID: MUNI-WATER-9921</p>
-                        <div style={styles.receiptActions}>
-                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print Receipt</button>
-                            <button onClick={() => alert('Receipt shared to WhatsApp!')} style={styles.receiptBtn}>WhatsApp</button>
+                    <div style={{ ...styles.card, textAlign: 'center' }}>
+                        <div style={styles.successIcon}><CheckCircle2 size={48} color="white" /></div>
+                        <h2 style={styles.cardTitle}>Tax Paid Successfully</h2>
+                        <p style={styles.cardSub}>Receipt ID: MUNI-WATER-9921</p>
+                        <div style={styles.actionRow}>
+                            <button onClick={() => setShowReceipt(true)} style={styles.outlineBtn}>Digital Receipt</button>
+                            <button onClick={() => router.push('/municipal')} style={styles.outlineBtn}>Back to Citizen Hub</button>
                         </div>
-                        <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
                     </div>
                 )}
             </div>
 
             {showReceipt && (
-                <Receipt
+                <ReceiptComponent
                     type="water-tax"
                     transactionId="MUNI-WATER-9921"
                     amount={3420}
@@ -102,152 +132,29 @@ export default function WaterTaxPage() {
                     onClose={() => setShowReceipt(false)}
                 />
             )}
-        </div>
+        </AethelLayout>
     );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    container: {
-        padding: '2rem',
-        maxWidth: '800px',
-        margin: '0 auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '2rem',
-    },
-    header: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: '2rem',
-    },
-    backBtn: {
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        color: 'var(--primary)',
-    },
-    title: {
-        fontSize: '2.5rem',
-        fontWeight: 900,
-        margin: 0,
-    },
-    card: {
-        backgroundColor: 'white',
-        padding: '3rem',
-        borderRadius: '2rem',
-        boxShadow: 'var(--card-shadow)',
-        minHeight: '400px',
-    },
-    iconHeader: {
-        textAlign: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '1rem',
-        marginBottom: '2rem',
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-    },
-    form: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '2rem',
-        width: '100%',
-    },
-    fieldGroup: {
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1rem',
-    },
-    label: {
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
-        color: '#475569',
-    },
-    input: {
-        padding: '1.5rem',
-        fontSize: '2rem',
-        borderRadius: '1rem',
-        border: '3px solid #e2e8f0',
-        textAlign: 'center',
-        backgroundColor: '#f8fafc',
-        cursor: 'pointer',
-    },
-    submitBtn: {
-        padding: '1.5rem',
-        fontSize: '1.5rem',
-        fontWeight: 'bold',
-        backgroundColor: 'var(--municipal)',
-        color: 'white',
-        border: 'none',
-        borderRadius: '1rem',
-        cursor: 'pointer',
-    },
-    summary: {
-        width: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '1.5rem',
-    },
-    summaryItem: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        fontSize: '1.5rem',
-        borderBottom: '1px solid #e2e8f0',
-        paddingBottom: '0.75rem',
-    },
-    payBtn: {
-        marginTop: '2rem',
-        padding: '1.5rem',
-        fontSize: '1.8rem',
-        fontWeight: 'bold',
-        backgroundColor: 'var(--municipal)',
-        color: 'white',
-        border: 'none',
-        borderRadius: '1rem',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '1rem',
-    },
-    success: {
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        textAlign: 'center',
-        gap: '1.5rem',
-    },
-    successTitle: {
-        fontSize: '2.5rem',
-        fontWeight: 900,
-        color: 'var(--municipal)',
-        margin: 0,
-    },
-    receiptActions: {
-        display: 'flex',
-        gap: '1rem',
-        marginTop: '1rem',
-    },
-    receiptBtn: {
-        padding: '1rem 2rem',
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-        border: '2px solid var(--municipal)',
-        borderRadius: '1rem',
-        background: 'none',
-        color: 'var(--municipal)',
-        cursor: 'pointer',
-    },
-    homeBtn: {
-        marginTop: '2.5rem',
-        padding: '1rem 3rem',
-        fontSize: '1.2rem',
-        fontWeight: 'bold',
-        backgroundColor: 'var(--foreground)',
-        color: 'white',
-        border: 'none',
-        borderRadius: '1rem',
-        cursor: 'pointer',
-    }
+    payContainer: { maxWidth: '520px', margin: '0 auto', paddingTop: '1rem' },
+    card: { background: 'white', padding: '3rem', borderRadius: '32px', border: '1px solid #f1f5f9', boxShadow: 'var(--shadow-premium)', display: 'flex', flexDirection: 'column', gap: '2rem' },
+    formHeader: { textAlign: 'center' },
+    cardTitle: { fontSize: '1.5rem', fontWeight: 800, color: '#1e293b', margin: 0 },
+    cardSub: { fontSize: '0.9rem', color: '#64748b', marginTop: '0.5rem' },
+    form: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+    inputGroup: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+    label: { fontSize: '0.85rem', fontWeight: 700, color: '#475569', marginLeft: '0.5rem' },
+    inputWrapper: { display: 'flex', alignItems: 'center', gap: '1rem', background: '#f8fafc', padding: '1.1rem 1.25rem', borderRadius: '16px', border: '1px solid #e2e8f0' },
+    input: { border: 'none', background: 'none', outline: 'none', fontSize: '1.1rem', width: '100%', color: '#1e293b', fontWeight: 700 },
+    primaryBtn: { background: 'var(--theme-ocean)', color: 'white', padding: '1.25rem', borderRadius: '16px', border: 'none', fontSize: '1.1rem', fontWeight: 800, cursor: 'pointer', boxShadow: '0 10px 20px rgba(8, 145, 178, 0.2)' },
+    billBox: { background: '#f8fafc', padding: '1.5rem', borderRadius: '24px', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '0.75rem' },
+    billRow: { display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', color: '#64748b' },
+    billDivider: { height: '1px', background: '#e2e8f0', margin: '0.5rem 0' },
+    billRowTotal: { display: 'flex', justifyContent: 'space-between', fontSize: '1.1rem', color: '#1e293b' },
+    paymentMethods: { display: 'flex', gap: '0.75rem' },
+    methodBtn: { flex: 1, padding: '1rem', borderRadius: '12px', border: '1px solid #f1f5f9', background: 'white', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' },
+    successIcon: { width: '80px', height: '80px', background: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto' },
+    actionRow: { display: 'flex', gap: '1rem', marginTop: '1rem' },
+    outlineBtn: { flex: 1, padding: '1rem', borderRadius: '16px', border: '1px solid #e2e8f0', background: 'white', color: '#1e293b', fontWeight: 700, cursor: 'pointer' }
 };

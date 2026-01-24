@@ -76,6 +76,11 @@ export default function RationCardPage() {
                             <Wheat size={60} color="#16a34a" />
                             <h3>Apply for New Ration Card</h3>
                         </div>
+                        <div style={styles.onorcSection}>
+                            <h3>Portability Status (ONORC)</h3>
+                            <p>Access your food grains from any Fair Price Shop across India.</p>
+                            <button onClick={() => router.push('/ration-card/onorc')} style={styles.btnSecondary}>Check Eligibility</button>
+                        </div>
                         <div style={styles.field}>
                             <label>Head of Family Name</label>
                             <input value={name} onChange={(e) => setName(e.target.value)} style={styles.input} />

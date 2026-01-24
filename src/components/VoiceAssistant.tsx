@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import { useAppState } from '@/context/StateContext';
 import useVoiceNavigation from '@/hooks/useVoiceNavigation';
 import { Mic, X, Volume2 } from 'lucide-react';
 
@@ -10,6 +11,7 @@ interface VoiceAssistantProps {
 }
 
 export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps) {
+    const { language } = useAppState();
     const {
         isListening,
         isSpeaking,
@@ -19,6 +21,17 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
         stopListening,
         speak
     } = useVoiceNavigation();
+
+    // EQ Bar Animation Mock
+    const [eqBars, setEqBars] = useState([40, 60, 30, 80, 50]);
+    useEffect(() => {
+        if (isListening) {
+            const int = setInterval(() => {
+                setEqBars(prev => prev.map(() => Math.floor(Math.random() * 80) + 20));
+            }, 100);
+            return () => clearInterval(int);
+        }
+    }, [isListening]);
 
     // Auto-start listening when opened
     useEffect(() => {
@@ -40,6 +53,13 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
                 </button>
 
                 <div style={styles.visualizer}>
+                    {isListening && (
+                        <div style={styles.eqContainer}>
+                            {eqBars.map((h, i) => (
+                                <div key={i} style={{ ...styles.eqBar, height: `${h}%` }}></div>
+                            ))}
+                        </div>
+                    )}
                     <div style={{
                         ...styles.micCircle,
                         transform: isListening ? 'scale(1.2)' : 'scale(1)',
@@ -48,7 +68,6 @@ export default function VoiceAssistant({ isOpen, onClose }: VoiceAssistantProps)
                     }}>
                         {isSpeaking ? <Volume2 size={40} color="white" /> : <Mic size={40} color="white" />}
                     </div>
-                    {isListening && <div style={styles.ripple}></div>}
                 </div>
 
                 <div style={styles.content}>
@@ -138,6 +157,8 @@ const styles: Record<string, React.CSSProperties> = {
         justifyContent: 'center',
         alignItems: 'center',
     },
+    eqContainer: { position: 'absolute', display: 'flex', gap: '4px', alignItems: 'center', height: '100px', zIndex: 1 },
+    eqBar: { width: '4px', background: '#ef4444', borderRadius: '4px', transition: 'height 0.1s ease-in-out' },
     micCircle: {
         width: '80px',
         height: '80px',

@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Briefcase, Activity, Rocket, TrendingUp, Bell } from 'lucide-react';
-import { useAppState } from '@/context/StateContext';
+'use client';
 
+import React, { useEffect, useState } from 'react';
+import { Briefcase, Activity, Rocket, TrendingUp, Bell, ChevronRight, Star, Zap, Clock } from 'lucide-react';
+import { useAppState } from '@/context/StateContext';
 import { useRouter } from 'next/navigation';
 
 export default function YouthDashboard() {
@@ -11,72 +12,93 @@ export default function YouthDashboard() {
 
     useEffect(() => {
         const allBroadcasts = JSON.parse(localStorage.getItem('suvidha_broadcasts') || '[]');
-        // Filter for 'all' or 'youth'
         const relevant = allBroadcasts.filter((b: any) => b.target === 'all' || b.target === 'youth');
         setNotifications(relevant);
     }, []);
 
+    const actions = [
+        { label: 'Job Matcher', sub: '5 matches found today', icon: <Briefcase size={20} />, color: '#7c3aed', href: '/youth/jobs' },
+        { label: 'Skill Up', sub: 'New PMKVY 4.0 Courses', icon: <Activity size={20} />, color: '#dc2626', href: '/youth/skills' },
+        { label: 'Startup Hub', sub: 'Mudra Loan Eligibility', icon: <Rocket size={20} />, color: '#d97706', href: '#' }
+    ];
+
     return (
-        <div className="animate-fade-in" style={{ padding: '1rem' }}>
-            {/* Notifications Area */}
+        <div style={styles.dashboardContainer}>
+            {/* Dynamic Alerts */}
             {notifications.length > 0 && (
-                <div style={styles.alertBox}>
-                    <div style={styles.alertHeader}>
-                        <Bell size={20} color="#c2410c" />
-                        <span style={{ fontWeight: 'bold', color: '#9a3412' }}>Official Alerts</span>
-                    </div>
+                <div style={styles.alertStack}>
                     {notifications.map((n: any) => (
-                        <div key={n.id} style={styles.alertItem}>
-                            <strong>{n.sender}:</strong> {n.message}
+                        <div key={n.id} style={styles.alertCard}>
+                            <Bell size={18} color="#7c3aed" />
+                            <div style={styles.alertContent}>
+                                <strong style={styles.alertSender}>{n.sender}</strong>
+                                <p style={styles.alertMsg}>{n.message}</p>
+                            </div>
                         </div>
                     ))}
                 </div>
             )}
 
-            <div style={styles.header}>
-                <h2 style={styles.greeting}>Hello, {user?.name} 🚀</h2>
-                <p style={styles.sub}>Youth Hub • {user?.details?.youth?.employment || 'Aspiring'}</p>
-            </div>
-
-            <div style={styles.grid}>
-                {/* Job Matcher */}
-                <div style={styles.card}>
-                    <div style={{ ...styles.iconBox, background: '#ede9fe', color: '#7c3aed' }}>
-                        <Briefcase size={32} />
+            <div style={styles.mainGrid}>
+                <div style={styles.primaryContent}>
+                    <div style={styles.cardHeader}>
+                        <h3 style={styles.sectionTitle}>Opportunity Radar</h3>
+                        <p style={styles.sectionSub}>Scaling potential for {user?.details?.youth?.employment || 'Aspiring Professional'}</p>
                     </div>
-                    <h3>Job Matcher</h3>
-                    <p style={styles.cardText}>5 Local Jobs match your skills: {(user?.details?.youth?.skills || []).slice(0, 2).join(', ')}...</p>
-                    <button onClick={() => router.push('/youth/jobs')} style={styles.actionBtn}>View Jobs</button>
+
+                    <div style={styles.actionGrid}>
+                        {actions.map((act, i) => (
+                            <button key={i} onClick={() => act.href !== '#' && router.push(act.href)} style={styles.actionCard}>
+                                <div style={{ ...styles.iconWrapper, background: `${act.color}15`, color: act.color }}>{act.icon}</div>
+                                <div style={styles.actionInfo}>
+                                    <h4 style={styles.actionTitle}>{act.label}</h4>
+                                    <p style={styles.actionSub}>{act.sub}</p>
+                                </div>
+                                <ChevronRight size={18} color="#94a3b8" />
+                            </button>
+                        ))}
+                    </div>
+
+                    <div style={styles.roadmapCard}>
+                        <div style={styles.roadmapHeader}>
+                            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                                <TrendingUp size={20} color="#7c3aed" />
+                                <h4 style={{ margin: 0, fontWeight: 700 }}>Career Roadmap</h4>
+                            </div>
+                            <span style={styles.stageText}>Stage 2 of 4</span>
+                        </div>
+                        <div style={styles.roadmapBar}><div style={{ ...styles.roadmapFill, width: '45%' }}></div></div>
+                        <p style={styles.roadmapNext}>Next: Skill Certification (Data Analytics)</p>
+                        <button style={styles.primaryBtn}>Review Strategy</button>
+                    </div>
                 </div>
 
-                {/* Skill India */}
-                <div style={styles.card}>
-                    <div style={{ ...styles.iconBox, background: '#fee2e2', color: '#dc2626' }}>
-                        <Activity size={32} />
+                <div style={styles.sidePanel}>
+                    <div style={styles.scoreCard}>
+                        <div style={styles.scoreItem}>
+                            <div style={styles.scoreLabel}><Clock size={14} /> Experience</div>
+                            <div style={styles.scoreValue}>2.5 Years</div>
+                        </div>
+                        <div style={styles.scoreDivider} />
+                        <div style={styles.scoreItem}>
+                            <div style={styles.scoreLabel}><Star size={14} /> Skill Index</div>
+                            <div style={styles.scoreValue}>8.4/10</div>
+                        </div>
                     </div>
-                    <h3>Skill Up</h3>
-                    <p style={styles.cardText}>Enroll in PMKVY 4.0 Courses near you.</p>
-                    <button onClick={() => router.push('/youth/skills')} style={styles.actionBtn}>Browse Courses</button>
-                </div>
 
-                {/* Startup Corner */}
-                <div style={styles.card}>
-                    <div style={{ ...styles.iconBox, background: '#fef3c7', color: '#d97706' }}>
-                        <Rocket size={32} />
+                    <div style={styles.premiumBanner}>
+                        <Zap size={24} color="#f59e0b" />
+                        <h4 style={{ margin: '0.5rem 0 0.25rem', color: 'white' }}>Pro Career AI</h4>
+                        <p style={{ margin: 0, color: 'white', opacity: 0.8, fontSize: '0.8rem' }}>Unlock AI-powered interview prep and direct recruiter access.</p>
+                        <button style={styles.unlockBtn}>Upgrade to Pro</button>
                     </div>
-                    <h3>Startup India</h3>
-                    <p style={styles.cardText}>Apply for Mudra Loan to start your business.</p>
-                    <button style={styles.actionBtn}>Apply for Loan</button>
-                </div>
 
-                {/* Career Trends */}
-                <div style={styles.card}>
-                    <div style={{ ...styles.iconBox, background: '#ccfbf1', color: '#0d9488' }}>
-                        <TrendingUp size={32} />
+                    <div style={styles.trendingBox}>
+                        <h4 style={{ fontSize: '0.85rem', fontWeight: 800, color: '#1e293b', marginBottom: '1rem' }}>Market Trends</h4>
+                        <div style={styles.trendTag}>#DataSci +120%</div>
+                        <div style={styles.trendTag}>#SolarTech +85%</div>
+                        <div style={styles.trendTag}>#CyberSec +60%</div>
                     </div>
-                    <h3>Market Trends</h3>
-                    <p style={styles.cardText}>High demand for: Data Entry, Electricians in your area.</p>
-                    <button style={styles.actionBtn}>View Analytics</button>
                 </div>
             </div>
         </div>
@@ -84,15 +106,38 @@ export default function YouthDashboard() {
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    alertBox: { background: '#ffedd5', border: '1px solid #fed7aa', borderRadius: '12px', padding: '1rem', marginBottom: '2rem' },
-    alertHeader: { display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' },
-    alertItem: { fontSize: '0.95rem', color: '#7c2d12', padding: '0.5rem 0', borderTop: '1px solid #fed7aa' },
-    header: { marginBottom: '2rem' },
-    greeting: { fontSize: '2rem', fontWeight: 800, color: '#1e293b' },
-    sub: { color: '#64748b', fontSize: '1.1rem' },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' },
-    card: { background: 'white', padding: '1.5rem', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' },
-    iconBox: { width: '50px', height: '50px', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' },
-    cardText: { color: '#64748b', marginBottom: '1rem' },
-    actionBtn: { width: '100%', padding: '0.75rem', background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', color: '#0f172a', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' },
+    dashboardContainer: { display: 'flex', flexDirection: 'column', gap: '2rem' },
+    alertStack: { display: 'flex', flexDirection: 'column', gap: '0.75rem' },
+    alertCard: { background: '#f5f3ff', border: '1px solid #ddd6fe', borderRadius: '16px', padding: '1rem 1.25rem', display: 'flex', gap: '1rem', alignItems: 'center' },
+    alertContent: { flex: 1 },
+    alertSender: { fontSize: '0.75rem', fontWeight: 800, color: '#7c3aed', textTransform: 'uppercase' },
+    alertMsg: { fontSize: '0.9rem', color: '#4c1d95', margin: '0.1rem 0 0' },
+    mainGrid: { display: 'grid', gridTemplateColumns: '1fr 300px', gap: '2rem' },
+    primaryContent: { display: 'flex', flexDirection: 'column', gap: '2rem' },
+    cardHeader: { marginBottom: '0.5rem' },
+    sectionTitle: { fontSize: '1.5rem', fontWeight: 800, color: '#1e293b', margin: 0 },
+    sectionSub: { fontSize: '0.95rem', color: '#64748b', margin: '0.25rem 0 0' },
+    actionGrid: { display: 'flex', flexDirection: 'column', gap: '1rem' },
+    actionCard: { background: 'white', border: '1px solid #f1f5f9', borderRadius: '20px', padding: '1.25rem', display: 'flex', alignItems: 'center', gap: '1rem', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left' },
+    iconWrapper: { width: '48px', height: '48px', borderRadius: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    actionInfo: { flex: 1 },
+    actionTitle: { margin: 0, fontSize: '1rem', fontWeight: 700, color: '#1e293b' },
+    actionSub: { margin: 0, fontSize: '0.8rem', color: '#64748b' },
+    roadmapCard: { background: 'white', border: '1px solid #f1f5f9', borderRadius: '24px', padding: '2rem', display: 'flex', flexDirection: 'column', gap: '1rem' },
+    roadmapHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    stageText: { fontSize: '0.85rem', fontWeight: 700, color: '#7c3aed' },
+    roadmapBar: { height: '8px', background: '#ede9fe', borderRadius: '4px', overflow: 'hidden' },
+    roadmapFill: { height: '100%', background: '#7c3aed', borderRadius: '4px' },
+    roadmapNext: { fontSize: '0.85rem', color: '#64748b', margin: 0 },
+    primaryBtn: { background: '#1e293b', color: 'white', border: 'none', padding: '1rem', borderRadius: '14px', fontWeight: 700, cursor: 'pointer', marginTop: '0.5rem' },
+    sidePanel: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+    scoreCard: { background: 'white', border: '1px solid #f1f5f9', borderRadius: '24px', padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' },
+    scoreItem: { flex: 1 },
+    scoreLabel: { fontSize: '0.75rem', color: '#94a3b8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.4rem', textTransform: 'uppercase' },
+    scoreValue: { fontSize: '1.25rem', fontWeight: 800, color: '#1e293b', marginTop: '0.2rem' },
+    scoreDivider: { height: '1px', background: '#f1f5f9' },
+    premiumBanner: { background: 'linear-gradient(135deg, #1e293b 0%, #0f172a 100%)', borderRadius: '24px', padding: '1.5rem', display: 'flex', flexDirection: 'column' },
+    unlockBtn: { background: 'rgba(255,255,255,0.1)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', padding: '0.6rem', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', marginTop: '1rem', fontSize: '0.8rem' },
+    trendingBox: { display: 'flex', flexWrap: 'wrap', gap: '0.5rem' },
+    trendTag: { background: 'white', border: '1px solid #f1f5f9', padding: '0.4rem 0.75rem', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 700, color: '#475569' }
 };

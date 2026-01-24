@@ -1,224 +1,176 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ShoppingBag, Camera, Tag, CheckCircle, Printer, X, ArrowLeft, Image as ImageIcon, Plus } from 'lucide-react';
+import { useAppState } from '@/context/StateContext';
+import { translations } from '@/constants/translations';
 import { useRouter } from 'next/navigation';
-import Receipt from '@/components/Receipt';
+import { ShoppingBag, Camera, Tag, CheckCircle, Printer, X, ArrowLeft, Image as ImageIcon, Plus, LayoutDashboard, History, Search, ChevronRight, Store, Package, Heart, Filter, MapPin } from 'lucide-react';
+import AethelLayout from '@/components/AethelLayout';
+import ReceiptComponent from '@/components/Receipt';
 
 const PRODUCTS = [
-    { id: 1, name: 'Madhubani Painting', price: 1200, seller: 'Priya Arts' },
-    { id: 2, name: 'Organic Wild Honey', price: 450, seller: 'Tribal Co-op' },
-    { id: 3, name: 'Handloom Saree', price: 2500, seller: 'Weavers Guild' },
-    { id: 4, name: 'Bamboo Basket Set', price: 800, seller: 'Green Crafts' },
-    { id: 5, name: 'Terracotta Pots', price: 300, seller: 'Potters Wheel' },
-    { id: 6, name: 'Pickle Jar (1kg)', price: 250, seller: 'Grandma Recipes' },
+    { id: 1, name: 'Madhubani Painting', price: 1200, seller: 'Priya Arts', tag: 'Handmade' },
+    { id: 2, name: 'Organic Wild Honey', price: 450, seller: 'Tribal Co-op', tag: 'Natural' },
+    { id: 3, name: 'Handloom Saree', price: 2500, seller: 'Weavers Guild', tag: 'Craft' },
+    { id: 4, name: 'Bamboo Basket Set', price: 800, seller: 'Green Crafts', tag: 'Handmade' },
+    { id: 5, name: 'Terracotta Pots', price: 300, seller: 'Potters Wheel', tag: 'Natural' },
+    { id: 6, name: 'Pickle Jar (1kg)', price: 250, seller: 'Grandma Recipes', tag: 'Natural' },
 ];
 
 export default function GramBazaarPage() {
+    const { language, addToast } = useAppState();
+    const t = translations[language] || translations.en;
     const router = useRouter();
     const [view, setView] = useState<'list' | 'sell' | 'processing' | 'success-buy' | 'success-sell'>('list');
     const [selectedProduct, setSelectedProduct] = useState<any>(null);
     const [showReceipt, setShowReceipt] = useState(false);
 
+    const sidebarLinks = [
+        { label: 'Village Market', icon: <Store size={20} />, href: '/gram-bazaar', active: true },
+        { label: 'Seller Hub', icon: <Package size={20} />, href: '/gram-bazaar/seller' },
+        { label: 'My Orders', icon: <History size={20} />, href: '/transactions' },
+    ];
+
+    const topStats = [
+        { label: 'Total Sellers', value: '42', sub: 'in your Gram', color: 'var(--theme-terra)' },
+        { label: 'Top Product', value: 'Wild Honey', sub: '50+ Sold today', color: '#16a34a' },
+        { label: 'Delivery Node', value: 'Kiosk 4', sub: 'Sector 12', color: 'var(--theme-azure)' }
+    ];
+
     const handleBuy = (product: any) => {
         setSelectedProduct(product);
         setView('processing');
-        setTimeout(() => {
-            setView('success-buy');
-        }, 2000);
-    };
-
-    const handleSellSubmit = () => {
-        setView('processing');
-        setTimeout(() => {
-            setView('success-sell');
-        }, 2000);
+        setTimeout(() => setView('success-buy'), 2000);
     };
 
     if (view === 'processing') {
         return (
             <div style={styles.loadingOverlay}>
-                <div className="spinner" />
-                <h2 style={{ color: 'white' }}>{selectedProduct ? `Processing Payment for ${selectedProduct.name}...` : 'Listing Your Product...'}</h2>
-                <p style={{ color: '#cbd5e1' }}>{selectedProduct ? 'Connecting to BharatQR Gateway' : 'Syncing with Gram Panchayat Node'}</p>
-                <style jsx>{`
-                    .spinner { border: 4px solid rgba(255,255,255,0.1); border-top: 4px solid white; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
-                    @keyframes spin { 100% { transform: rotate(360deg); } }
-                `}</style>
-            </div>
-        );
-    }
-
-    if (view === 'success-buy') {
-        return (
-            <div style={styles.container}>
-                <div style={styles.receiptCard}>
-                    <CheckCircle size={64} color="#16a34a" />
-                    <h2 style={{ margin: '1rem 0' }}>Order Placed Successfully!</h2>
-                    <div style={styles.receiptLine}><span>Transaction ID:</span> <span>#GB-{Math.random().toString(36).substr(2, 9).toUpperCase()}</span></div>
-                    <div style={styles.receiptLine}><span>Product:</span> <span>{selectedProduct?.name}</span></div>
-                    <div style={styles.receiptLine}><span>Seller:</span> <span>{selectedProduct?.seller}</span></div>
-                    <div style={styles.receiptLine}><span>Amount Paid:</span> <span style={{ fontWeight: 'bold', color: '#ea580c' }}>₹{selectedProduct?.price}</span></div>
-                    <div style={styles.receiptLine}><span>Delivery:</span> <span>To SUVIDHA Kiosk (within 3 days)</span></div>
-
-                    <button onClick={() => setShowReceipt(true)} style={styles.doneBtn}>
-                        <Printer size={18} /> View Digital Receipt
-                    </button>
-                    <button onClick={() => setView('list')} style={styles.backBtn}>Return to Bazaar</button>
-                </div>
-
-                {showReceipt && (
-                    <Receipt
-                        type="Gram Bazaar Purchase"
-                        transactionId={`GB-ORD-${Date.now()}`}
-                        amount={selectedProduct?.price}
-                        customerName="Citizen Buyer"
-                        details={{
-                            'Product': selectedProduct?.name,
-                            'Seller': selectedProduct?.seller,
-                            'Kiosk Node': 'GB-KN-4421',
-                            'Delivery Type': 'Kiosk Pickup'
-                        }}
-                        onClose={() => setShowReceipt(false)}
-                    />
-                )}
-            </div>
-        );
-    }
-
-    if (view === 'success-sell') {
-        return (
-            <div style={styles.container}>
-                <div style={styles.receiptCard}>
-                    <CheckCircle size={64} color="#ea580c" />
-                    <h2 style={{ margin: '1rem 0' }}>Product Listed!</h2>
-                    <p style={{ color: '#64748b', marginBottom: '1.5rem' }}>Your product is now live on the global SUVIDHA marketplace.</p>
-                    <div style={styles.receiptLine}><span>Listing ID:</span> <span>#GB-LIST-{Math.random().toString(16).substr(2, 6).toUpperCase()}</span></div>
-                    <div style={styles.receiptLine}><span>Verification:</span> <span style={{ color: '#16a34a' }}>AI Approved</span></div>
-
-                    <button onClick={() => setView('list')} style={styles.doneBtn}>
-                        Continue Listing Items
-                    </button>
-                    <button onClick={() => router.push('/')} style={styles.backBtn}>Back to Home</button>
-                </div>
+                <div style={styles.pulseIcon}><ShoppingBag size={48} color="white" /></div>
+                <h2 style={{ color: 'white' }}>{selectedProduct ? `Securing ${selectedProduct.name}...` : 'Syncing Hub...'}</h2>
+                <p style={{ color: 'rgba(255,255,255,0.7)' }}>Connecting to Decentralized Village Ledger</p>
             </div>
         );
     }
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <button onClick={() => view === 'sell' ? setView('list') : router.back()} style={styles.headerBackBtn}>
-                    <ArrowLeft size={32} />
-                </button>
-                <ShoppingBag size={48} color="#ea580c" />
-                <div>
-                    <h1 style={styles.title}>Gram Bazaar</h1>
-                    <p style={styles.subtitle}>Direct from Village to World | Vocal for Local</p>
+        <AethelLayout
+            title="Gram Bazaar"
+            themeColor="var(--theme-terra)"
+            themeSoft="var(--theme-terra-soft)"
+            sidebarLinks={sidebarLinks}
+        >
+            <div style={styles.contentGrid}>
+                {/* Stats Row */}
+                <div style={styles.statsRow}>
+                    {topStats.map((stat, i) => (
+                        <div key={i} style={styles.statCard}>
+                            <p style={styles.statLabel}>{stat.label}</p>
+                            <h3 style={{ ...styles.statValue, color: stat.color }}>{stat.value}</h3>
+                            <p style={styles.statSub}>{stat.sub}</p>
+                        </div>
+                    ))}
+                </div>
+
+                <div style={styles.mainLayout}>
+                    <div style={styles.marketSection}>
+                        <div style={styles.sectionHeader}>
+                            <h2 style={styles.sectionTitle}>Handcrafted Marketplace</h2>
+                            <div style={styles.searchRow}>
+                                <div style={styles.searchBox}><Search size={18} /><input placeholder="Search products..." style={styles.searchInput} /></div>
+                                <button style={styles.filterBtn}><Filter size={18} /> Filters</button>
+                            </div>
+                        </div>
+
+                        <div style={styles.productGrid}>
+                            {PRODUCTS.map(product => (
+                                <div key={product.id} style={styles.productCard}>
+                                    <div style={styles.productImage}>
+                                        <div style={styles.productTag}>{product.tag}</div>
+                                        <Tag size={40} color="var(--theme-terra-soft)" />
+                                    </div>
+                                    <div style={styles.productInfo}>
+                                        <h3 style={styles.productName}>{product.name}</h3>
+                                        <div style={styles.sellerRow}><MapPin size={12} /> {product.seller}</div>
+                                        <div style={styles.priceRow}>
+                                            <span style={styles.price}>₹{product.price}</span>
+                                            <button onClick={() => router.push('/gram-bazaar/checkout')} style={styles.buyBtn}>Add to Bag</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div style={styles.sidePanel}>
+                        <div style={styles.vocalCard}>
+                            <Heart size={32} color="white" />
+                            <h4 style={{ color: 'white', margin: '0.5rem 0 0.25rem' }}>Vocal for Local</h4>
+                            <p style={{ color: 'white', opacity: 0.9, fontSize: '0.8rem', margin: 0 }}>Supporting local artisans directly. 100% of proceeds go to the creator.</p>
+                        </div>
+
+                        <div style={styles.sellShortcut}>
+                            <h4 style={{ margin: '0 0 1rem', fontSize: '0.9rem', color: '#1e293b' }}>Your Listings</h4>
+                            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: '0 0 1.25rem' }}>You have 2 items live in the bazaar.</p>
+                            <button onClick={() => router.push('/gram-bazaar/seller')} style={styles.primaryActionBtn}>Go to Seller Studio</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            {view === 'list' ? (
-                <>
-                    <div style={styles.actions}>
-                        <button onClick={() => setView('sell')} style={styles.sellBtn}>
-                            <Plus size={20} /> Sell Your Product
-                        </button>
-                    </div>
-
-                    <div style={styles.grid}>
-                        {PRODUCTS.map(product => (
-                            <div key={product.id} style={styles.card}>
-                                <div style={styles.imagePlaceholder}>
-                                    <Tag size={40} color="#cbd5e1" />
-                                </div>
-                                <div style={styles.cardContent}>
-                                    <h3 style={styles.productName}>{product.name}</h3>
-                                    <p style={styles.seller}>By {product.seller}</p>
-                                    <div style={styles.priceRow}>
-                                        <span style={styles.price}>₹{product.price}</span>
-                                        <button
-                                            onClick={() => handleBuy(product)}
-                                            style={styles.buyBtn}
-                                        >
-                                            Buy Now
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </>
-            ) : (
-                <div style={styles.sellFormCard}>
-                    <div style={styles.sellHeader}>
-                        <Camera size={60} color="#ea580c" />
-                        <h3>List New Product</h3>
-                    </div>
-
-                    <div style={styles.cameraSim}>
-                        <ImageIcon size={48} color="#94a3b8" />
-                        <p>Camera Simulation Active</p>
-                        <button style={styles.captureBtnSim}>Capture Product Photo</button>
-                    </div>
-
-                    <div style={styles.formFields}>
-                        <div style={styles.field}>
-                            <label style={styles.label}>Product Name</label>
-                            <input placeholder="Ex: Hand-woven Shawl" style={styles.input} readOnly value="Assam Silk Scarf" />
+            {view === 'success-buy' && (
+                <div style={styles.modalOverlay}>
+                    <div style={styles.successCard}>
+                        <CheckCircle size={64} color="#16a34a" />
+                        <h2 style={styles.cardTitle}>Order Placed!</h2>
+                        <p style={styles.cardSub}>Pickup code: GB-{Math.random().toString(36).substr(2, 6).toUpperCase()}</p>
+                        <div style={styles.billBox}>
+                            <div style={styles.billRow}><span>Total</span><strong>₹{selectedProduct?.price}</strong></div>
+                            <div style={styles.billRow}><span>Status</span><strong style={{ color: '#16a34a' }}>Paid (UPI)</strong></div>
                         </div>
-                        <div style={styles.field}>
-                            <label style={styles.label}>Price (₹)</label>
-                            <input style={styles.input} readOnly value="1450" />
-                        </div>
+                        <button onClick={() => setView('list')} style={styles.primaryActionBtn}>Continue Shopping</button>
                     </div>
-
-                    <button onClick={handleSellSubmit} style={styles.listBtn}>
-                        List on SUVIDHA Network
-                    </button>
                 </div>
             )}
-        </div>
+        </AethelLayout>
     );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    container: { padding: '2rem', maxWidth: '1200px', margin: '0 auto' },
-    header: {
-        display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem',
-        backgroundColor: 'white', padding: '2rem', borderRadius: '15px',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', borderLeft: '6px solid #ea580c',
-    },
-    headerBackBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#ea580c', padding: '0.5rem' },
-    title: { fontSize: '2rem', fontWeight: 'bold', color: '#1e293b', margin: 0 },
-    subtitle: { color: '#64748b', marginTop: '0.5rem' },
-    actions: { display: 'flex', justifyContent: 'flex-end', marginBottom: '2rem' },
-    sellBtn: {
-        display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '1rem 2rem',
-        backgroundColor: '#ea580c', color: 'white', border: 'none', borderRadius: '10px',
-        fontSize: '1.1rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 10px rgba(234, 88, 12, 0.3)',
-    },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '2rem' },
-    card: { backgroundColor: 'white', borderRadius: '15px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)', display: 'flex', flexDirection: 'column' },
-    imagePlaceholder: { height: '200px', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-    cardContent: { padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' },
-    productName: { margin: '0 0 0.5rem 0', color: '#1e293b' },
-    seller: { color: '#64748b', fontSize: '0.9rem', marginBottom: '1rem' },
-    priceRow: { marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-    price: { fontSize: '1.4rem', fontWeight: 'bold', color: '#ea580c' },
-    buyBtn: { padding: '0.5rem 1rem', backgroundColor: '#1e293b', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer' },
-    loadingOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.9)', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' },
-    receiptCard: { backgroundColor: 'white', padding: '3rem', borderRadius: '20px', maxWidth: '500px', margin: '2rem auto', textAlign: 'center', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' },
-    receiptLine: { display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px dashed #e2e8f0', color: '#475569' },
-    doneBtn: { marginTop: '2rem', width: '100%', padding: '1rem', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '10px', fontWeight: 'bold', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', cursor: 'pointer' },
-    backBtn: { marginTop: '1rem', width: '100%', padding: '1rem', backgroundColor: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '10px', fontWeight: 'bold', cursor: 'pointer' },
-    sellFormCard: { backgroundColor: 'white', padding: '3rem', borderRadius: '2rem', boxShadow: 'var(--card-shadow)', maxWidth: '700px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' },
-    sellHeader: { textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' },
-    cameraSim: { height: '300px', background: '#f8fafc', border: '3px dashed #cbd5e1', borderRadius: '1rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' },
-    captureBtnSim: { padding: '0.75rem 1.5rem', borderRadius: '50px', background: 'white', border: '2px solid #ea580c', color: '#ea580c', fontWeight: 'bold', cursor: 'pointer' },
-    formFields: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
-    field: { display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-    label: { fontWeight: 'bold', color: '#475569' },
-    input: { padding: '1rem', fontSize: '1.2rem', borderRadius: '0.5rem', border: '2px solid #e2e8f0', background: '#f8fafc' },
-    listBtn: { padding: '1.5rem', background: '#ea580c', color: 'white', border: 'none', borderRadius: '1rem', fontSize: '1.3rem', fontWeight: 'bold', cursor: 'pointer' }
+    contentGrid: { display: 'flex', flexDirection: 'column', gap: '2.5rem' },
+    statsRow: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' },
+    statCard: { background: 'white', padding: '1.5rem', borderRadius: '24px', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+    statLabel: { fontSize: '0.85rem', fontWeight: 600, color: '#64748b', margin: 0 },
+    statValue: { fontSize: '1.5rem', fontWeight: 800, margin: 0 },
+    statSub: { fontSize: '0.75rem', color: '#94a3b8', margin: 0 },
+    mainLayout: { display: 'grid', gridTemplateColumns: '1fr 320px', gap: '2rem' },
+    marketSection: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+    sectionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+    sectionTitle: { fontSize: '1.25rem', fontWeight: 800, color: '#1e293b', margin: 0 },
+    searchRow: { display: 'flex', gap: '0.75rem' },
+    searchBox: { display: 'flex', alignItems: 'center', gap: '0.75rem', background: '#f8fafc', padding: '0.6rem 1.25rem', borderRadius: '16px', border: '1px solid #e1e5e8' },
+    searchInput: { border: 'none', background: 'none', outline: 'none', color: '#1e293b', fontSize: '0.9rem', width: '150px' },
+    filterBtn: { background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', fontWeight: 700, cursor: 'pointer' },
+    productGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem' },
+    productCard: { background: 'white', borderRadius: '24px', overflow: 'hidden', border: '1px solid #f1f5f9', display: 'flex', flexDirection: 'column' },
+    productImage: { height: '180px', background: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' },
+    productTag: { position: 'absolute', top: '1rem', left: '1rem', background: 'white', padding: '0.25rem 0.6rem', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800, color: '#64748b', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' },
+    productInfo: { padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' },
+    productName: { margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' },
+    sellerRow: { display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.8rem', color: '#94a3b8' },
+    priceRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' },
+    price: { fontSize: '1.25rem', fontWeight: 900, color: 'var(--theme-terra)' },
+    buyBtn: { background: '#1e293b', color: 'white', border: 'none', padding: '0.5rem 1rem', borderRadius: '10px', fontWeight: 700, cursor: 'pointer', fontSize: '0.85rem' },
+    sidePanel: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+    vocalCard: { background: 'linear-gradient(135deg, #78350f 0%, #451a03 100%)', borderRadius: '24px', padding: '2rem' },
+    sellShortcut: { background: 'white', border: '1px solid #f1f5f9', borderRadius: '24px', padding: '1.5rem' },
+    primaryActionBtn: { background: 'var(--theme-terra)', color: 'white', border: 'none', width: '100%', padding: '0.8rem', borderRadius: '14px', fontWeight: 800, cursor: 'pointer' },
+    loadingOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1.5rem', textAlign: 'center' },
+    pulseIcon: { animation: 'pulse 2s infinite' },
+    modalOverlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(5px)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    successCard: { background: 'white', padding: '3rem', borderRadius: '32px', width: '100%', maxWidth: '440px', textAlign: 'center', display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+    cardTitle: { margin: 0, fontSize: '1.5rem', fontWeight: 900, color: '#1e293b' },
+    cardSub: { fontSize: '0.9rem', color: '#64748b', margin: 0 },
+    billBox: { background: '#f8fafc', padding: '1.25rem', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '0.75rem' },
+    billRow: { display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }
 };

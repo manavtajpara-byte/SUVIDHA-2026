@@ -3,17 +3,24 @@
 import React, { useState } from 'react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
-import { ArrowLeft, CheckCircle2, Shield, Calendar, User, Search, MapPin } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Shield, Calendar, User, Search, MapPin, LayoutDashboard, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Receipt from '@/components/Receipt';
+import AethelLayout from '@/components/AethelLayout';
 
 export default function VaccinationPage() {
     const { language } = useAppState();
-    const t = translations[language];
+    const t = translations[language] || translations.en;
     const router = useRouter();
     const [aadharNo, setAadharNo] = useState('');
     const [step, setStep] = useState(1); // 1: Search, 2: Slot Selection, 3: Success
     const [showReceipt, setShowReceipt] = useState(false);
+
+    const sidebarLinks = [
+        { label: 'Health Center', icon: <LayoutDashboard size={20} />, href: '/healthcare' },
+        { label: 'Vaccination', icon: <Shield size={20} />, href: '/healthcare/vaccination', active: true },
+        { label: 'Action History', icon: <History size={20} />, href: '/transactions' },
+    ];
 
     const centers = [
         { id: 'C1', name: 'District General Hospital', distance: '1.2 km', available: true },
@@ -29,98 +36,105 @@ export default function VaccinationPage() {
     };
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <button onClick={() => step === 1 ? router.back() : setStep(step - 1)} style={styles.backBtn}>
-                    <ArrowLeft size={32} />
-                </button>
-                <h2 style={styles.title}>Vaccination Slot Booking</h2>
-            </div>
+        <AethelLayout
+            title="Vaccination Center"
+            themeColor="var(--theme-ruby)"
+            themeSoft="var(--theme-ruby-soft)"
+            sidebarLinks={sidebarLinks}
+        >
+            <div style={styles.container}>
+                <div style={styles.header}>
+                    <button onClick={() => step === 1 ? router.back() : setStep(step - 1)} style={styles.backBtn}>
+                        <ArrowLeft size={32} />
+                    </button>
+                    <h2 style={styles.title}>Slot Booking</h2>
+                </div>
 
-            <div style={styles.card}>
-                {step === 1 && (
-                    <form onSubmit={handleSearch} style={styles.form}>
-                        <div style={styles.promoHeader}>
-                            <Shield size={60} color="#059669" />
-                            <p>Book your 1st, 2nd or Precautionary Dose</p>
-                        </div>
-                        <div style={styles.fieldGroup}>
-                            <label style={styles.label}>Aadhar Number / CoWIN Registered ID</label>
-                            <input
-                                value={aadharNo}
-                                onChange={(e) => setAadharNo(e.target.value)}
-                                placeholder="XXXX-XXXX-XXXX"
-                                style={styles.input}
-                            />
-                        </div>
-                        <button type="submit" style={styles.submitBtn} disabled={!aadharNo}>
-                            Check Eligibility & Find Centers
-                        </button>
-                    </form>
-                )}
+                <div style={styles.card}>
+                    {step === 1 && (
+                        <form onSubmit={handleSearch} style={styles.form}>
+                            <div style={styles.promoHeader}>
+                                <Shield size={60} color="#059669" />
+                                <p>Book your 1st, 2nd or Precautionary Dose</p>
+                            </div>
+                            <div style={styles.fieldGroup}>
+                                <label style={styles.label}>Aadhar Number / CoWIN Registered ID</label>
+                                <input
+                                    value={aadharNo}
+                                    onChange={(e) => setAadharNo(e.target.value)}
+                                    placeholder="XXXX-XXXX-XXXX"
+                                    style={styles.input}
+                                />
+                            </div>
+                            <button type="submit" style={styles.submitBtn} disabled={!aadharNo}>
+                                Find Centers Near You
+                            </button>
+                        </form>
+                    )}
 
-                {step === 2 && (
-                    <div style={styles.stepContainer}>
-                        <div style={styles.userBadge}>
-                            <User size={24} />
-                            <span>Hi, <strong>Karan Verma</strong> (Eligible for Dose 2)</span>
-                        </div>
-                        <h3 style={styles.subTitle}>Select Vaccination Center</h3>
-                        <div style={styles.centerList}>
-                            {centers.map(center => (
-                                <button
-                                    key={center.id}
-                                    onClick={() => setSelectedCenter(center)}
-                                    style={{
-                                        ...styles.centerBtn,
-                                        borderColor: selectedCenter.id === center.id ? '#059669' : '#e2e8f0',
-                                        backgroundColor: selectedCenter.id === center.id ? '#f0fdf4' : 'white'
-                                    }}
-                                >
-                                    <div style={styles.centerInfo}>
-                                        <MapPin size={20} />
-                                        <div>
-                                            <strong style={{ display: 'block' }}>{center.name}</strong>
-                                            <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>{center.distance} away</span>
+                    {step === 2 && (
+                        <div style={styles.stepContainer}>
+                            <div style={styles.userBadge}>
+                                <User size={24} />
+                                <span>Hi, <strong>Karan Verma</strong> (Eligible for Dose 2)</span>
+                            </div>
+                            <h3 style={styles.subTitle}>Select Vaccination Center</h3>
+                            <div style={styles.centerList}>
+                                {centers.map(center => (
+                                    <button
+                                        key={center.id}
+                                        onClick={() => setSelectedCenter(center)}
+                                        style={{
+                                            ...styles.centerBtn,
+                                            borderColor: selectedCenter.id === center.id ? '#059669' : '#e2e8f0',
+                                            backgroundColor: selectedCenter.id === center.id ? '#f0fdf4' : 'white'
+                                        }}
+                                    >
+                                        <div style={styles.centerInfo}>
+                                            <MapPin size={20} />
+                                            <div>
+                                                <strong style={{ display: 'block' }}>{center.name}</strong>
+                                                <span style={{ fontSize: '0.9rem', opacity: 0.7 }}>{center.distance} away</span>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <span style={styles.availBadge}>Available</span>
-                                </button>
-                            ))}
+                                        <span style={styles.availBadge}>Available</span>
+                                    </button>
+                                ))}
+                            </div>
+                            <button onClick={() => setStep(3)} style={styles.submitBtnGreen}>Confirm Slot for Tomorrow</button>
                         </div>
-                        <button onClick={() => setStep(3)} style={styles.submitBtnGreen}>Confirm Slot for Tomorrow</button>
-                    </div>
-                )}
+                    )}
 
-                {step === 3 && (
-                    <div style={styles.success}>
-                        <CheckCircle2 size={120} color="#059669" />
-                        <h3 style={{ ...styles.successTitle, color: '#059669' }}>Slot Booked!</h3>
-                        <p>Appointment ID: VAC-REF-44201</p>
-                        <div style={styles.receiptActions}>
-                            <button onClick={() => setShowReceipt(true)} style={{ ...styles.receiptBtn, borderColor: '#059669', color: '#059669' }}>Booking Receipt</button>
-                            <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
+                    {step === 3 && (
+                        <div style={styles.success}>
+                            <CheckCircle2 size={120} color="#059669" />
+                            <h3 style={{ ...styles.successTitle, color: '#059669' }}>Slot Booked!</h3>
+                            <p>Appointment ID: VAC-REF-44201</p>
+                            <div style={styles.receiptActions}>
+                                <button onClick={() => setShowReceipt(true)} style={{ ...styles.receiptBtn, borderColor: '#059669', color: '#059669' }}>Booking Receipt</button>
+                                <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
+                            </div>
                         </div>
-                    </div>
+                    )}
+                </div>
+
+                {showReceipt && (
+                    <Receipt
+                        type="vaccination-booking"
+                        transactionId="VAC-REF-44201"
+                        customerName="Karan Verma"
+                        details={{
+                            'Beneficiary ID': aadharNo || 'XXXX-XXXX-XXXX',
+                            'Vaccine Dose': 'Dose 2 (Covishield)',
+                            'Center Name': selectedCenter.name,
+                            'Slot Date': '20 Jan 2026',
+                            'Slot Time': '10:00 AM - 12:00 PM'
+                        }}
+                        onClose={() => setShowReceipt(false)}
+                    />
                 )}
             </div>
-
-            {showReceipt && (
-                <Receipt
-                    type="vaccination-booking"
-                    transactionId="VAC-REF-44201"
-                    customerName="Karan Verma"
-                    details={{
-                        'Beneficiary ID': aadharNo || 'XXXX-XXXX-XXXX',
-                        'Vaccine Dose': 'Dose 2 (Covishield)',
-                        'Center Name': selectedCenter.name,
-                        'Slot Date': '20 Jan 2026',
-                        'Slot Time': '10:00 AM - 12:00 PM'
-                    }}
-                    onClose={() => setShowReceipt(false)}
-                />
-            )}
-        </div>
+        </AethelLayout>
     );
 }
 

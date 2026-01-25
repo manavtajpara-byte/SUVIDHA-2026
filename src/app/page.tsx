@@ -94,8 +94,9 @@ export default function Home() {
       <div style={styles.dashboardHeader}>
         <div style={styles.bannerCard}>
           <div style={styles.bannerText}>
+            <div style={styles.launchBadge}>🚀 SOVEREIGN LAUNCH v1.0.0</div>
             <h2 style={styles.bannerTitle}>Good morning, {user?.name.split(' ')[0] || 'Citizen'}!</h2>
-            <p style={styles.bannerSub}>All systems are operational. You have 2 pending notifications.</p>
+            <p style={styles.bannerSub}>Welcome to the national deployment of SUVIDHA 2026. All systems optimized.</p>
           </div>
           <div style={styles.bannerIcon}>✨</div>
         </div>
@@ -214,5 +215,17 @@ const styles: Record<string, React.CSSProperties> = {
   },
   sectorContent: { flex: 1 },
   sectorLabel: { margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#1e293b' },
-  sectorDesc: { margin: 0, fontSize: '0.85rem', color: '#64748b' }
+  sectorDesc: { margin: 0, fontSize: '0.85rem', color: '#64748b' },
+  launchBadge: {
+    background: 'rgba(255,255,255,0.1)',
+    backdropFilter: 'blur(10px)',
+    padding: '0.4rem 0.8rem',
+    borderRadius: '10px',
+    fontSize: '0.7rem',
+    fontWeight: 900,
+    width: 'fit-content',
+    marginBottom: '1rem',
+    border: '1px solid rgba(255,255,255,0.2)',
+    letterSpacing: '0.05em'
+  }
 };

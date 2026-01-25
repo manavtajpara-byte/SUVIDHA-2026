@@ -31,6 +31,10 @@ interface StateContextType {
   toasts: Array<{ id: string; message: string; type: 'success' | 'error' | 'warning' | 'info'; duration?: number }>;
   addToast: (toast: Omit<{ id: string; message: string; type: 'success' | 'error' | 'warning' | 'info'; duration?: number }, 'id'>) => void;
   removeToast: (id: string) => void;
+  fontSize: number;
+  setFontSize: (size: number) => void;
+  highContrast: boolean;
+  setHighContrast: (val: boolean) => void;
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
@@ -46,6 +50,38 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
   } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [toasts, setToasts] = useState<Array<{ id: string; message: string; type: 'success' | 'error' | 'warning' | 'info'; duration?: number }>>([]);
+  const [fontSize, setFontSize] = useState(16);
+  const [highContrast, setHighContrast] = useState(false);
+
+  // Persistence Layer
+  useEffect(() => {
+    const savedLang = localStorage.getItem('suvidha_lang') as Language;
+    if (savedLang) setLanguage(savedLang);
+
+    const savedUser = localStorage.getItem('suvidha_session_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+      setIsLoggedIn(true);
+    }
+
+    const savedSize = localStorage.getItem('suvidha_font_size');
+    if (savedSize) setFontSize(parseInt(savedSize));
+
+    const savedContrast = localStorage.getItem('suvidha_high_contrast');
+    if (savedContrast) setHighContrast(JSON.parse(savedContrast));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('suvidha_lang', language);
+  }, [language]);
+
+  useEffect(() => {
+    localStorage.setItem('suvidha_font_size', fontSize.toString());
+  }, [fontSize]);
+
+  useEffect(() => {
+    localStorage.setItem('suvidha_high_contrast', JSON.stringify(highContrast));
+  }, [highContrast]);
 
   const addToast = (toast: Omit<{ id: string; message: string; type: 'success' | 'error' | 'warning' | 'info'; duration?: number }, 'id'>) => {
     const id = Date.now().toString();
@@ -67,7 +103,9 @@ export function StateProvider({ children }: { children: React.ReactNode }) {
       isLoggedIn, setIsLoggedIn,
       user, setUser,
       searchQuery, setSearchQuery,
-      toasts, addToast, removeToast
+      toasts, addToast, removeToast,
+      fontSize, setFontSize,
+      highContrast, setHighContrast
     }}>
       {children}
     </StateContext.Provider>

@@ -47,8 +47,8 @@ export default function RegisterPage() {
         setVerificationStatus('verifying');
         setTimeout(() => {
             setVerificationStatus('verified');
-            setName("Verified Citizen");
-            addToast({ message: "Identity verified via DigiLocker", type: 'success' });
+            setName("Karan Verma"); // Simulated Aadhaar name
+            addToast({ message: "Identity verified via Digiyatra-Link", type: 'success' });
             setStep(3);
         }, 1500);
     };

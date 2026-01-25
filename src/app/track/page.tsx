@@ -10,7 +10,7 @@ import Receipt from '@/components/Receipt';
 
 export default function TrackPage() {
     const { language } = useAppState();
-    const t = translations[language];
+    const t = (translations[language] || translations.en) as any;
     const router = useRouter();
     const [ticketId, setTicketId] = useState('');
     const [tracking, setTracking] = useState(false);

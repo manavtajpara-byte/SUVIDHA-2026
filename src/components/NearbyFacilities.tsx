@@ -7,7 +7,7 @@ import { MapPin, Phone, ExternalLink, Hospital, Landmark, ShieldCheck, Map } fro
 
 export default function NearbyFacilities() {
     const { language } = useAppState();
-    const t = translations[language] || translations.en;
+    const t = (translations[language] || translations.en) as any;
 
     const facilities = [
         {

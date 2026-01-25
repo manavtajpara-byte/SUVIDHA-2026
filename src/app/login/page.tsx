@@ -52,6 +52,46 @@ export default function LoginPage() {
         }, 1200);
     };
 
+
+    const handleBiometricLogin = () => {
+        setLoading(true);
+        setError('');
+        addToast({ message: "Scanning fingerprint...", type: 'info' });
+
+        setTimeout(() => {
+            try {
+                // Find the last registered user as a mock for biometric match
+                const keys = Object.keys(localStorage);
+                const userKey = keys.find(k => k.startsWith('user_'));
+
+                if (userKey) {
+                    const storedUser = JSON.parse(localStorage.getItem(userKey)!);
+                    const sessionData = {
+                        name: storedUser.name,
+                        mobile: storedUser.mobile,
+                        role: storedUser.role || 'citizen',
+                        details: storedUser.details || {}
+                    };
+                    localStorage.setItem('suvidha_session_user', JSON.stringify(sessionData));
+                    setUser(sessionData);
+                    setIsLoggedIn(true);
+                    addToast({ message: `Biometric Match: Welcome, ${storedUser.name}!`, type: 'success' });
+                    setLoading(false);
+                    router.push('/');
+                } else {
+                    setError("No biometric profile found. Please register first.");
+                    addToast({ message: "Biometric authentication failed", type: 'error' });
+                    setLoading(false);
+                }
+            } catch (err) {
+                setError("Biometric scanner error. Please try again.");
+                addToast({ message: "Scanner error", type: 'error' });
+                setLoading(false);
+            }
+        }, 1500);
+    };
+
+
     return (
         <div style={styles.container}>
             {/* Ambient Background */}
@@ -126,8 +166,12 @@ export default function LoginPage() {
                         <div style={styles.line} />
                     </div>
 
-                    <button style={styles.biometricBtn}>
-                        <Fingerprint size={24} /> Login with Biometrics
+                    <button
+                        onClick={handleBiometricLogin}
+                        style={styles.biometricBtn}
+                        disabled={loading}
+                    >
+                        <Fingerprint size={24} /> {loading ? 'Scanning...' : 'Login with Biometrics'}
                     </button>
 
                     <div style={styles.registerLink}>

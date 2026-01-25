@@ -1,14 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Wheat, MapPin, Search, CheckCircle, AlertTriangle, Info, ArrowLeft, Store } from 'lucide-react';
+import { Wheat, MapPin, Search, CheckCircle, AlertTriangle, Info, ArrowLeft, Store, LayoutDashboard, History, FileText } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AethelLayout from '@/components/AethelLayout';
 
 export default function ONORCPage() {
     const router = useRouter();
     const [view, setView] = useState<'portability' | 'stock'>('portability');
     const [rcNumber, setRcNumber] = useState('');
     const [searchResult, setSearchResult] = useState<any>(null);
+
+    const sidebarLinks = [
+        { label: 'Ration Center', icon: <LayoutDashboard size={20} />, href: '/ration-card' },
+        { label: 'Portability (ONORC)', icon: <Wheat size={20} />, href: '/ration-card/onorc', active: true },
+        { label: 'Documents', icon: <FileText size={20} />, href: '/documents' },
+        { label: 'History', icon: <History size={20} />, href: '/transactions' },
+    ];
 
     const handleCheck = () => {
         if (!rcNumber) return;
@@ -83,40 +91,47 @@ export default function ONORCPage() {
     );
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <button onClick={() => router.back()} style={styles.backBtn}>
-                    <ArrowLeft size={32} />
-                </button>
-                <Wheat size={48} color="#ea580c" />
-                <div>
-                    <h1 style={styles.title}>One Nation One Ration Card</h1>
-                    <p style={styles.subtitle}>Seamless Food Security for Migrant Workers</p>
+        <AethelLayout
+            title="ONORC Portability Hub"
+            themeColor="#ea580c"
+            themeSoft="#fff7ed"
+            sidebarLinks={sidebarLinks}
+        >
+            <div style={styles.container}>
+                <div style={styles.header}>
+                    <button onClick={() => router.back()} style={styles.backBtn}>
+                        <ArrowLeft size={32} />
+                    </button>
+                    <Wheat size={48} color="#ea580c" />
+                    <div>
+                        <h1 style={styles.title}>National Portability</h1>
+                        <p style={styles.subtitle}>Seamless Food Security for Every Citizen</p>
+                    </div>
                 </div>
-            </div>
 
-            <div style={styles.tabs}>
-                <button
-                    style={{ ...styles.tab, borderBottom: view === 'portability' ? '4px solid #ea580c' : 'none', color: view === 'portability' ? '#ea580c' : '#64748b' }}
-                    onClick={() => setView('portability')}
-                >
-                    Eligibility Check
-                </button>
-                <button
-                    style={{ ...styles.tab, borderBottom: view === 'stock' ? '4px solid #ea580c' : 'none', color: view === 'stock' ? '#ea580c' : '#64748b' }}
-                    onClick={() => setView('stock')}
-                >
-                    Nearby Stock
-                </button>
-            </div>
+                <div style={styles.tabs}>
+                    <button
+                        style={{ ...styles.tab, borderBottom: view === 'portability' ? '4px solid #ea580c' : 'none', color: view === 'portability' ? '#ea580c' : '#64748b' }}
+                        onClick={() => setView('portability')}
+                    >
+                        Eligibility Audit
+                    </button>
+                    <button
+                        style={{ ...styles.tab, borderBottom: view === 'stock' ? '4px solid #ea580c' : 'none', color: view === 'stock' ? '#ea580c' : '#64748b' }}
+                        onClick={() => setView('stock')}
+                    >
+                        Real-time Stock
+                    </button>
+                </div>
 
-            {view === 'portability' ? <PortabilityView /> : <StockView />}
-        </div>
+                {view === 'portability' ? <PortabilityView /> : <StockView />}
+            </div>
+        </AethelLayout>
     );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    container: { padding: '2rem', maxWidth: '1000px', margin: '0 auto' },
+    container: { padding: '2rem 1rem', maxWidth: '1000px', margin: '0 auto' },
     header: { display: 'flex', alignItems: 'center', gap: '1.5rem', marginBottom: '2rem' },
     backBtn: { background: 'none', border: 'none', cursor: 'pointer', color: '#ea580c' },
     title: { fontSize: '2.5rem', fontWeight: 900, color: '#1e293b', margin: 0 },
@@ -132,7 +147,7 @@ const styles: Record<string, React.CSSProperties> = {
     statusBanner: { display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#15803d', fontWeight: 'bold', marginBottom: '1.5rem', fontSize: '1.2rem' },
     detailRow: { display: 'flex', justifyContent: 'space-between', padding: '0.75rem 0', borderBottom: '1px dashed #fed7aa', color: '#475569' },
     hint: { marginTop: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: '#ea580c' },
-    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.5rem' },
+    grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.5rem' },
     shopCard: { background: 'white', padding: '1.5rem', borderRadius: '20px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' },
     shopHeader: { display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '0.5rem' },
     shopLoc: { fontSize: '0.9rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '1.5rem' },

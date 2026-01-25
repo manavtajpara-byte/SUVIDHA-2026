@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 
 export default function GrievancePage() {
     const { language } = useAppState();
-    const t = translations[language];
+    const t = (translations[language] || translations.en) as any;
     const router = useRouter();
     const [name, setName] = useState('');
     const [mobile, setMobile] = useState('');

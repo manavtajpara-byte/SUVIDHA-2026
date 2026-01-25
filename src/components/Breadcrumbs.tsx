@@ -10,7 +10,7 @@ import { translations } from '@/constants/translations';
 export default function Breadcrumbs() {
     const pathname = usePathname();
     const { language } = useAppState();
-    const t = translations[language] || translations.en;
+    const t = (translations[language] || translations.en) as any;
 
     // Generate breadcrumb items from pathname
     const pathSegments = pathname.split('/').filter(segment => segment);

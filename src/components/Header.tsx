@@ -11,7 +11,7 @@ import VoiceAssistant from './VoiceAssistant';
 
 export default function Header() {
     const { language, setLanguage, searchQuery, setSearchQuery } = useAppState();
-    const t = translations[language];
+    const t = (translations[language] || translations.en) as any;
     const [showLangMenu, setShowLangMenu] = React.useState(false);
     const [showVoiceAssistant, setShowVoiceAssistant] = React.useState(false);
 

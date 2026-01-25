@@ -9,7 +9,7 @@ import Receipt from '@/components/Receipt';
 
 export default function MetroCardPage() {
     const { language } = useAppState();
-    const t = translations[language];
+    const t = (translations[language] || translations.en) as any;
     const router = useRouter();
     const [cardNo, setCardNo] = useState('');
     const [amount, setAmount] = useState('');

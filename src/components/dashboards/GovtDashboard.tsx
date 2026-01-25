@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Users, Bell, BarChart3, Radio, ShieldCheck, Activity, Search, ChevronRight, PieChart, Layers } from 'lucide-react';
+import { Users, Bell, BarChart3, Radio, ShieldCheck, Activity, Search, ChevronRight, PieChart, Layers, MapPin, Smile, Frown, Meh, TrendingUp } from 'lucide-react';
 import { useAppState } from '@/context/StateContext';
 
 export default function GovtDashboard() {
     const { user, addToast } = useAppState();
     const [msg, setMsg] = useState('');
     const [target, setTarget] = useState('all');
+    const [isStressTesting, setIsStressTesting] = useState(false);
+    const [simData, setSimData] = useState({ load: 0.1, users: 48214 });
 
     const handleBroadcast = () => {
         if (!msg) return;
@@ -26,6 +28,21 @@ export default function GovtDashboard() {
         addToast({ message: `Secure Broadcast Sent to ${target.toUpperCase()}`, type: 'success' });
         setMsg('');
     };
+
+    React.useEffect(() => {
+        let interval: any;
+        if (isStressTesting) {
+            interval = setInterval(() => {
+                setSimData(prev => ({
+                    load: Math.min(100, prev.load + Math.random() * 5),
+                    users: prev.users + Math.floor(Math.random() * 100000)
+                }));
+            }, 500);
+        } else {
+            setSimData({ load: 0.1, users: 48214 });
+        }
+        return () => clearInterval(interval);
+    }, [isStressTesting]);
 
     return (
         <div style={styles.adminContainer}>
@@ -46,9 +63,53 @@ export default function GovtDashboard() {
                             <div style={styles.metricSub}>+1.2% this month</div>
                         </div>
                         <div style={{ ...styles.metricCard, borderLeft: '1px solid #f1f5f9' }}>
-                            <h4 style={styles.metricLabel}>Daily Transactions</h4>
-                            <div style={styles.metricVal}>8,421</div>
-                            <div style={styles.metricSub}>Across 12 nodes</div>
+                            <h4 style={styles.metricLabel}>Sentiment Score</h4>
+                            <div style={styles.metricVal}>4.8/5</div>
+                            <div style={{ ...styles.metricSub, color: '#10b981' }}>Highly Positive</div>
+                        </div>
+                    </div>
+
+                    <div style={styles.analyticsSection}>
+                        <div style={styles.heatmapCard}>
+                            <div style={styles.cardHeader}>
+                                <MapPin size={22} color="#0284c7" />
+                                <h3 style={styles.sectionTitle}>Regional Service Heatmap</h3>
+                            </div>
+                            <div style={styles.mapVisual}>
+                                {[
+                                    { t: '15%', l: '20%', s: 40, o: 0.6 },
+                                    { t: '40%', l: '50%', s: 60, o: 0.8 },
+                                    { t: '70%', l: '30%', s: 30, o: 0.4 },
+                                    { t: '25%', l: '75%', s: 50, o: 0.7 }
+                                ].map((node, idx) => (
+                                    <div key={idx} style={{
+                                        ...styles.heatNode,
+                                        top: node.t,
+                                        left: node.l,
+                                        width: node.s,
+                                        height: node.s,
+                                        opacity: node.o
+                                    }} />
+                                ))}
+                                <p style={styles.mapCaption}>Peak usage in North-West sector (Node 4)</p>
+                            </div>
+                        </div>
+
+                        <div style={styles.sentimentCard}>
+                            <div style={styles.cardHeader}>
+                                <TrendingUp size={22} color="#9333ea" />
+                                <h3 style={styles.sectionTitle}>Feedback Sentiment</h3>
+                            </div>
+                            <div style={styles.sentGrid}>
+                                <div style={styles.sentItem}><Smile size={20} color="#10b981" /> <span>82% Happy</span></div>
+                                <div style={styles.sentItem}><Meh size={20} color="#f59e0b" /> <span>12% Neutral</span></div>
+                                <div style={styles.sentItem}><Frown size={20} color="#ef4444" /> <span>6% Issues</span></div>
+                            </div>
+                            <div style={styles.sentChart}>
+                                <div style={{ ...styles.sentBar, width: '82%', background: '#10b981' }} />
+                                <div style={{ ...styles.sentBar, width: '12%', background: '#f59e0b' }} />
+                                <div style={{ ...styles.sentBar, width: '6%', background: '#ef4444' }} />
+                            </div>
                         </div>
                     </div>
 
@@ -127,6 +188,29 @@ export default function GovtDashboard() {
                         <div style={styles.logItem}><span>Yesterday</span> Batch Verification #A24 Complete</div>
                         <div style={styles.logItem}><span>yesterday</span> System Patch v2.4.1 Applied</div>
                     </div>
+
+                    <div style={styles.stressCard}>
+                        <div style={styles.stressHeader}>
+                            <h4 style={{ margin: 0, fontSize: '0.8rem', fontWeight: 800 }}>Global Stress Audit</h4>
+                            <button
+                                onClick={() => setIsStressTesting(!isStressTesting)}
+                                style={{ ...styles.stressToggle, background: isStressTesting ? '#ef4444' : '#1e293b' }}
+                            >
+                                {isStressTesting ? 'STOP TEST' : 'START SIM'}
+                            </button>
+                        </div>
+                        <div style={styles.stressBody}>
+                            <div style={styles.stressRow}>
+                                <span>Concurrent Users:</span>
+                                <strong style={{ color: isStressTesting ? '#ef4444' : 'inherit' }}>{simData.users.toLocaleString()}</strong>
+                            </div>
+                            <div style={styles.stressRow}>
+                                <span>Sync Mesh Load:</span>
+                                <strong>{simData.load.toFixed(1)}%</strong>
+                            </div>
+                            <div style={styles.meter}><div style={{ ...styles.meterFill, width: `${simData.load}%`, background: simData.load > 80 ? '#ef4444' : '#10b981' }} /></div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -168,5 +252,21 @@ const styles: Record<string, React.CSSProperties> = {
     demoBar: { height: '6px', background: '#f1f5f9', borderRadius: '3px', marginTop: '0.5rem', overflow: 'hidden' },
     demoFill: { height: '100%', borderRadius: '3px' },
     activityLog: { background: 'white', border: '1px solid #f1f5f9', borderRadius: '24px', padding: '1.5rem' },
-    logItem: { fontSize: '0.8rem', color: '#475569', padding: '0.75rem 0', borderBottom: '1px solid #f8fafc' }
+    logItem: { fontSize: '0.8rem', color: '#475569', padding: '0.75rem 0', borderBottom: '1px solid #f8fafc' },
+    analyticsSection: { display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem', marginTop: '1.5rem' },
+    heatmapCard: { background: 'white', padding: '1.5rem', borderRadius: '24px', border: '1px solid #f1f5f9' },
+    mapVisual: { height: '220px', background: '#f8fafc', borderRadius: '16px', position: 'relative', overflow: 'hidden', border: '1px solid #e2e8f0', display: 'flex', alignItems: 'flex-end', justifyContent: 'center', padding: '1rem' },
+    heatNode: { position: 'absolute', background: 'radial-gradient(circle, #0284c7 0%, transparent 70%)', borderRadius: '50%' },
+    mapCaption: { margin: 0, fontSize: '0.7rem', color: '#94a3b8', fontWeight: 800 },
+    sentimentCard: { background: 'white', padding: '1.5rem', borderRadius: '24px', border: '1px solid #f1f5f9' },
+    sentGrid: { display: 'flex', flexDirection: 'column', gap: '0.75rem', marginTop: '1rem' },
+    sentItem: { display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.85rem', fontWeight: 700, color: '#475569' },
+    sentChart: { height: '10px', background: '#f1f5f9', borderRadius: '5px', overflow: 'hidden', display: 'flex', marginTop: '1.5rem' },
+    sentBar: { height: '100%' },
+    stressCard: { background: '#f8fafc', padding: '1.25rem', borderRadius: '24px', border: '1px solid #e2e8f0' },
+    stressHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },
+    stressToggle: { border: 'none', color: 'white', padding: '0.4rem 0.8rem', borderRadius: '8px', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' },
+    stressRow: { display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', marginBottom: '0.5rem' },
+    meter: { height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' },
+    meterFill: { height: '100%', borderRadius: '4px', transition: 'width 0.3s' }
 };

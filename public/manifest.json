@@ -1,35 +1,101 @@
 {
-    "name": "SUVIDHA Kiosk 2026",
+    "name": "SUVIDHA 2026 - Digital India Kiosk",
     "short_name": "SUVIDHA",
-    "description": "Your Gateway to Government Services",
+    "description": "Official Government of India Citizen Service Kiosk. Access Electricity, Gas, Municipal services and more.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#8b5cf6",
-    "orientation": "portrait",
+    "theme_color": "#1e3a8a",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "lang": "en-IN",
+    "dir": "ltr",
+    "categories": [
+        "government",
+        "utilities",
+        "productivity"
+    ],
     "icons": [
         {
-            "src": "/icons/icon-192x192.png",
+            "src": "/icon-192x192.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
         },
         {
-            "src": "/icons/icon-512x512.png",
+            "src": "/icon-512x512.png",
             "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/apple-touch-icon.png",
+            "sizes": "180x180",
             "type": "image/png"
         }
     ],
-    "screenshots": [],
-    "shortcuts": [
+    "screenshots": [
         {
-            "name": "Emergency",
-            "url": "/emergency",
-            "description": "Quick Access to Helplines"
+            "src": "/screenshot-mobile.png",
+            "sizes": "390x844",
+            "type": "image/png",
+            "form_factor": "narrow"
         },
         {
-            "name": "Pay Bills",
-            "url": "/electricity/pay",
-            "description": "Pay Electricity Bill"
+            "src": "/screenshot-desktop.png",
+            "sizes": "1920x1080",
+            "type": "image/png",
+            "form_factor": "wide"
         }
-    ]
+    ],
+    "shortcuts": [
+        {
+            "name": "Pay Bills",
+            "short_name": "Bills",
+            "description": "Quick access to bill payment",
+            "url": "/electricity",
+            "icons": [
+                {
+                    "src": "/icon-192x192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Healthcare",
+            "short_name": "Health",
+            "description": "Access healthcare services",
+            "url": "/healthcare",
+            "icons": [
+                {
+                    "src": "/icon-192x192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        },
+        {
+            "name": "Emergency",
+            "short_name": "SOS",
+            "description": "Emergency services",
+            "url": "/emergency",
+            "icons": [
+                {
+                    "src": "/icon-192x192.png",
+                    "sizes": "192x192"
+                }
+            ]
+        }
+    ],
+    "related_applications": [],
+    "prefer_related_applications": false,
+    "share_target": {
+        "action": "/share",
+        "method": "POST",
+        "enctype": "multipart/form-data",
+        "params": {
+            "title": "title",
+            "text": "text",
+            "url": "url"
+        }
+    }
 }

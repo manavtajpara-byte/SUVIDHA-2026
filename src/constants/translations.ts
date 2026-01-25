@@ -1151,6 +1151,34 @@ export const translations = {
         news: "سرڪاري خبرون",
         qrConnect: "ڪيو آر ڪنيڪٽ",
     },
+    bho: {
+        title: "सुविधा कियोस्क (भोजपुरी)",
+        tagline: "रउआ सभे खातिर सरकारी सेवा के दुआर",
+        electricity: "बिजली",
+        gas: "गैस सेवा",
+        municipal: "नगर पालिका सेवा",
+        water: "पानी अउर कचरा",
+        rationCard: "राशन कार्ड",
+        payBill: "झटपट बिल भुगतान",
+        login: "लॉगिन",
+        home: "होम",
+        chatWithUs: "हमरा से बात करीं",
+        search: "सेवा खोजीं...",
+    },
+    mai: {
+        title: "सुविधा कियोस्क (मैथिली)",
+        tagline: "अपन सरकारी सेवाक द्वार",
+        electricity: "बिजली",
+        gas: "गैस सेवा",
+        municipal: "नगर पालिका सेवा",
+        water: "पैन आ कचरा",
+        rationCard: "राशन कार्ड",
+        payBill: "त्वरित बिल भुगतान",
+        login: "लॉगिन",
+        home: "होम",
+        chatWithUs: "हमरा स गप्प करू",
+        search: "सेवा ताकू...",
+    }
 };
 
 // Type for language keys
@@ -1177,4 +1205,6 @@ export const availableLanguages: { code: LanguageKey; name: string; nativeName: 
     { code: 'ne', name: 'Nepali', nativeName: 'नेपाली' },
     { code: 'sa', name: 'Sanskrit', nativeName: 'संस्कृतम्' },
     { code: 'sd', name: 'Sindhi', nativeName: 'سنڌي' },
+    { code: 'bho', name: 'Bhojpuri', nativeName: 'भोजपुरी' },
+    { code: 'mai', name: 'Maithili', nativeName: 'मैथिली' },
 ];

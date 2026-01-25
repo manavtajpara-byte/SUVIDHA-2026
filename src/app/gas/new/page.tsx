@@ -9,7 +9,7 @@ import { KioskCamera } from '@/components/DocHandling';
 
 export default function GasNewConnectionPage() {
     const { language } = useAppState();
-    const t = translations[language];
+    const t = (translations[language] || translations.en) as any;
     const router = useRouter();
     const [fullName, setFullName] = useState('');
     const [mobile, setMobile] = useState('');

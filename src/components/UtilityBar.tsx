@@ -7,7 +7,7 @@ import { Cloud, Clock, Newspaper } from 'lucide-react';
 
 export default function UtilityBar() {
     const { language } = useAppState();
-    const t = translations[language] || translations.en;
+    const t = (translations[language] || translations.en) as any;
     const [time, setTime] = useState(new Date());
     const [weather, setWeather] = useState({ temp: '24°C', condition: 'Sunny' });
     const [mounted, setMounted] = useState(false);

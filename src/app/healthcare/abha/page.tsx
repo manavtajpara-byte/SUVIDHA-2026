@@ -1,14 +1,21 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, ArrowLeft, ShieldCheck, Fingerprint, Smartphone, CheckCircle, Search } from 'lucide-react';
+import { Heart, ArrowLeft, ShieldCheck, Fingerprint, Smartphone, CheckCircle, Search, LayoutDashboard, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useAppState } from '@/context/StateContext';
+import AethelLayout from '@/components/AethelLayout';
 
 export default function AbhaRegistrationPage() {
     const router = useRouter();
     const { addToast } = useAppState();
     const [step, setStep] = useState(1); // 1: Consent, 2: Auth, 3: Success
+
+    const sidebarLinks = [
+        { label: 'Health Center', icon: <LayoutDashboard size={20} />, href: '/healthcare' },
+        { label: 'ABHA Auth', icon: <ShieldCheck size={20} />, href: '/healthcare/abha', active: true },
+        { label: 'Action History', icon: <History size={20} />, href: '/transactions' },
+    ];
 
     const handleAuth = () => {
         setStep(2);
@@ -55,58 +62,65 @@ export default function AbhaRegistrationPage() {
     }
 
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <button onClick={() => router.back()} style={styles.backBtn}>
-                    <ArrowLeft size={32} />
-                </button>
-                <h1 style={styles.title}>ABHA Health ID</h1>
-            </div>
-
-            <div style={styles.flowCard}>
-                <div style={styles.flowHeader}>
-                    <div style={styles.iconCircle}>
-                        <ShieldCheck size={32} color="#ec4899" />
-                    </div>
-                    <h3>Create Your Digital Health ID</h3>
+        <AethelLayout
+            title="ABHA Health ID"
+            themeColor="var(--theme-ruby)"
+            themeSoft="var(--theme-ruby-soft)"
+            sidebarLinks={sidebarLinks}
+        >
+            <div style={styles.container}>
+                <div style={styles.header}>
+                    <button onClick={() => router.back()} style={styles.backBtn}>
+                        <ArrowLeft size={32} />
+                    </button>
+                    <h1 style={styles.title}>Digital Health ID</h1>
                 </div>
 
-                <div style={styles.infoBox}>
-                    <p>Building India's Digital Health Ecosystem. Benefits include:</p>
-                    <ul style={styles.list}>
-                        <li>Unified Health Identity</li>
-                        <li>Digital Lab Reports & Prescriptions</li>
-                        <li>Seamless access to Govt Health Schemes</li>
-                    </ul>
-                </div>
-
-                <div style={styles.authSection}>
-                    <div style={styles.authOption}>
-                        <Fingerprint size={40} color="#64748b" />
-                        <div>
-                            <h4>Aadhaar Biometric</h4>
-                            <p>Fastest and most secure way</p>
+                <div style={styles.flowCard}>
+                    <div style={styles.flowHeader}>
+                        <div style={styles.iconCircle}>
+                            <ShieldCheck size={32} color="#ec4899" />
                         </div>
-                        <button onClick={handleAuth} style={styles.authBtn}>Start Scan</button>
+                        <h3>Create Your Sovereign Health ID</h3>
                     </div>
 
-                    <div style={styles.divider}><span>OR</span></div>
+                    <div style={styles.infoBox}>
+                        <p>Building India's Digital Health Ecosystem. Benefits include:</p>
+                        <ul style={styles.list}>
+                            <li>Unified Health Identity for all citizen records</li>
+                            <li>Digital Lab Reports & Prescriptions access</li>
+                            <li>Seamless integration with Govt Health Schemes</li>
+                        </ul>
+                    </div>
 
-                    <div style={styles.authOption}>
-                        <Smartphone size={40} color="#64748b" />
-                        <div>
-                            <h4>Aadhaar OTP</h4>
-                            <p>Sent to registered mobile</p>
+                    <div style={styles.authSection}>
+                        <div style={styles.authOption}>
+                            <Fingerprint size={40} color="#64748b" />
+                            <div>
+                                <h4>Aadhaar Biometric</h4>
+                                <p>Fastest and most secure way</p>
+                            </div>
+                            <button onClick={handleAuth} style={styles.authBtn}>Start Scan</button>
                         </div>
-                        <button style={styles.authBtnSecondary}>Get OTP</button>
-                    </div>
-                </div>
 
-                <div style={styles.consentText}>
-                    By proceeding, you agree to the National Health Authority's terms and consent to using your Aadhaar data for ABHA generation.
+                        <div style={styles.divider}><span>OR</span></div>
+
+                        <div style={styles.authOption}>
+                            <Smartphone size={40} color="#64748b" />
+                            <div>
+                                <h4>Aadhaar OTP</h4>
+                                <p>Sent to registered mobile</p>
+                            </div>
+                            <button style={styles.authBtnSecondary}>Get OTP</button>
+                        </div>
+                    </div>
+
+                    <div style={styles.consentText}>
+                        By proceeding, you agree to the National Health Authority's terms and consent to using your Aadhaar data for ABHA generation.
+                    </div>
                 </div>
             </div>
-        </div>
+        </AethelLayout>
     );
 }
 

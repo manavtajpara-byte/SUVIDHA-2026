@@ -1,8 +1,11 @@
 'use client';
 
 import React from 'react';
+import { useAppState } from '@/context/StateContext';
 
 export default function TopStrip() {
+    const { fontSize, setFontSize, highContrast, setHighContrast } = useAppState();
+
     return (
         <div style={styles.strip}>
             <div style={styles.container}>
@@ -12,14 +15,16 @@ export default function TopStrip() {
                     <span style={styles.govText}>MINISTRY OF CITIZEN SERVICES</span>
                 </div>
                 <div style={styles.right}>
-                    <button style={styles.linkButton}>Skip to Main Content</button>
+                    <button style={styles.linkButton} onClick={() => document.getElementById('main-content')?.scrollIntoView()}>Skip to Main Content</button>
                     <span style={styles.divider}>|</span>
-                    <button style={styles.linkButton}>Screen Reader Access</button>
+                    <button style={styles.linkButton} onClick={() => setHighContrast(!highContrast)}>
+                        {highContrast ? 'Standard View' : 'High Contrast'}
+                    </button>
                     <span style={styles.divider}>|</span>
                     <div style={styles.fontControls}>
-                        <button style={styles.fontBtn}>A-</button>
-                        <button style={styles.fontBtn}>A</button>
-                        <button style={styles.fontBtn}>A+</button>
+                        <button style={styles.fontBtn} onClick={() => setFontSize(Math.max(12, fontSize - 1))}>A-</button>
+                        <button style={styles.fontBtn} onClick={() => setFontSize(16)}>A</button>
+                        <button style={styles.fontBtn} onClick={() => setFontSize(Math.min(24, fontSize + 1))}>A+</button>
                     </div>
                 </div>
             </div>

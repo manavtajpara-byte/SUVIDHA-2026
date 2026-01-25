@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 
 export default function TransportPage() {
     const { language } = useAppState();
-    const t = translations[language];
+    const t = (translations[language] || translations.en) as any;
     const router = useRouter();
 
     const services = [

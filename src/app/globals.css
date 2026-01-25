@@ -151,6 +151,22 @@ body {
   animation: pulse-soft 2s ease-in-out infinite;
 }
 
+@keyframes fade-in-breathe {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.fade-in-breathe {
+  animation: fade-in-breathe 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
 /* Mobile & Tablet Responsiveness */
 @media (max-width: 1024px) {
   :root {
@@ -201,6 +217,164 @@ body {
 
   .kiosk-container {
     padding: 0.75rem;
+  }
+}
+
+/* Sidebar Responsive Logic */
+@media (max-width: 1024px) {
+  .sidebar-resp {
+    position: fixed !important;
+    top: 0;
+    bottom: 0;
+    left: -280px;
+    z-index: 1000;
+    transition: transform 0.3s ease;
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.1);
+  }
+
+  .menu-btn-visible {
+    display: block !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .sidebar-resp {
+    transform: none !important;
+    left: 0 !important;
+  }
+}
+
+/* ========================================
+   MOBILE-FIRST RESPONSIVE ENHANCEMENTS
+   ======================================== */
+
+/* Safe Area Insets for Notched Devices (iPhone X+) */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* Touch Target Minimum Sizes (44x44px WCAG AAA) */
+button,
+a,
+input[type="button"],
+input[type="submit"],
+.clickable {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Prevent Text Size Adjustment on Mobile */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* Smooth Scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* iOS Momentum Scrolling */
+.contentScroll,
+main,
+[style*="overflow"] {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent Zoom on Input Focus (iOS Safari Fix) */
+@media screen and (max-width: 768px) {
+
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Mobile Breakpoint: Tablets & Phones (max-width: 768px) */
+@media (max-width: 768px) {
+
+  /* Stack all grids on mobile */
+  [style*="display: grid"],
+  [style*="display:grid"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Full width cards */
+  [style*="maxWidth"],
+  [style*="max-width"] {
+    max-width: 100% !important;
+  }
+
+  /* Reduce padding for mobile */
+  [style*="padding: 3rem"],
+  [style*="padding:3rem"],
+  [style*="padding: 2.5rem"] {
+    padding: 1.5rem !important;
+  }
+
+  /* Responsive typography */
+  h1,
+  [style*="fontSize: '2.5rem'"],
+  [style*="fontSize:'2.5rem'"] {
+    font-size: 1.75rem !important;
+  }
+
+  h2,
+  [style*="fontSize: '2rem'"],
+  [style*="fontSize:'2rem'"] {
+    font-size: 1.5rem !important;
+  }
+
+  h3 {
+    font-size: 1.25rem !important;
+  }
+
+  /* Stack flex containers */
+  [style*="display: flex"][style*="gap: '2rem'"],
+  [style*="display:flex"][style*="gap:'2rem'"] {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+}
+
+/* Small Mobile Devices (max-width: 480px) */
+@media (max-width: 480px) {
+
+  /* Tighter padding */
+  [style*="padding: 2rem"],
+  [style*="padding:2rem"] {
+    padding: 1rem !important;
+  }
+
+  /* Full width buttons */
+  button:not(.iconBtn):not(.icon-btn) {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Smaller gaps */
+  [style*="gap: '1.5rem'"],
+  [style*="gap:'1.5rem'"] {
+    gap: 1rem !important;
+  }
+}
+
+/* Tablet Landscape (769px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+
+  /* 2-column grids on tablets */
+  [style*="gridTemplateColumns: '1fr 1fr 1fr'"],
+  [style*="gridTemplateColumns:'1fr 1fr 1fr'"] {
+    grid-template-columns: 1fr 1fr !important;
   }
 }
 

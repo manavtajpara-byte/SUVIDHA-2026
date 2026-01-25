@@ -3,12 +3,12 @@
 import React from 'react';
 import { useAppState } from '@/context/StateContext';
 import {
-    LayoutDashboard, CreditCard, Watch, BarChart3,
-    Target, Settings, HelpCircle, LogOut, ChevronRight,
-    User, Bell, Search, Globe
+    LayoutDashboard, CreditCard, Settings, HelpCircle, LogOut, ChevronRight,
+    User, Bell, Search, Globe, ChevronDown, Menu, X
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { availableLanguages, translations } from '@/constants/translations';
 
 interface AethelLayoutProps {
     children: React.ReactNode;
@@ -21,7 +21,9 @@ interface AethelLayoutProps {
 export default function AethelLayout({ children, title, themeColor, themeSoft, sidebarLinks }: AethelLayoutProps) {
     const pathname = usePathname();
     const router = useRouter();
-    const { user, language, setIsLoggedIn, setUser } = useAppState();
+    const { user, language, setLanguage, setIsLoggedIn, setUser, searchQuery, setSearchQuery } = useAppState();
+    const [showLangMenu, setShowLangMenu] = React.useState(false);
+    const [isSidebarOpen, setIsSidebarOpen] = React.useState(false);
 
     const handleLogout = () => {
         setIsLoggedIn(false);
@@ -32,11 +34,20 @@ export default function AethelLayout({ children, title, themeColor, themeSoft, s
 
     return (
         <div style={styles.container}>
+            {/* Sidebar Overlay for Mobile */}
+            {isSidebarOpen && <div style={styles.sidebarOverlay} onClick={() => setIsSidebarOpen(false)} />}
+
             {/* Sidebar */}
-            <aside style={styles.sidebar}>
+            <aside style={{
+                ...styles.sidebar,
+                left: isSidebarOpen ? 0 : undefined
+            }} className="sidebar-resp">
                 <div style={styles.sidebarBrand}>
                     <div style={{ ...styles.logoIcon, background: themeColor }}>S</div>
-                    <span style={styles.logoText}>Suvidha</span>
+                    <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={styles.logoText}>Suvidha</span>
+                        <div style={styles.vBadge}>v1.0.0</div>
+                    </div>
                 </div>
 
                 <div style={styles.menuLabel}>Main Menu</div>
@@ -45,6 +56,7 @@ export default function AethelLayout({ children, title, themeColor, themeSoft, s
                         <Link
                             key={idx}
                             href={link.href}
+                            onClick={() => setIsSidebarOpen(false)}
                             style={{
                                 ...styles.navLink,
                                 backgroundColor: pathname === link.href ? themeSoft : 'transparent',
@@ -68,15 +80,51 @@ export default function AethelLayout({ children, title, themeColor, themeSoft, s
             <main style={styles.main}>
                 <header style={styles.header}>
                     <div style={styles.headerLeft}>
+                        <button style={styles.menuBtn} onClick={() => setIsSidebarOpen(true)} className="menu-btn-visible"><Menu size={24} /></button>
                         <h1 style={styles.pageTitle}>{title}</h1>
                     </div>
                     <div style={styles.headerRight}>
-                        <div style={styles.searchBar}>
+                        <div style={styles.searchBar} className="desktop-only">
                             <Search size={18} color="#94a3b8" />
-                            <input type="text" placeholder="Search anything..." style={styles.searchInput} />
+                            <input
+                                type="text"
+                                placeholder="Search everything..."
+                                style={styles.searchInput}
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
                         </div>
                         <button style={styles.iconBtn}><Bell size={20} /></button>
-                        <button style={styles.iconBtn}><Globe size={20} /></button>
+
+                        <div style={{ position: 'relative' }}>
+                            <button
+                                style={styles.iconBtn}
+                                onClick={() => setShowLangMenu(!showLangMenu)}
+                            >
+                                <Globe size={20} />
+                            </button>
+                            {showLangMenu && (
+                                <div style={styles.langDropdown}>
+                                    {availableLanguages.map((lang) => (
+                                        <button
+                                            key={lang.code}
+                                            onClick={() => {
+                                                setLanguage(lang.code);
+                                                setShowLangMenu(false);
+                                            }}
+                                            style={{
+                                                ...styles.langItem,
+                                                backgroundColor: language === lang.code ? '#f3f4f6' : 'transparent',
+                                                fontWeight: language === lang.code ? 800 : 500
+                                            }}
+                                        >
+                                            <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>{lang.name}</span>
+                                            <span style={{ fontSize: '1rem' }}>{lang.nativeName}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                         <Link href="/profile" style={styles.userProfile}>
                             <div style={{ ...styles.avatar, background: themeColor }}>
                                 <User size={18} color="white" />
@@ -86,7 +134,7 @@ export default function AethelLayout({ children, title, themeColor, themeSoft, s
                 </header>
 
                 <div style={styles.contentScroll}>
-                    <div style={styles.contentBody}>
+                    <div className="fade-in-breathe" style={styles.contentBody}>
                         {children}
                     </div>
                 </div>
@@ -257,5 +305,70 @@ const styles: Record<string, React.CSSProperties> = {
     contentBody: {
         maxWidth: '1200px',
         margin: '0 auto'
+    },
+    vBadge: {
+        fontSize: '0.55rem',
+        background: '#f1f5f9',
+        color: '#64748b',
+        padding: '2px 6px',
+        borderRadius: '6px',
+        fontWeight: 900,
+        marginTop: '2px'
+    },
+    langDropdown: {
+        position: 'absolute',
+        top: '120%',
+        right: 0,
+        background: 'white',
+        borderRadius: '12px',
+        boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        border: '1px solid #f1f5f9',
+        minWidth: '180px',
+        maxHeight: '300px',
+        overflowY: 'auto',
+        display: 'flex',
+        flexDirection: 'column',
+        padding: '0.4rem',
+        zIndex: 1000,
+    },
+    langItem: {
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        padding: '0.6rem 0.8rem',
+        border: 'none',
+        background: 'none',
+        cursor: 'pointer',
+        textAlign: 'left',
+        borderRadius: '8px',
+        transition: 'all 0.2s',
+        gap: '0.5rem',
+        color: '#1e293b',
+    },
+    headerLeft: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '1rem'
+    },
+    menuBtn: {
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: '#1e293b',
+        display: 'none', // Shown via CSS in globals
+    },
+    sidebarOverlay: {
+        position: 'fixed',
+        inset: 0,
+        background: 'rgba(0,0,0,0.5)',
+        zIndex: 999
+    },
+    closeBtn: {
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: '#64748b',
+        display: 'none' // Shown in mobile sidebar
     }
 };

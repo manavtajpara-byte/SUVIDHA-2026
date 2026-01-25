@@ -1,22 +1,36 @@
 'use client';
 
 import React, { useState } from 'react';
+import AethelLayout from '@/components/AethelLayout';
 import { useAppState } from '@/context/StateContext';
-import { ArrowLeft, Landmark, Wallet, ShieldCheck, Fingerprint, Receipt as ReceiptIcon, Banknote } from 'lucide-react';
+import {
+    Landmark, Wallet, ShieldCheck, Fingerprint,
+    Receipt as ReceiptIcon, Banknote, History,
+    ShieldAlert, CreditCard, ArrowRight, TrendingUp,
+    CheckCircle2, AlertCircle
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { translations } from '@/constants/translations';
 import Receipt from '@/components/Receipt';
 
-export default function AEPSPage() {
+export default function FinancialInclusionPage() {
     const { language } = useAppState();
     const t = (translations as any)[language] || translations.en;
     const router = useRouter();
-    const [step, setStep] = useState(1); // 1: Select Type, 2: Aadhaar, 3: Amount (if withdraw), 4: Biometric, 5: Success
+
+    const [activeTab, setActiveTab] = useState<'aeps' | 'dbt' | 'insurance'>('aeps');
+    const [step, setStep] = useState(1);
     const [type, setType] = useState<'balance' | 'withdraw' | 'statement'>('balance');
     const [isScanning, setIsScanning] = useState(false);
     const [showReceipt, setShowReceipt] = useState(false);
     const [aadharNo, setAadharNo] = useState('');
     const [amount, setAmount] = useState('');
+
+    const sidebarLinks = [
+        { label: 'Banking Mesh', icon: <Landmark size={20} />, href: '/vision/financial-inclusion', active: true },
+        { label: 'Transactions', icon: <History size={20} />, href: '/transactions' },
+        { label: 'Insurance', icon: <ShieldAlert size={20} />, href: '/vision/financial-inclusion?tab=insurance' },
+    ];
 
     const startBiometric = () => {
         setIsScanning(true);
@@ -26,156 +40,179 @@ export default function AEPSPage() {
         }, 3000);
     };
 
+    const banks = [
+        { name: 'SBI', color: '#1a4a9e' },
+        { name: 'HDFC', color: '#004da8' },
+        { name: 'ICICI', color: '#f58220' },
+        { name: 'BoB', color: '#f15a22' },
+        { name: 'PNB', color: '#8b0000' },
+        { name: 'Axis', color: '#ae285d' }
+    ];
+
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <button onClick={() => step === 1 ? router.back() : setStep(step - 1)} style={styles.backBtn}>
-                    <ArrowLeft size={32} />
-                </button>
-                <h2 style={styles.title}>{t.aePS || 'AEPS Micro-ATM'}</h2>
-            </div>
+        <AethelLayout
+            title="Financial Inclusion 2.0"
+            themeColor="var(--theme-azure)"
+            themeSoft="var(--theme-azure-soft)"
+            sidebarLinks={sidebarLinks}
+        >
+            <div style={styles.container}>
+                {/* Mode Selector */}
+                <div style={styles.tabBar}>
+                    <button onClick={() => { setActiveTab('aeps'); setStep(1); }} style={{ ...styles.tabBtn, borderBottom: activeTab === 'aeps' ? '3px solid #2563eb' : 'none', color: activeTab === 'aeps' ? '#2563eb' : '#64748b' }}>AEPS Micro-ATM</button>
+                    <button onClick={() => { setActiveTab('dbt'); setStep(1); }} style={{ ...styles.tabBtn, borderBottom: activeTab === 'dbt' ? '3px solid #2563eb' : 'none', color: activeTab === 'dbt' ? '#2563eb' : '#64748b' }}>DBT Tracker</button>
+                    <button onClick={() => { setActiveTab('insurance'); setStep(1); }} style={{ ...styles.tabBtn, borderBottom: activeTab === 'insurance' ? '3px solid #2563eb' : 'none', color: activeTab === 'insurance' ? '#2563eb' : '#64748b' }}>Micro-Insurance</button>
+                </div>
 
-            <div style={styles.card}>
-                {step === 1 && (
-                    <div style={styles.stepContainer}>
-                        <Landmark size={80} color="#2563eb" />
-                        <h3>Aadhaar Enabled Payment System</h3>
-                        <p>Select the service you wish to use</p>
-                        <div style={styles.typeGrid}>
-                            <button onClick={() => { setType('balance'); setStep(2); }} style={styles.typeBtn}>
-                                <Wallet size={40} />
-                                <span>Balance Inquiry</span>
-                            </button>
-                            <button onClick={() => { setType('withdraw'); setStep(2); }} style={styles.typeBtn}>
-                                <Banknote size={40} />
-                                <span>Cash Withdrawal</span>
-                            </button>
-                            <button onClick={() => { setType('statement'); setStep(2); }} style={styles.typeBtn}>
-                                <ReceiptIcon size={40} />
-                                <span>Mini Statement</span>
-                            </button>
-                        </div>
-                    </div>
-                )}
-
-                {step === 2 && (
-                    <div style={styles.stepContainer}>
-                        <div style={styles.hero}>
-                            <ShieldCheck size={60} color="#2563eb" />
-                            <h3>Authentication Required</h3>
-                            <p>Enter your 12-digit Aadhaar Number</p>
-                        </div>
-                        <div style={styles.inputGroup}>
-                            <label>Aadhaar Number</label>
-                            <input
-                                value={aadharNo}
-                                onChange={(e) => setAadharNo(e.target.value)}
-                                placeholder="XXXX-XXXX-XXXX"
-                                style={styles.input}
-                            />
-                        </div>
-                        <div style={styles.bankGrid}>
-                            {[
-                                { name: 'SBI', color: '#1a4a9e' },
-                                { name: 'HDFC', color: '#004da8' },
-                                { name: 'ICICI', color: '#f58220' },
-                                { name: 'BoB', color: '#f15a22' },
-                                { name: 'PNB', color: '#8b0000' },
-                                { name: 'Axis', color: '#ae285d' }
-                            ].map(bank => (
-                                <button key={bank.name} style={{ ...styles.bankBtn, borderColor: bank.color }}>
-                                    <div style={{ ...styles.bankLogo, backgroundColor: bank.color }}>{bank.name[0]}</div>
-                                    {bank.name}
-                                </button>
-                            ))}
-                        </div>
-                        <button
-                            onClick={() => type === 'withdraw' ? setStep(3) : setStep(4)}
-                            style={styles.submitBtn}
-                            disabled={!aadharNo || aadharNo.length < 12}
-                        >
-                            {type === 'withdraw' ? 'Enter Amount' : 'Proceed to Biometric'}
-                        </button>
-                    </div>
-                )}
-
-                {step === 3 && (
-                    <div style={styles.stepContainer}>
-                        <div style={styles.hero}>
-                            <Banknote size={60} color="#059669" />
-                            <h3>Withdrawal Amount</h3>
-                            <p>Daily limit: ₹10,000</p>
-                        </div>
-                        <div style={styles.inputGroup}>
-                            <label>Amount (₹)</label>
-                            <input
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value)}
-                                placeholder="Enter Amount (Multiples of 100)"
-                                style={{ ...styles.input, color: '#059669', fontWeight: 'bold' }}
-                            />
-                        </div>
-                        <button onClick={() => setStep(4)} style={styles.submitBtn} disabled={!amount}>
-                            Proceed to Biometric
-                        </button>
-                    </div>
-                )}
-
-                {step === 4 && (
-                    <div style={styles.stepContainer}>
-                        <div style={styles.bioHeader}>
-                            <Fingerprint size={100} color={isScanning ? '#2563eb' : '#94a3b8'} className={isScanning ? 'pulse' : ''} />
-                            <h3>{isScanning ? 'Scanning Fingerprint...' : 'Place Hand on Scanner'}</h3>
-                            <p>Scanning right thumb for UIDAI authentication</p>
-                        </div>
-                        {!isScanning && (
-                            <button onClick={startBiometric} style={styles.scanBtn}>
-                                Start Scanner
-                            </button>
-                        )}
-                        <div style={styles.shieldBox}>
-                            <ShieldCheck size={20} />
-                            <span>128-bit Encrypted Session</span>
-                        </div>
-                    </div>
-                )}
-
-                {step === 5 && (
-                    <div style={styles.success}>
-                        <div style={styles.balanceSummary}>
-                            {type === 'withdraw' ? (
-                                <>
-                                    <span>Withdrawal Successful</span>
-                                    <strong style={{ color: '#059669' }}>- ₹ {amount}.00</strong>
-                                    <p style={{ marginTop: '1rem', fontSize: '1rem', color: '#64748b' }}>Balance: ₹ 8,420.00</p>
-                                </>
-                            ) : type === 'balance' ? (
-                                <>
-                                    <span>Available Balance</span>
-                                    <strong>₹ 8,420.00</strong>
-                                </>
-                            ) : (
-                                <>
-                                    <span>Mini Statement Retreived</span>
-                                    <div style={styles.statementMini}>
-                                        <div style={styles.stRow}><span>21/01/26 - POS TRF</span> <span style={{ color: '#ef4444' }}>-₹2,400</span></div>
-                                        <div style={styles.stRow}><span>18/01/26 - NEFT CR</span> <span style={{ color: '#10b981' }}>+₹10,000</span></div>
-                                        <div style={styles.stRow}><span>15/01/26 - ATM WDL</span> <span style={{ color: '#ef4444' }}>-₹500</span></div>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                        <h3 style={styles.successTitle}>Transaction Complete</h3>
-                        <p>Aadhaar ending in XXXX-{aadharNo?.slice(-4) || '9912'} verified.</p>
-                        {type === 'withdraw' && (
-                            <div style={styles.cashNotice}>
-                                <Banknote size={24} />
-                                <span>Please collect cash from the dispenser below.</span>
+                {activeTab === 'aeps' && (
+                    <div style={styles.card}>
+                        {step === 1 && (
+                            <div style={styles.stepContainer}>
+                                <Landmark size={64} color="#2563eb" />
+                                <h3 style={styles.cardTitle}>Aadhaar Enabled Payment System</h3>
+                                <p style={styles.cardSub}>Secure banking without a physical card</p>
+                                <div style={styles.typeGrid}>
+                                    <button onClick={() => { setType('balance'); setStep(2); }} style={styles.typeBtn}>
+                                        <Wallet size={32} />
+                                        <span>Balance Inquiry</span>
+                                    </button>
+                                    <button onClick={() => { setType('withdraw'); setStep(2); }} style={styles.typeBtn}>
+                                        <Banknote size={32} />
+                                        <span>Cash Withdrawal</span>
+                                    </button>
+                                    <button onClick={() => { setType('statement'); setStep(2); }} style={{ ...styles.typeBtn, gridColumn: 'span 2' }}>
+                                        <ReceiptIcon size={32} />
+                                        <span>Mini Statement</span>
+                                    </button>
+                                </div>
                             </div>
                         )}
-                        <div style={styles.actions}>
-                            <button onClick={() => setShowReceipt(true)} style={styles.receiptBtn}>Print Minified Receipt</button>
-                            <button onClick={() => router.push('/')} style={styles.homeBtn}>Back to Home</button>
+
+                        {step === 2 && (
+                            <div style={styles.stepContainer}>
+                                <ShieldCheck size={48} color="#2563eb" />
+                                <h3 style={styles.cardTitle}>Identity & Bank Selection</h3>
+                                <div style={styles.inputGroup}>
+                                    <label style={styles.label}>Aadhaar Number</label>
+                                    <input value={aadharNo} onChange={(e) => setAadharNo(e.target.value.replace(/\D/g, '').slice(0, 12))} placeholder="1234 5678 9012" style={styles.input} />
+                                </div>
+                                <div style={styles.bankGrid}>
+                                    {banks.map(bank => (
+                                        <button key={bank.name} style={styles.bankBtn}>
+                                            <div style={{ ...styles.bankLogo, backgroundColor: bank.color }}>{bank.name[0]}</div>
+                                            <span style={{ fontSize: '0.8rem' }}>{bank.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                                <button onClick={() => type === 'withdraw' ? setStep(3) : setStep(4)} style={styles.primaryBtn} disabled={aadharNo.length < 12}>
+                                    {type === 'withdraw' ? 'Next: Amount' : 'Proceed to Biometric'}
+                                </button>
+                            </div>
+                        )}
+
+                        {step === 3 && (
+                            <div style={styles.stepContainer}>
+                                <Banknote size={48} color="#059669" />
+                                <h3 style={styles.cardTitle}>Withdrawal Amount</h3>
+                                <div style={styles.inputGroup}>
+                                    <label style={styles.label}>Amount (Multiples of 100)</label>
+                                    <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="₹ 500" style={{ ...styles.input, fontSize: '2rem', color: '#059669' }} type="number" />
+                                </div>
+                                <button onClick={() => setStep(4)} style={styles.primaryBtn} disabled={!amount}>Confirm Amount</button>
+                            </div>
+                        )}
+
+                        {step === 4 && (
+                            <div style={styles.stepContainer}>
+                                <div style={styles.bioBox}>
+                                    <Fingerprint size={80} color={isScanning ? '#2563eb' : '#94a3b8'} className={isScanning ? 'pulse' : ''} />
+                                    <h3 style={styles.cardTitle}>{isScanning ? 'Capturing Biometrics...' : 'Scan Thumb'}</h3>
+                                    <p style={styles.cardSub}>Place your finger on the kiosk scanner</p>
+                                </div>
+                                {!isScanning && <button onClick={startBiometric} style={styles.primaryBtn}>Initialize Scanner</button>}
+                            </div>
+                        )}
+
+                        {step === 5 && (
+                            <div style={styles.success}>
+                                {type === 'statement' ? (
+                                    <div style={styles.statementBox}>
+                                        <h4 style={styles.sectionTitle}>Recent Transactions</h4>
+                                        {[
+                                            { d: '24 Jan', m: 'PDS-Ration', a: '-₹240', c: '#ef4444' },
+                                            { d: '20 Jan', m: 'DBT-PMKISAN', a: '+₹2,000', c: '#10b981' },
+                                            { d: '15 Jan', m: 'ELEC-UHBVN', a: '-₹1,150', c: '#ef4444' }
+                                        ].map((t, i) => (
+                                            <div key={i} style={styles.stRow}>
+                                                <span>{t.d} <strong>{t.m}</strong></span>
+                                                <span style={{ color: t.c, fontWeight: 800 }}>{t.a}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div style={styles.amountCircle}>
+                                        <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748b' }}>{type === 'withdraw' ? 'Dispensed' : 'Balance'}</p>
+                                        <h2 style={{ margin: 0, fontSize: '2.5rem', fontWeight: 900 }}>₹ {type === 'withdraw' ? amount : '8,420'}.00</h2>
+                                    </div>
+                                )}
+                                <h3 style={styles.successText}>Authentication Successful</h3>
+                                <div style={styles.actionRow}>
+                                    <button onClick={() => setShowReceipt(true)} style={styles.secondaryBtn}>Print Receipt</button>
+                                    <button onClick={() => setStep(1)} style={styles.primaryBtn}>New Transaction</button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'dbt' && (
+                    <div style={styles.card}>
+                        <div style={styles.stepContainer}>
+                            <TrendingUp size={48} color="#2563eb" />
+                            <h3 style={styles.cardTitle}>Direct Benefit Transfer Tracker</h3>
+                            <div style={styles.dbtGrid}>
+                                {[
+                                    { name: 'PM-Kisan', amt: '₹ 2,000', status: 'Credited', date: '20/01/2026' },
+                                    { name: 'Old Age Pension', amt: '₹ 1,500', status: 'Pending', date: 'Exp. 05/02' },
+                                    { name: 'LPG Subsidy', amt: '₹ 242', status: 'Credited', date: '12/01/2026' }
+                                ].map((d, i) => (
+                                    <div key={i} style={styles.dbtItem}>
+                                        <div style={styles.dbtHeader}>
+                                            <span style={styles.dbtName}>{d.name}</span>
+                                            <span style={{ ...styles.dbtStatus, background: d.status === 'Credited' ? '#f0fdf4' : '#fff7ed', color: d.status === 'Credited' ? '#16a34a' : '#ea580c' }}>{d.status}</span>
+                                        </div>
+                                        <div style={styles.dbtBody}>
+                                            <span style={styles.dbtAmt}>{d.amt}</span>
+                                            <span style={styles.dbtDate}>{d.date}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {activeTab === 'insurance' && (
+                    <div style={styles.card}>
+                        <div style={styles.stepContainer}>
+                            <ShieldAlert size={48} color="#e11d48" />
+                            <h3 style={styles.cardTitle}>Micro-Insurance Portal</h3>
+                            <div style={styles.insGrid}>
+                                {[
+                                    { name: 'PM Suraksha Bima', premium: '₹ 20/year', cover: '₹ 2 Lakh', desc: 'Accidental Death Insurance' },
+                                    { name: 'PM Jeevan Jyoti', premium: '₹ 436/year', cover: '₹ 2 Lakh', desc: 'Life Insurance Cover' },
+                                    { name: 'Ayushman Bharat', premium: 'Govt Funded', cover: '₹ 5 Lakh', desc: 'Health Insurance' }
+                                ].map((ins, i) => (
+                                    <div key={i} style={styles.insCard}>
+                                        <h4 style={styles.insName}>{ins.name}</h4>
+                                        <p style={styles.insDesc}>{ins.desc}</p>
+                                        <div style={styles.insFooter}>
+                                            <span>{ins.cover} Cover</span>
+                                            <button style={styles.enrollBtn}>Enroll Now</button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
                 )}
@@ -183,16 +220,15 @@ export default function AEPSPage() {
 
             {showReceipt && (
                 <Receipt
-                    type={type === 'withdraw' ? "AEPS Cash Withdrawal" : "AEPS Balance Inquiry"}
-                    transactionId={`AEPS-${Date.now()}`}
+                    type="AEPS Transaction"
+                    transactionId={`AEPS-V2-${Date.now()}`}
                     customerName="Verified Citizen"
-                    amount={type === 'withdraw' ? Number(amount) : 0}
+                    amount={Number(amount) || 0}
                     details={{
-                        'Aadhaar Mask': `XXXX-XXXX-${aadharNo?.slice(-4) || '9912'}`,
-                        'Bank Name': 'State Bank of India',
-                        'Auth ID': 'NPCI-9921-X',
-                        'LEDGER BALANCE': '₹ 8,420.00',
-                        'Status': 'Success'
+                        'Bank': 'State Bank of India',
+                        'Auth Type': 'Biometric L3',
+                        'Rem. Balance': '₹ 8,420.00',
+                        'Status': 'Confirmed'
                     }}
                     onClose={() => setShowReceipt(false)}
                 />
@@ -200,47 +236,50 @@ export default function AEPSPage() {
 
             <style jsx>{`
                 @keyframes pulse { 0% { opacity: 0.5; transform: scale(0.95); } 50% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0.5; transform: scale(0.95); } }
-                .pulse { animation: pulse 1.5s infinite ease-in-out; }
+                .pulse { animation: pulse 1s infinite ease-in-out; }
             `}</style>
-        </div>
+        </AethelLayout>
     );
 }
 
 const styles: Record<string, React.CSSProperties> = {
-    container: { padding: '2rem', maxWidth: '800px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '2rem' },
-    header: { display: 'flex', alignItems: 'center', gap: '2rem' },
-    backBtn: { background: 'none', border: 'none', cursor: 'pointer', color: 'var(--primary)' },
-    title: { fontSize: '2.5rem', fontWeight: 900, margin: 0 },
-    card: { backgroundColor: 'white', padding: '3rem', borderRadius: '2rem', boxShadow: 'var(--card-shadow)', minHeight: '400px' },
-    stepContainer: { display: 'flex', flexDirection: 'column', gap: '2rem', width: '100%', alignItems: 'center', textAlign: 'center' },
-    typeGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem', width: '100%', marginTop: '1rem' },
-    typeBtn: {
-        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
-        padding: '2rem', borderRadius: '1.5rem', border: '2px solid #e2e8f0',
-        backgroundColor: '#f8fafc', cursor: 'pointer', transition: 'all 0.2s',
-        fontSize: '1.2rem', fontWeight: 'bold', color: 'var(--primary)'
-    },
-    hero: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' },
-    inputGroup: { width: '100%', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '0.5rem' },
-    input: { padding: '1.2rem', fontSize: '1.8rem', borderRadius: '0.8rem', border: '2px solid #ddd', backgroundColor: '#f9f9f9', textAlign: 'center', width: '100%' },
-    bankGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '15px', width: '100%' },
-    bankBtn: {
-        padding: '1rem', border: '2px solid #d1d5db', borderRadius: '1rem',
-        backgroundColor: 'white', fontWeight: 'bold', display: 'flex',
-        flexDirection: 'column', alignItems: 'center', gap: '0.5rem', cursor: 'pointer'
-    },
-    bankLogo: { width: '40px', height: '40px', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' },
-    submitBtn: { width: '100%', padding: '1.5rem', fontSize: '1.5rem', fontWeight: 'bold', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '1rem', cursor: 'pointer' },
-    bioHeader: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1.5rem' },
-    scanBtn: { padding: '1rem 3rem', fontSize: '1.5rem', backgroundColor: '#2563eb', color: 'white', borderRadius: '1rem', border: 'none', fontWeight: 'bold', cursor: 'pointer' },
-    shieldBox: { display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#059669', fontSize: '0.9rem', fontWeight: 'bold' },
-    success: { display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', gap: '2rem' },
-    balanceSummary: { backgroundColor: '#eff6ff', border: '2px solid #bfdbfe', padding: '2rem', borderRadius: '1.5rem', width: '100%' },
-    statementMini: { marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', textAlign: 'left', fontSize: '0.9rem' },
-    stRow: { display: 'flex', justifyContent: 'space-between', padding: '0.5rem', borderBottom: '1px dashed #bfdbfe' },
-    successTitle: { fontSize: '2.5rem', color: '#2563eb', margin: 0 },
-    cashNotice: { display: 'flex', alignItems: 'center', gap: '1rem', color: '#059669', fontWeight: 'bold', fontSize: '1.2rem' },
-    actions: { display: 'flex', gap: '1rem', flexDirection: 'column', width: '100%' },
-    receiptBtn: { padding: '1rem', border: '2px solid #2563eb', color: '#2563eb', borderRadius: '1rem', fontWeight: 'bold', cursor: 'pointer' },
-    homeBtn: { padding: '1rem', backgroundColor: '#333', color: 'white', borderRadius: '1rem', fontWeight: 'bold', cursor: 'pointer' }
+    container: { display: 'flex', flexDirection: 'column', gap: '2rem' },
+    tabBar: { display: 'flex', gap: '2rem', borderBottom: '1px solid #e2e8f0', marginBottom: '1rem' },
+    tabBtn: { padding: '1rem', background: 'none', border: 'none', fontWeight: 700, cursor: 'pointer', transition: 'all 0.2s' },
+    card: { background: 'white', padding: '3rem', borderRadius: '32px', border: '1px solid #f1f5f9' },
+    stepContainer: { display: 'flex', flexDirection: 'column', gap: '2rem', alignItems: 'center', textAlign: 'center' },
+    cardTitle: { fontSize: '1.5rem', fontWeight: 900, color: '#1e293b', margin: 0 },
+    cardSub: { fontSize: '0.95rem', color: '#64748b', margin: 0 },
+    typeGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', width: '100%', maxWidth: '500px' },
+    typeBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem', padding: '1.5rem', borderRadius: '20px', border: '1px solid #e2e8f0', background: '#f8fafc', cursor: 'pointer', color: '#2563eb', fontWeight: 800 },
+    inputGroup: { width: '100%', maxWidth: '400px', textAlign: 'left' },
+    label: { fontSize: '0.85rem', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', marginBottom: '0.5rem', display: 'block' },
+    input: { width: '100%', padding: '1rem', borderRadius: '12px', border: '1px solid #e2e8f0', background: '#f8fafc', fontSize: '1.25rem', textAlign: 'center', outline: 'none' },
+    bankGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', width: '100%', maxWidth: '500px' },
+    bankBtn: { padding: '1rem', borderRadius: '16px', border: '1px solid #e2e8f0', background: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' },
+    bankLogo: { width: '32px', height: '32px', borderRadius: '50%', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 900 },
+    primaryBtn: { width: '100%', maxWidth: '400px', padding: '1.25rem', borderRadius: '16px', background: '#2563eb', color: 'white', border: 'none', fontWeight: 800, cursor: 'pointer' },
+    secondaryBtn: { width: '100%', maxWidth: '400px', padding: '1.25rem', borderRadius: '16px', background: 'white', color: '#2563eb', border: '2px solid #2563eb', fontWeight: 800, cursor: 'pointer' },
+    bioBox: { padding: '2rem', background: '#f8fafc', borderRadius: '32px', width: '100%', maxWidth: '400px', border: '1px dashed #cbd5e1' },
+    success: { display: 'flex', flexDirection: 'column', gap: '2rem', alignItems: 'center', width: '100%' },
+    amountCircle: { width: '180px', height: '180px', borderRadius: '50%', border: '8px solid #dcfce7', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f0fdf4' },
+    successText: { fontSize: '1.75rem', fontWeight: 900, color: '#1e293b', margin: 0 },
+    actionRow: { display: 'flex', gap: '1rem', width: '100%', maxWidth: '500px' },
+    statementBox: { width: '100%', maxWidth: '500px', textAlign: 'left' },
+    sectionTitle: { fontSize: '1.1rem', fontWeight: 800, color: '#1e293b', marginBottom: '1.5rem' },
+    stRow: { display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid #f1f5f9' },
+    dbtGrid: { display: 'flex', flexDirection: 'column', gap: '1rem', width: '100%', maxWidth: '600px' },
+    dbtItem: { padding: '1.5rem', borderRadius: '20px', border: '1px solid #f1f5f9', background: '#f8fafc' },
+    dbtHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' },
+    dbtName: { fontWeight: 800, color: '#1e293b' },
+    dbtStatus: { padding: '0.4rem 0.8rem', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 800 },
+    dbtBody: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' },
+    dbtAmt: { fontSize: '1.5rem', fontWeight: 900, color: '#1e293b' },
+    dbtDate: { fontSize: '0.85rem', color: '#94a3b8' },
+    insGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1.5rem', width: '100%' },
+    insCard: { padding: '1.5rem', borderRadius: '24px', border: '1px solid #f1f5f9', background: 'white', textAlign: 'left', display: 'flex', flexDirection: 'column', gap: '1rem' },
+    insName: { margin: 0, fontSize: '1.1rem', fontWeight: 800, color: '#1e293b' },
+    insDesc: { margin: 0, fontSize: '0.85rem', color: '#64748b', lineHeight: 1.5 },
+    insFooter: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' },
+    enrollBtn: { padding: '0.6rem 1rem', borderRadius: '12px', background: '#1e293b', color: 'white', border: 'none', fontWeight: 700, cursor: 'pointer' }
 };

@@ -7,7 +7,7 @@ import { QrCode, Smartphone, X, CheckCircle2, Share2 } from 'lucide-react';
 
 export default function QRConnect() {
     const { language } = useAppState();
-    const t = translations[language] || translations.en;
+    const t = (translations[language] || translations.en) as any;
     const [isOpen, setIsOpen] = useState(false);
     const [step, setStep] = useState(1); // 1: Initial, 2: Connected
 

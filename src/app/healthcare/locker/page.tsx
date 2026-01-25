@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Archive, ArrowLeft, Plus, FileText, Share2, Eye, Calendar, User } from 'lucide-react';
+import { Archive, ArrowLeft, Plus, FileText, Share2, Eye, Calendar, User, LayoutDashboard, History } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import AethelLayout from '@/components/AethelLayout';
 
 export default function HealthLockerPage() {
     const router = useRouter();
@@ -12,52 +13,65 @@ export default function HealthLockerPage() {
         { id: 3, name: 'COVID-19 Vaccination', date: '20 Dec 2025', type: 'Certificate', provider: 'PHC Centre' },
     ]);
 
+    const sidebarLinks = [
+        { label: 'Health Center', icon: <LayoutDashboard size={20} />, href: '/healthcare' },
+        { label: 'Medical Locker', icon: <Archive size={20} />, href: '/healthcare/locker', active: true },
+        { label: 'Action History', icon: <History size={20} />, href: '/transactions' },
+    ];
+
     return (
-        <div style={styles.container}>
-            <div style={styles.header}>
-                <button onClick={() => router.back()} style={styles.backBtn}>
-                    <ArrowLeft size={32} />
-                </button>
-                <div style={{ flex: 1 }}>
-                    <h1 style={styles.title}>Health Locker 📁</h1>
-                    <p style={styles.subtitle}>Securely store and share your medical records</p>
-                </div>
-                <button style={styles.uploadBtn}>
-                    <Plus size={20} /> Add Record
-                </button>
-            </div>
-
-            <div style={styles.grid}>
-                {docs.map(doc => (
-                    <div key={doc.id} style={styles.docCard}>
-                        <div style={styles.docIcon}>
-                            <FileText size={32} color="#ec4899" />
-                        </div>
-                        <div style={styles.docContent}>
-                            <h3 style={styles.docName}>{doc.name}</h3>
-                            <div style={styles.docMeta}>
-                                <span><Calendar size={14} /> {doc.date}</span>
-                                <span><User size={14} /> {doc.provider}</span>
-                            </div>
-                            <span style={styles.typeBadge}>{doc.type}</span>
-                        </div>
-                        <div style={styles.docActions}>
-                            <button style={styles.iconBtn}><Eye size={18} /></button>
-                            <button style={styles.iconBtn}><Share2 size={18} /></button>
-                        </div>
+        <AethelLayout
+            title="Medical Locker"
+            themeColor="var(--theme-ruby)"
+            themeSoft="var(--theme-ruby-soft)"
+            sidebarLinks={sidebarLinks}
+        >
+            <div style={styles.container}>
+                <div style={styles.header}>
+                    <button onClick={() => router.back()} style={styles.backBtn}>
+                        <ArrowLeft size={32} />
+                    </button>
+                    <div style={{ flex: 1 }}>
+                        <h1 style={styles.title}>Secure Storage 📁</h1>
+                        <p style={styles.subtitle}>Verified medical records under National Health Stack</p>
                     </div>
-                ))}
-            </div>
-
-            <div style={styles.consentCard}>
-                <div style={styles.consentHeader}>
-                    <Share2 size={24} color="#ec4899" />
-                    <h3>Share with Healthcare Provider</h3>
+                    <button style={styles.uploadBtn}>
+                        <Plus size={20} /> Add New Record
+                    </button>
                 </div>
-                <p>Generate a secure link or OTP to share your selected records with a doctor for 24 hours.</p>
-                <button style={styles.shareBtn}>Generate Share Code</button>
+
+                <div style={styles.grid}>
+                    {docs.map(doc => (
+                        <div key={doc.id} style={styles.docCard}>
+                            <div style={styles.docIcon}>
+                                <FileText size={32} color="#ec4899" />
+                            </div>
+                            <div style={styles.docContent}>
+                                <h3 style={styles.docName}>{doc.name}</h3>
+                                <div style={styles.docMeta}>
+                                    <span><Calendar size={14} /> {doc.date}</span>
+                                    <span><User size={14} /> {doc.provider}</span>
+                                </div>
+                                <span style={styles.typeBadge}>{doc.type}</span>
+                            </div>
+                            <div style={styles.docActions}>
+                                <button style={styles.iconBtn}><Eye size={18} /></button>
+                                <button style={styles.iconBtn}><Share2 size={18} /></button>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div style={styles.consentCard}>
+                    <div style={styles.consentHeader}>
+                        <Share2 size={24} color="#ec4899" />
+                        <h3>Share with Verified Providers</h3>
+                    </div>
+                    <p>Generate a sovereign link to share selected medical history with AI-doctors or hospitals.</p>
+                    <button style={styles.shareBtn}>Generate Access Code</button>
+                </div>
             </div>
-        </div>
+        </AethelLayout>
     );
 }
 

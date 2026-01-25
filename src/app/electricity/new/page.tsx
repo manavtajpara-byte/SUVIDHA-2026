@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 
 export default function NewConnectionPage() {
     const { language } = useAppState();
-    const t = translations[language];
+    const t = translations[language] || translations.en;
     const router = useRouter();
     const [name, setName] = useState('');
     const [mobile, setMobile] = useState('');
@@ -27,7 +27,7 @@ export default function NewConnectionPage() {
                 <button onClick={() => router.back()} style={styles.backBtn}>
                     <ArrowLeft size={32} />
                 </button>
-                <h2 style={styles.title}>{t.newConnection}</h2>
+                <h2 style={styles.title}>{'newConnection' in t ? t.newConnection : 'New Connection'}</h2>
             </div>
 
             <div style={styles.stepper}>

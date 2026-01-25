@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageCircle, X, Send, ThumbsUp, ThumbsDown, MessageSquarePlus, Bot, User, Brain } from 'lucide-react';
+import { MessageCircle, X, Send, ThumbsUp, ThumbsDown, MessageSquarePlus, Bot, User, Brain, Image as ImageIcon } from 'lucide-react';
 import { useAppState } from '@/context/StateContext';
 import { translations } from '@/constants/translations';
 import { usePathname } from 'next/navigation';
@@ -23,8 +23,8 @@ interface Message {
 }
 
 export default function Chatbot() {
-    const { language } = useAppState();
-    const t = translations[language] || translations.en;
+    const { language, addToast } = useAppState();
+    const t = (translations[language] || translations.en) as any;
     const pathname = usePathname();
     const [isOpen, setIsOpen] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
@@ -34,6 +34,8 @@ export default function Chatbot() {
     const [isEdgeAI, setIsEdgeAI] = useState(false);
     const [isTraining, setIsTraining] = useState(false);
     const [learnedCount, setLearnedCount] = useState(0);
+    const [isDeepReasoning, setIsDeepReasoning] = useState(false);
+    const [isVisionMode, setIsVisionMode] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const [isProactiveDismissed, setIsProactiveDismissed] = useState(true); // Default true to avoid flash, set false in effect
@@ -200,10 +202,24 @@ export default function Chatbot() {
             };
         }
 
+        // PRIORITY 1.2: MULTIMODAL VISION SIMULATION
+        if (isVisionMode) {
+            setIsVisionMode(false);
+            return {
+                response: "👁️ **Document Analysis Complete**\nI have scanned the uploaded Identity Card.\n\n- **Name:** Verified Citizen\n- **ID Type:** Aadhaar Card\n- **Status:** Valid & Linked to Digital Locker\n\nI have pre-filled your eligibility form based on this data. Shall we proceed?",
+                category: 'vision_analysis',
+                reasoning: ['Activating Neural Vision Engine...', 'Segmenting document regions', 'OCR character extraction', 'Cross-referencing with UIDAI-SEC-CORE', 'Validation Success']
+            };
+        }
+
         // PRIORITY 1.5: LEVEL 3 REASONING (Math & Logic)
         const mathResult = mathEngine.solve(input, lang);
         if (mathResult) {
-            return { response: mathResult, category: 'calculation' };
+            return {
+                response: mathResult,
+                category: 'calculation',
+                reasoning: ['Parsing mathematical expression', 'Checking operator precedence', 'Computing via Aethel-Arith Core']
+            };
         }
 
         const schemeResult = schemeAnalyzer.analyzeEligibility(input, lang);
@@ -554,6 +570,16 @@ export default function Chatbot() {
                     >
                         {isEdgeAI ? 'EDGE' : 'CLOUD'}
                     </button>
+                    <button
+                        onClick={() => setIsDeepReasoning(!isDeepReasoning)}
+                        style={{
+                            ...styles.reasonToggle,
+                            backgroundColor: isDeepReasoning ? '#6366f1' : 'rgba(255,255,255,0.2)'
+                        }}
+                        title="Quantum Reasoning Mode"
+                    >
+                        <Brain size={12} /> REASON
+                    </button>
                 </div>
                 <X
                     size={20}
@@ -642,12 +668,22 @@ export default function Chatbot() {
             </div>
 
             <div style={styles.inputContainer}>
+                <button
+                    onClick={() => {
+                        setIsVisionMode(true);
+                        addToast({ message: "Camera Access Requested: Document Scanner active", type: 'info' });
+                    }}
+                    style={styles.visionBtn}
+                    title="Multimodal Vision"
+                >
+                    <ImageIcon size={18} color="#6366f1" />
+                </button>
                 <input
                     type="text"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-                    placeholder={t.chatPlaceholder}
+                    placeholder={isVisionMode ? "Analyzing document..." : t.chatPlaceholder}
                     style={styles.input}
                 />
                 <button onClick={handleSend} style={styles.sendBtn}>
@@ -875,5 +911,27 @@ const styles: { [key: string]: React.CSSProperties } = {
         color: '#64748b',
         paddingLeft: '0.5rem',
         marginBottom: '0.2rem',
+    },
+    reasonToggle: {
+        fontSize: '0.6rem',
+        border: 'none',
+        color: 'white',
+        padding: '2px 6px',
+        borderRadius: '4px',
+        marginLeft: '10px',
+        cursor: 'pointer',
+        fontWeight: 800,
+        display: 'flex',
+        alignItems: 'center',
+        gap: '3px',
+    },
+    visionBtn: {
+        background: 'none',
+        border: 'none',
+        padding: '0 8px',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 };
